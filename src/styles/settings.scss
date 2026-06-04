@@ -43,6 +43,25 @@ a:not(:hover) {
     background-color: #333333;
 }
 
+/* #region Hub category palette */
+:root {
+    --dwc-category-blue: 33, 150, 243;
+    --dwc-category-teal: 0, 150, 136;
+    --dwc-category-green: 76, 175, 80;
+    --dwc-category-amber: 255, 193, 7;
+    --dwc-category-indigo: 63, 81, 181;
+    --dwc-category-purple: 156, 39, 176;
+    --dwc-category-red: 244, 67, 54;
+    --dwc-category-pink: 233, 30, 99;
+    --dwc-category-orange: 255, 152, 0;
+    --dwc-category-cyan: 0, 188, 212;
+    --dwc-category-light-green: 139, 195, 74;
+    --dwc-category-deep-purple: 103, 58, 183;
+    --dwc-category-brown: 121, 85, 72;
+    --dwc-category-blue-grey: 96, 125, 139;
+}
+/* #endregion */
+
 /* Make a page-level panel fill the visible viewport below the app bar. --v-layout-top is the
    app-bar height Vuetify publishes on <v-main> (64 px, or larger on sm touchscreens). xs/sm:
    the layout strips outer padding so only the app bar is subtracted; md+: the layout keeps

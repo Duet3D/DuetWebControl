@@ -103,8 +103,10 @@ export interface MenuCategoryDef {
 	order: number;
 
 	/**
-	 * Optional Vuetify color token (e.g. "blue", "amber") used to tint the category's hub tiles
-	 * on xs/sm. Rendered via the v-card `tonal` variant so the tint stays readable in both themes
+	 * Optional hub-tile tint colour for the category, used on the xs/sm hub page. The value names
+	 * a `--dwc-category-<name>` palette var defined in settings.scss (e.g. "blue", "amber",
+	 * "blue-grey"); a plugin may also register its own colour by injecting a matching var. An
+	 * unrecognised name renders the tile untinted
 	 */
 	color?: string;
 }
@@ -157,7 +159,8 @@ export interface MenuItem {
 	conditionKey?: string;
 
 	/**
-	 * Optional Vuetify color token that overrides the category's color for this item's hub tile
+	 * Optional hub-tile tint colour that overrides the category's colour for this item; same
+	 * `--dwc-category-<name>` palette names as {@link MenuCategoryDef.color}
 	 */
 	color?: string;
 

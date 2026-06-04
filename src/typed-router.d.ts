@@ -94,18 +94,18 @@ declare module 'vue-router/auto-routes' {
       Record<never, never>,
       | never
     >,
-    '/Plugins': RouteRecordInfo<
-      '/Plugins',
-      '/Plugins',
-      Record<never, never>,
-      Record<never, never>,
-      | never
-    >,
     '/Settings/[[tab]]': RouteRecordInfo<
       '/Settings/[[tab]]',
       '/Settings/:tab?',
       { tab?: ParamValueZeroOrOne<true> },
       { tab?: ParamValueZeroOrOne<false> },
+      | never
+    >,
+    '/Settings/Plugins': RouteRecordInfo<
+      '/Settings/Plugins',
+      '/Plugins',
+      Record<never, never>,
+      Record<never, never>,
       | never
     >,
     '/Temperatures': RouteRecordInfo<
@@ -200,14 +200,6 @@ declare module 'vue-router/auto-routes' {
       pathParamNames:
         | never
     }
-    'src/pages/Plugins.vue': {
-      routes:
-        | '/Plugins'
-      views:
-        | never
-      pathParamNames:
-        | never
-    }
     'src/pages/Settings/[[tab]].vue': {
       routes:
         | '/Settings/[[tab]]'
@@ -215,6 +207,14 @@ declare module 'vue-router/auto-routes' {
         | never
       pathParamNames:
         | 'tab'
+    }
+    'src/pages/Settings/Plugins.vue': {
+      routes:
+        | '/Settings/Plugins'
+      views:
+        | never
+      pathParamNames:
+        | never
     }
     'src/pages/Temperatures.vue': {
       routes:

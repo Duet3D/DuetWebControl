@@ -144,136 +144,138 @@ export const useExplorerInitialData = defineBasicLoader(async (to): Promise<Expl
 </script>
 
 <template>
-	<v-card class="explorer-card dwc-page-fill d-flex flex-column">
-		<v-toolbar v-if="tabs.length > 1" density="compact" color="surface" class="flex-shrink-0">
-			<v-tabs v-model="activeTab" align-tabs="start" show-arrows density="compact" class="flex-grow-1">
-				<v-tab v-for="tab in tabs" :key="tab.id" :value="tab.id" class="text-none"
-					   :color="isTabDirty(tab) ? 'warning' : undefined"
-					   @dragover="onTabDragOver($event, tab)"
-					   @dragleave="onTabDragLeave"
-					   @drop="onTabDrop($event, tab)">
-					<v-icon size="small" class="mr-2">{{ tabIcon(tab) }}</v-icon>
-					<span class="explorer-tab-label text-truncate">{{ tabLabel(tab) }}{{ isTabDirty(tab) ? " *" : "" }}</span>
-					<v-btn v-if="tabs.length > 1" variant="text" size="small" density="comfortable"
-						   icon class="ml-2" :title="$t('list.explorer.closeTab')"
-						   @click.stop="requestCloseTab(tab.id)">
-						<v-icon size="20">mdi-close</v-icon>
-					</v-btn>
-				</v-tab>
-			</v-tabs>
-
-			<v-btn variant="text" icon :title="$t('list.explorer.newTab')"
-				   @click="addTab(defaultVolume)">
-				<v-icon>mdi-plus</v-icon>
-			</v-btn>
-		</v-toolbar>
-
-		<v-window v-model="activeTab" :touch="false" class="explorer-window flex-grow-1">
-			<v-window-item v-for="tab in tabs" :key="tab.id" :value="tab.id" eager
-						   :transition="windowItemTransition" :reverse-transition="windowItemTransition">
-				<MonacoEditor v-if="tab.kind === 'editor' && tab.filename"
-							  :ref="(el) => setEditorRef(tab.id, el)" :filename="tab.filename"
-							  :initial-content="tab.initialContent" @dirty="tab.dirty = $event" />
-				<FileList v-else v-model:directory="tab.directory"
-						  :options="optionsForTab(tab)"
-						  :root-directory="rootForTab(tab)" :root-label="rootLabelFor(tab)"
-						  no-items-text="list.baseFileList.noFiles" no-view-mode
-						  :firmware-aware="isFirmwareContext(tab.directory)"
-						  @file-click="onFileClick" @file-edit="onFileEdit"
-						  @file-run-macro="onFileRunMacro"
-						  @refresh="onExplorerRefresh">
-					<template #progress>
-						<v-progress-linear v-if="thumbnailProgress !== -1" height="2"
-										   :indeterminate="thumbnailTotal === 0"
-										   :model-value="thumbnailTotal === 0 ? 0 : (thumbnailProgress / thumbnailTotal) * 100" />
-					</template>
-
-					<template #nameIcon="slotProps">
-						<JobThumbnailCell :item="slotProps.item"
-										  :tile="(slotProps as { tile?: boolean }).tile === true" />
-					</template>
-
-					<template v-if="tabs.length === 1" #actions>
-						<v-btn variant="text" icon :title="$t('list.explorer.newTab')"
-							   @click="addTab(defaultVolume)">
-							<v-icon>mdi-plus</v-icon>
+	<div class="route-root">
+		<v-card class="explorer-card dwc-page-fill d-flex flex-column">
+			<v-toolbar v-if="tabs.length > 1" density="compact" color="surface" class="flex-shrink-0">
+				<v-tabs v-model="activeTab" align-tabs="start" show-arrows density="compact" class="flex-grow-1">
+					<v-tab v-for="tab in tabs" :key="tab.id" :value="tab.id" class="text-none"
+						   :color="isTabDirty(tab) ? 'warning' : undefined"
+						   @dragover="onTabDragOver($event, tab)"
+						   @dragleave="onTabDragLeave"
+						   @drop="onTabDrop($event, tab)">
+						<v-icon size="small" class="mr-2">{{ tabIcon(tab) }}</v-icon>
+						<span class="explorer-tab-label text-truncate">{{ tabLabel(tab) }}{{ isTabDirty(tab) ? " *" : "" }}</span>
+						<v-btn v-if="tabs.length > 1" variant="text" size="small" density="comfortable"
+							   icon class="ml-2" :title="$t('list.explorer.closeTab')"
+							   @click.stop="requestCloseTab(tab.id)">
+							<v-icon size="20">mdi-close</v-icon>
 						</v-btn>
-					</template>
-					<template v-if="availableVolumes.length > 1" #upload-prepend>
-						<v-menu>
-							<template #activator="{ props: activatorProps }">
-								<v-btn v-bind="activatorProps" variant="text" icon
-									   :title="$t('list.explorer.volume')">
-									<v-icon>mdi-sd</v-icon>
-								</v-btn>
-							</template>
-							<v-list :density="controlDensity">
-								<v-list-item v-for="vol in availableVolumes" :key="vol"
-											 :active="Path.getVolume(tab.directory ?? '') === vol"
-											 :title="volumeCaption(vol)"
-											 @click="tab.directory = Path.volumeRoot(vol)" />
-							</v-list>
-						</v-menu>
-					</template>
-				</FileList>
-			</v-window-item>
-		</v-window>
-	</v-card>
+					</v-tab>
+				</v-tabs>
 
-	<ConfirmDialog v-model:shown="runMacroDialog.shown"
-				   :title="$t('dialog.runMacro.title', [runMacroDialog.filename])"
-				   :prompt="$t('dialog.runMacro.prompt', [runMacroDialog.filename])" icon="mdi-play"
-				   @confirmed="confirmRunMacro">
-		<template #extra-actions>
-			<v-btn color="blue-darken-1" variant="text" type="button" @click="editMacroFromDialog">
-				<v-icon class="mr-1">mdi-file-document-edit</v-icon>
-				{{ $t("list.fileList.edit") }}
-			</v-btn>
-		</template>
-	</ConfirmDialog>
+				<v-btn variant="text" icon :title="$t('list.explorer.newTab')"
+					   @click="addTab(defaultVolume)">
+					<v-icon>mdi-plus</v-icon>
+				</v-btn>
+			</v-toolbar>
 
-	<ConfirmDialog v-model:shown="startJobDialog.shown"
-				   :title="$t('dialog.startJob.title', [startJobDialog.filename])"
-				   :prompt="$t('dialog.startJob.prompt', [startJobDialog.filename])" icon="mdi-play"
-				   @confirmed="confirmStartJob">
-		<template #extra-actions>
-			<v-btn color="blue-darken-1" variant="text" type="button" @click="editJobFromDialog">
-				<v-icon class="mr-1">mdi-file-document-edit</v-icon>
-				{{ $t("list.fileList.edit") }}
-			</v-btn>
-		</template>
-	</ConfirmDialog>
+			<v-window v-model="activeTab" :touch="false" class="explorer-window flex-grow-1">
+				<v-window-item v-for="tab in tabs" :key="tab.id" :value="tab.id" eager
+							   :transition="windowItemTransition" :reverse-transition="windowItemTransition">
+					<MonacoEditor v-if="tab.kind === 'editor' && tab.filename"
+								  :ref="(el) => setEditorRef(tab.id, el)" :filename="tab.filename"
+								  :initial-content="tab.initialContent" @dirty="tab.dirty = $event" />
+					<FileList v-else v-model:directory="tab.directory"
+							  :options="optionsForTab(tab)"
+							  :root-directory="rootForTab(tab)" :root-label="rootLabelFor(tab)"
+							  no-items-text="list.baseFileList.noFiles" no-view-mode
+							  :firmware-aware="isFirmwareContext(tab.directory)"
+							  @file-click="onFileClick" @file-edit="onFileEdit"
+							  @file-run-macro="onFileRunMacro"
+							  @refresh="onExplorerRefresh">
+						<template #progress>
+							<v-progress-linear v-if="thumbnailProgress !== -1" height="2"
+											   :indeterminate="thumbnailTotal === 0"
+											   :model-value="thumbnailTotal === 0 ? 0 : (thumbnailProgress / thumbnailTotal) * 100" />
+						</template>
 
-	<v-dialog v-model="discardDialog.shown" width="480" persistent no-click-animation>
-		<v-form @submit.prevent="saveAndClose">
-			<v-card>
-				<v-card-title>
-					<v-icon class="mr-1">mdi-content-save-alert</v-icon>
-					{{ $t("dialog.fileEdit.unsaved.title") }}
-				</v-card-title>
-				<v-card-text>{{ $t("dialog.fileEdit.unsaved.prompt", [discardDialog.filename]) }}</v-card-text>
-				<v-card-actions>
-					<v-spacer />
-					<v-btn color="blue-darken-1" variant="text" type="button" @click="cancelClose">
-						{{ $t("generic.cancel") }}
-					</v-btn>
-					<v-btn color="blue-darken-1" variant="text" type="button" @click="discardAndClose">
-						{{ $t("dialog.fileEdit.unsaved.dontSave") }}
-					</v-btn>
-					<v-btn color="blue-darken-1" variant="text" type="submit" autofocus>
-						{{ $t("dialog.fileEdit.unsaved.save") }}
-					</v-btn>
-				</v-card-actions>
-			</v-card>
-		</v-form>
-	</v-dialog>
+						<template #nameIcon="slotProps">
+							<JobThumbnailCell :item="slotProps.item"
+											  :tile="(slotProps as { tile?: boolean }).tile === true" />
+						</template>
 
-	<FirmwareUpdateDialog v-model:shown="sharedFirmwareController.firmwareDialog.shown"
-						  :plan="sharedFirmwareController.firmwareDialog.plan"
-						  @confirmed="sharedFirmwareController.onFirmwareUpdateConfirmed"
-						  @cancelled="sharedFirmwareController.onFirmwareUpdateCancelled" />
+						<template v-if="tabs.length === 1" #actions>
+							<v-btn variant="text" icon :title="$t('list.explorer.newTab')"
+								   @click="addTab(defaultVolume)">
+								<v-icon>mdi-plus</v-icon>
+							</v-btn>
+						</template>
+						<template v-if="availableVolumes.length > 1" #upload-prepend>
+							<v-menu>
+								<template #activator="{ props: activatorProps }">
+									<v-btn v-bind="activatorProps" variant="text" icon
+										   :title="$t('list.explorer.volume')">
+										<v-icon>mdi-sd</v-icon>
+									</v-btn>
+								</template>
+								<v-list :density="controlDensity">
+									<v-list-item v-for="vol in availableVolumes" :key="vol"
+												 :active="Path.getVolume(tab.directory ?? '') === vol"
+												 :title="volumeCaption(vol)"
+												 @click="tab.directory = Path.volumeRoot(vol)" />
+								</v-list>
+							</v-menu>
+						</template>
+					</FileList>
+				</v-window-item>
+			</v-window>
+		</v-card>
 
-	<ConfigUpdatedDialog v-model:shown="sharedFirmwareController.configUpdatedDialog.shown" />
+		<ConfirmDialog v-model:shown="runMacroDialog.shown"
+					   :title="$t('dialog.runMacro.title', [runMacroDialog.filename])"
+					   :prompt="$t('dialog.runMacro.prompt', [runMacroDialog.filename])" icon="mdi-play"
+					   @confirmed="confirmRunMacro">
+			<template #extra-actions>
+				<v-btn color="blue-darken-1" variant="text" type="button" @click="editMacroFromDialog">
+					<v-icon class="mr-1">mdi-file-document-edit</v-icon>
+					{{ $t("list.fileList.edit") }}
+				</v-btn>
+			</template>
+		</ConfirmDialog>
+
+		<ConfirmDialog v-model:shown="startJobDialog.shown"
+					   :title="$t('dialog.startJob.title', [startJobDialog.filename])"
+					   :prompt="$t('dialog.startJob.prompt', [startJobDialog.filename])" icon="mdi-play"
+					   @confirmed="confirmStartJob">
+			<template #extra-actions>
+				<v-btn color="blue-darken-1" variant="text" type="button" @click="editJobFromDialog">
+					<v-icon class="mr-1">mdi-file-document-edit</v-icon>
+					{{ $t("list.fileList.edit") }}
+				</v-btn>
+			</template>
+		</ConfirmDialog>
+
+		<v-dialog v-model="discardDialog.shown" width="480" persistent no-click-animation>
+			<v-form @submit.prevent="saveAndClose">
+				<v-card>
+					<v-card-title>
+						<v-icon class="mr-1">mdi-content-save-alert</v-icon>
+						{{ $t("dialog.fileEdit.unsaved.title") }}
+					</v-card-title>
+					<v-card-text>{{ $t("dialog.fileEdit.unsaved.prompt", [discardDialog.filename]) }}</v-card-text>
+					<v-card-actions>
+						<v-spacer />
+						<v-btn color="blue-darken-1" variant="text" type="button" @click="cancelClose">
+							{{ $t("generic.cancel") }}
+						</v-btn>
+						<v-btn color="blue-darken-1" variant="text" type="button" @click="discardAndClose">
+							{{ $t("dialog.fileEdit.unsaved.dontSave") }}
+						</v-btn>
+						<v-btn color="blue-darken-1" variant="text" type="submit" autofocus>
+							{{ $t("dialog.fileEdit.unsaved.save") }}
+						</v-btn>
+					</v-card-actions>
+				</v-card>
+			</v-form>
+		</v-dialog>
+
+		<FirmwareUpdateDialog v-model:shown="sharedFirmwareController.firmwareDialog.shown"
+							  :plan="sharedFirmwareController.firmwareDialog.plan"
+							  @confirmed="sharedFirmwareController.onFirmwareUpdateConfirmed"
+							  @cancelled="sharedFirmwareController.onFirmwareUpdateCancelled" />
+
+		<ConfigUpdatedDialog v-model:shown="sharedFirmwareController.configUpdatedDialog.shown" />
+	</div>
 </template>
 
 <script setup lang="ts">

@@ -49,6 +49,7 @@ declare module 'vue' {
     GCodeFileInfoDialog: typeof import('./components/dialogs/GCodeFileInfoDialog.vue')['default']
     GlobalUploadOverlay: typeof import('./components/misc/GlobalUploadOverlay.vue')['default']
     HeaterRows: typeof import('./components/panels/ToolsPanel/ControlList/HeaterRows.vue')['default']
+    HubTiles: typeof import('./components/misc/HubTiles.vue')['default']
     IncompatibleVersionsDialog: typeof import('./components/dialogs/IncompatibleVersionsDialog.vue')['default']
     InputDialog: typeof import('./components/dialogs/InputDialog.vue')['default']
     InputDialogQueue: typeof import('./components/dialogs/InputDialogQueue.vue')['default']

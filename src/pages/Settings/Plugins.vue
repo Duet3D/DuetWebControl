@@ -1,5 +1,6 @@
 <route lang="json">
 {
+	"path": "/Plugins",
 	"meta": {
 		"menu": {
 			"category": "preferences",
@@ -12,108 +13,110 @@
 </route>
 
 <template>
-	<v-card>
-		<v-alert v-if="plugins.length === 0" type="info" variant="tonal" tile class="ma-0">
-			{{ $t("settings.plugins.noPlugins") }}
+	<div class="route-root">
+		<v-card>
+			<v-alert v-if="plugins.length === 0" type="info" variant="tonal" tile class="ma-0">
+				{{ $t("settings.plugins.noPlugins") }}
+			</v-alert>
+
+			<v-table v-else density="compact">
+				<thead>
+					<tr>
+						<th class="text-left">{{ $t("settings.plugins.headers.name") }}</th>
+						<th class="text-left d-none d-sm-table-cell">{{ $t("settings.plugins.headers.author") }}</th>
+						<th class="text-left d-none d-md-table-cell">{{ $t("settings.plugins.headers.version") }}</th>
+						<th class="text-left d-none d-sm-table-cell">{{ $t("settings.plugins.headers.license") }}</th>
+						<th class="text-left">{{ $t("settings.plugins.headers.status") }}</th>
+						<th style="width: 1%;">
+							<div class="d-flex align-center justify-end">
+								<v-btn color="primary" density="comfortable" :loading="installing"
+									   :disabled="!machineStore.isConnected" @click="pickPluginZip">
+									<v-icon class="mr-1">mdi-cloud-upload</v-icon>
+									{{ $t("settings.plugins.install") }}
+								</v-btn>
+							</div>
+						</th>
+					</tr>
+				</thead>
+				<tbody>
+					<tr v-for="plugin in plugins" :key="plugin.id">
+						<td class="py-1">
+							<div>
+								{{ plugin.name }}
+								<span class="d-md-none text-medium-emphasis">v{{ plugin.version }}</span>
+								<v-chip v-if="isBuiltin(plugin.id)" size="x-small" class="ml-2">
+									{{ $t("settings.plugins.builtin") }}
+								</v-chip>
+							</div>
+							<div v-if="pluginRequirements(plugin.id)"
+								 class="text-body-small text-medium-emphasis">
+								{{ $t("settings.plugins.requires", [pluginRequirements(plugin.id)]) }}
+							</div>
+						</td>
+						<td class="d-none d-sm-table-cell">{{ plugin.author }}</td>
+						<td class="d-none d-md-table-cell">{{ plugin.version }}</td>
+						<td class="d-none d-sm-table-cell">{{ plugin.license || $t("generic.noValue") }}</td>
+						<td>
+							<v-chip size="small" :color="pluginStatusColor[pluginStatus(plugin.id)]">
+								{{ $t(`settings.plugins.${pluginStatus(plugin.id)}`) }}
+							</v-chip>
+						</td>
+						<td class="text-center text-md-right py-2 text-no-wrap">
+							<template v-if="mdAndUp">
+								<v-btn v-if="isStarted(plugin.id)" variant="elevated" color="warning"
+									   class="me-3 plugin-action-btn"
+									   :title="$t('settings.plugins.stop')"
+									   :loading="busyPluginId === plugin.id" @click="stop(plugin.id)">
+									<v-icon class="me-1">mdi-stop</v-icon>
+									{{ $t("settings.plugins.stop") }}
+								</v-btn>
+								<v-btn v-else variant="elevated" color="success" class="me-3 plugin-action-btn"
+									   :title="startTooltip(plugin.id)"
+									   :disabled="!canStart(plugin.id)"
+									   :loading="busyPluginId === plugin.id" @click="start(plugin.id)">
+									<v-icon class="me-1">mdi-play</v-icon>
+									{{ $t("settings.plugins.start") }}
+								</v-btn>
+								<v-btn variant="elevated" color="error" class="plugin-action-btn"
+									   :title="uninstallTooltip(plugin.id)"
+									   :disabled="!canUninstall(plugin.id)"
+									   :loading="busyPluginId === plugin.id" @click="askUninstall(plugin)">
+									<v-icon class="me-1">mdi-delete</v-icon>
+									{{ $t("settings.plugins.uninstall") }}
+								</v-btn>
+							</template>
+							<template v-else>
+								<v-btn v-if="isStarted(plugin.id)" icon="mdi-stop" variant="outlined"
+									   color="warning" :title="$t('settings.plugins.stop')"
+									   :loading="busyPluginId === plugin.id" @click="stop(plugin.id)" />
+								<v-btn v-else icon="mdi-play" variant="outlined" color="success"
+									   :title="startTooltip(plugin.id)"
+									   :disabled="!canStart(plugin.id)"
+									   :loading="busyPluginId === plugin.id" @click="start(plugin.id)" />
+								<v-btn icon="mdi-delete" variant="outlined" color="error" class="ms-2"
+									   :title="uninstallTooltip(plugin.id)"
+									   :disabled="!canUninstall(plugin.id)"
+									   :loading="busyPluginId === plugin.id" @click="askUninstall(plugin)" />
+							</template>
+						</td>
+					</tr>
+				</tbody>
+			</v-table>
+		</v-card>
+
+		<v-alert v-if="dwcPluginsUnloaded" type="info" variant="tonal" closable class="mt-3"
+				 @update:model-value="dwcPluginsUnloaded = false">
+			<div class="d-flex align-center">
+				<span class="flex-grow-1">{{ $t("settings.plugins.refreshNote") }}</span>
+				<v-btn class="ms-2" variant="text" density="comfortable"
+					   prepend-icon="mdi-refresh" @click="reloadDwc">
+					{{ $t("settings.plugins.refreshNow") }}
+				</v-btn>
+			</div>
 		</v-alert>
 
-		<v-table v-else density="compact">
-			<thead>
-				<tr>
-					<th class="text-left">{{ $t("settings.plugins.headers.name") }}</th>
-					<th class="text-left d-none d-sm-table-cell">{{ $t("settings.plugins.headers.author") }}</th>
-					<th class="text-left d-none d-md-table-cell">{{ $t("settings.plugins.headers.version") }}</th>
-					<th class="text-left d-none d-sm-table-cell">{{ $t("settings.plugins.headers.license") }}</th>
-					<th class="text-left">{{ $t("settings.plugins.headers.status") }}</th>
-					<th style="width: 1%;">
-						<div class="d-flex align-center justify-end">
-							<v-btn color="primary" density="comfortable" :loading="installing"
-								   :disabled="!machineStore.isConnected" @click="pickPluginZip">
-								<v-icon class="mr-1">mdi-cloud-upload</v-icon>
-								{{ $t("settings.plugins.install") }}
-							</v-btn>
-						</div>
-					</th>
-				</tr>
-			</thead>
-			<tbody>
-				<tr v-for="plugin in plugins" :key="plugin.id">
-					<td class="py-1">
-						<div>
-							{{ plugin.name }}
-							<span class="d-md-none text-medium-emphasis">v{{ plugin.version }}</span>
-							<v-chip v-if="isBuiltin(plugin.id)" size="x-small" class="ml-2">
-								{{ $t("settings.plugins.builtin") }}
-							</v-chip>
-						</div>
-						<div v-if="pluginRequirements(plugin.id)"
-							 class="text-body-small text-medium-emphasis">
-							{{ $t("settings.plugins.requires", [pluginRequirements(plugin.id)]) }}
-						</div>
-					</td>
-					<td class="d-none d-sm-table-cell">{{ plugin.author }}</td>
-					<td class="d-none d-md-table-cell">{{ plugin.version }}</td>
-					<td class="d-none d-sm-table-cell">{{ plugin.license || $t("generic.noValue") }}</td>
-					<td>
-						<v-chip size="small" :color="pluginStatusColor[pluginStatus(plugin.id)]">
-							{{ $t(`settings.plugins.${pluginStatus(plugin.id)}`) }}
-						</v-chip>
-					</td>
-					<td class="text-center text-md-right py-2 text-no-wrap">
-						<template v-if="mdAndUp">
-							<v-btn v-if="isStarted(plugin.id)" variant="elevated" color="warning"
-								   class="me-3 plugin-action-btn"
-								   :title="$t('settings.plugins.stop')"
-								   :loading="busyPluginId === plugin.id" @click="stop(plugin.id)">
-								<v-icon class="me-1">mdi-stop</v-icon>
-								{{ $t("settings.plugins.stop") }}
-							</v-btn>
-							<v-btn v-else variant="elevated" color="success" class="me-3 plugin-action-btn"
-								   :title="startTooltip(plugin.id)"
-								   :disabled="!canStart(plugin.id)"
-								   :loading="busyPluginId === plugin.id" @click="start(plugin.id)">
-								<v-icon class="me-1">mdi-play</v-icon>
-								{{ $t("settings.plugins.start") }}
-							</v-btn>
-							<v-btn variant="elevated" color="error" class="plugin-action-btn"
-								   :title="uninstallTooltip(plugin.id)"
-								   :disabled="!canUninstall(plugin.id)"
-								   :loading="busyPluginId === plugin.id" @click="askUninstall(plugin)">
-								<v-icon class="me-1">mdi-delete</v-icon>
-								{{ $t("settings.plugins.uninstall") }}
-							</v-btn>
-						</template>
-						<template v-else>
-							<v-btn v-if="isStarted(plugin.id)" icon="mdi-stop" variant="outlined"
-								   color="warning" :title="$t('settings.plugins.stop')"
-								   :loading="busyPluginId === plugin.id" @click="stop(plugin.id)" />
-							<v-btn v-else icon="mdi-play" variant="outlined" color="success"
-								   :title="startTooltip(plugin.id)"
-								   :disabled="!canStart(plugin.id)"
-								   :loading="busyPluginId === plugin.id" @click="start(plugin.id)" />
-							<v-btn icon="mdi-delete" variant="outlined" color="error" class="ms-2"
-								   :title="uninstallTooltip(plugin.id)"
-								   :disabled="!canUninstall(plugin.id)"
-								   :loading="busyPluginId === plugin.id" @click="askUninstall(plugin)" />
-						</template>
-					</td>
-				</tr>
-			</tbody>
-		</v-table>
-	</v-card>
-
-	<v-alert v-if="dwcPluginsUnloaded" type="info" variant="tonal" closable class="mt-3"
-			 @update:model-value="dwcPluginsUnloaded = false">
-		<div class="d-flex align-center">
-			<span class="flex-grow-1">{{ $t("settings.plugins.refreshNote") }}</span>
-			<v-btn class="ms-2" variant="text" density="comfortable"
-				   prepend-icon="mdi-refresh" @click="reloadDwc">
-				{{ $t("settings.plugins.refreshNow") }}
-			</v-btn>
-		</div>
-	</v-alert>
-
-	<input ref="pluginInput" type="file" accept=".zip" hidden @change="onPluginPicked" />
+		<input ref="pluginInput" type="file" accept=".zip" hidden @change="onPluginPicked" />
+	</div>
 </template>
 
 <script setup lang="ts">

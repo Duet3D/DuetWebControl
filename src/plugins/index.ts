@@ -629,6 +629,12 @@ export async function loadDwcPlugin(id: string, saveSettings = true): Promise<vo
 	const builtIn = builtInPlugins.find(p => p.id === id);
 	if (builtIn) {
 		await loadBuiltInPlugin(builtIn);
+	} else if (import.meta.env.DEV) {
+		// External plugins are served from the board's filesystem, which the dev server can't
+		// provide, so fetching their JS/CSS would 404. Skip the load in dev rather than letting
+		// every board-enabled plugin raise a spurious load failure
+		console.warn(`Skipping external plugin "${id}": external plugins are only available in production builds`);
+		return;
 	} else {
 		await loadExternalPlugin(id);
 	}

@@ -97,59 +97,44 @@
 		</v-navigation-drawer>
 
 		<v-main>
-			<template v-if="showHub">
-				<v-container class="pa-3">
-					<v-row density="compact">
-						<v-col v-for="item in menuStore.allItems" :key="item.path" cols="6" sm="3">
-							<v-card :to="hubTilePath(item)" min-height="110" variant="flat"
-									:style="hubTileStyle(item)"
-									class="d-flex flex-column align-center justify-center pa-3 h-100 position-relative">
-								<NavMenuBadge v-if="resolveBadge(item)" :badge="resolveBadge(item)!"
-											  size="default" no-clear class="hub-tile-badge" />
-								<v-icon :icon="item.icon" size="36" class="mb-2" />
-								<span class="text-title-medium text-center">
-									{{ item.translated ? item.caption : $t(item.caption) }}
-								</span>
-							</v-card>
-						</v-col>
-					</v-row>
-				</v-container>
-			</template>
-			<div v-show="!showHub">
-				<v-container v-if="statusPanelVisible" class="global-container" fluid>
-					<FFFContainerPanel v-if="uiStore.isFFF" />
-					<CNCContainerPanel v-else />
-				</v-container>
-				<v-divider v-if="statusPanelVisible" />
+			<v-expand-transition>
+				<div v-if="statusPanelVisible">
+					<v-container class="global-container" fluid>
+						<FFFContainerPanel v-if="uiStore.isFFF" />
+						<CNCContainerPanel v-else />
+					</v-container>
+					<v-divider />
+				</div>
+			</v-expand-transition>
 
-				<v-container fluid class="pa-0 pa-md-4">
-					<router-view v-slot="{ Component, route }">
-						<keep-alive>
-							<component :is="route.meta.keepAlive ? Component : KeepAliveSink" />
+			<v-container fluid class="pa-0 pa-md-4 route-area">
+				<router-view v-slot="{ Component }">
+					<!-- Below md the `/` route renders the nav hub, so navigating to/from it slides
+						 the hub and the destination page together (transitionName is set by the
+						 route guard). Every other navigation leaves transitionName empty and stays
+						 instant. The transition keys off the component type, so it fires on a real
+						 route change but not on in-route param changes (e.g. browsing folders).
+						 include caches the Explorer route across navigations - its component is named
+						 "Explorer"; any further keep-alive route must defineOptions a name listed here -->
+					<Transition :name="transitionName">
+						<keep-alive :include="keepAliveInclude">
+							<component :is="Component" />
 						</keep-alive>
-						<component v-if="!route.meta.keepAlive" :is="Component" />
-					</router-view>
-				</v-container>
-			</div>
-
+					</Transition>
+				</router-view>
+			</v-container>
 		</v-main>
 	</v-app>
 </template>
 
 <script setup lang="ts">
-import { defineComponent } from "vue";
 import { useDisplay } from "vuetify";
+// Transitions are declared as `export const` in vuetify/components, which the global
+// component scanner (vite/dwc-vuetify-split) doesn't pick up, so import this one directly
+import { VExpandTransition } from "vuetify/components";
 
 import i18n from "@/i18n";
 
-// Inert placeholder shown inside <keep-alive> whenever the active route opts out of caching.
-// KeepAlive requires exactly one child; we can't conditionally unmount the wrapper itself
-// without dropping all cached entries, so we park this stub in the slot instead. Routes opt
-// into caching with `meta.keepAlive: true` in their <route> block
-const KeepAliveSink = defineComponent({
-	name: "KeepAliveSink",
-	render: () => null,
-});
 import { MachineStatus } from "@duet3d/objectmodel";
 
 import { useMachineStore } from "@/stores/machine";
@@ -191,12 +176,41 @@ const machineName = computed(() => machineStore.model.network.name || "Duet Web 
 const showConnectButton = import.meta.env.DEV;
 
 const isAtHub = computed(() => route.path === "/");
-// md+ always renders the panel; xs/sm follows the per-user setting toggled from the app-bar
-const statusPanelVisible = computed(() => isMdAndUp.value || settingsStore.showStatusPanel);
+// Below md the `/` route renders the nav hub instead of the dashboard; the status container is the
+// dashboard's own chrome, so suppress it there. md+ always shows it; xs/sm follows the per-user
+// setting toggled from the app-bar
+const showHub = computed(() => !isMdAndUp.value && isAtHub.value && menuStore.allItems.length > 0);
+const statusPanelVisible = computed(() => (isMdAndUp.value || settingsStore.showStatusPanel) && !showHub.value);
 const showDrawerToggle = computed(() => isMdAndUp.value);
 const showBackButton = computed(() => !isMdAndUp.value && !isAtHub.value);
-// Only show the hub when there is at least one tile to render; otherwise the placeholder route content renders normally
-const showHub = computed(() => !isMdAndUp.value && isAtHub.value && menuStore.allItems.length > 0);
+
+// Component names of routes that opt into keep-alive caching; matched by <keep-alive include>
+const keepAliveInclude = ["Explorer"];
+
+// Directional slide between the hub (`/` below md) and a page. Set in a navigation guard so it is
+// correct before the route component swaps; left empty for page-to-page and all md+ navigation,
+// which keeps the router-view transition inert. Compared by top-level segment so a page redirecting
+// to a default subroute (Settings -> Settings/General, Explorer -> a tab) doesn't reset the slide
+const transitionName = ref("");
+function topLevelPath(path: string): string {
+	return "/" + (path.split("/")[1] ?? "");
+}
+const stopTransitionGuard = router.beforeEach((to, from) => {
+	const toTop = topLevelPath(to.path);
+	const fromTop = topLevelPath(from.path);
+	if (toTop === fromTop) {
+		return;
+	}
+	const canSlide = !isMdAndUp.value && menuStore.allItems.length > 0;
+	if (canSlide && toTop === "/" && fromTop !== "/") {
+		transitionName.value = "hub-back";
+	} else if (canSlide && fromTop === "/" && toTop !== "/") {
+		transitionName.value = "hub-forward";
+	} else {
+		transitionName.value = "";
+	}
+});
+onUnmounted(stopTransitionGuard);
 
 // Force-expanded list: writable model that we keep in sync with the visible category keys
 const openedCategories = ref<string[]>([]);
@@ -243,34 +257,6 @@ function resolveBadge(item: MenuItem): MenuBadge | null {
 	return item.badge?.() ?? null;
 }
 
-// Hub tiles point at each menu item's path. The Dashboard item's path is `/`, but the hub itself
-// also lives at `/`, so a literal `/` link would be a self-navigation vue-router treats as a
-// no-op. Route through the wrapper at src/pages/Dashboard.vue (a distinct route record that
-// renders index.vue's content) so the tile actually navigates. The drawer's Dashboard link at
-// md+ stays on `/` because the hub doesn't render at md+ - no self-nav concern there
-function hubTilePath(item: MenuItem): string {
-	return item.path === "/" ? "/Dashboard" : item.path;
-}
-
-// RGB triples sit alongside the Vuetify palette names so a very low opacity overlay tints the
-// tile without going opaque. Theme-agnostic - the same low-alpha colour reads as a subtle
-// pastel on light surfaces and a soft glow on dark surfaces
-const HUB_TILE_RGB: Record<string, string> = {
-	blue:   "33, 150, 243",
-	teal:   "0, 150, 136",
-	green:  "76, 175, 80",
-	amber:  "255, 193, 7",
-	indigo: "63, 81, 181",
-	purple: "156, 39, 176",
-};
-
-function hubTileStyle(item: MenuItem): Record<string, string> {
-	const category = menuStore.categories.find((c) => c.key === item.category);
-	const colorName = item.color ?? category?.color;
-	const rgb = colorName ? HUB_TILE_RGB[colorName] : null;
-	return rgb ? { backgroundColor: `rgba(${rgb}, 0.08)` } : {};
-}
-
 // Flatten a single-item category only when the parent label mirrors the child's. Settings>Settings
 // reads as duplicated; Job>Status carries distinct meaning even with only one child today
 function shouldFlattenCategory(category: MenuCategoryDef): boolean {
@@ -294,10 +280,37 @@ function shouldFlattenCategory(category: MenuCategoryDef): boolean {
 	.machine-name { max-width: none; }
 }
 
-.hub-tile-badge {
+.route-area {
+	position: relative;
+}
+@media (max-width: 839.98px) {
+	.route-area { overflow-x: clip; }
+}
+
+.hub-forward-enter-active,
+.hub-forward-leave-active,
+.hub-back-enter-active,
+.hub-back-leave-active {
+	transition: transform 0.25s ease;
+}
+.hub-forward-leave-active,
+.hub-back-leave-active {
 	position: absolute;
-	top: 6px;
-	right: 6px;
+	top: 0;
+	left: 0;
+	right: 0;
+}
+.hub-forward-enter-from { transform: translateX(100%); }
+.hub-forward-leave-to { transform: translateX(-100%); }
+.hub-back-enter-from { transform: translateX(-100%); }
+.hub-back-leave-to { transform: translateX(100%); }
+@media (prefers-reduced-motion: reduce) {
+	.hub-forward-enter-active,
+	.hub-forward-leave-active,
+	.hub-back-enter-active,
+	.hub-back-leave-active {
+		transition: none;
+	}
 }
 
 .header-job-progress {

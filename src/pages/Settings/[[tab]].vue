@@ -14,795 +14,797 @@
 </route>
 
 <template>
-	<div class="settings-page dwc-page-fill">
-	<v-card class="settings-card">
-		<v-tabs v-model="activeTab" align-tabs="start" show-arrows :density="tabsDensity">
-			<v-tab v-for="tab in allTabs" :key="tab.key" :value="tab.key" class="text-none">
-				<v-icon size="small" class="mr-2">{{ tab.icon }}</v-icon>
-				{{ tab.translated ? tab.caption : $t(tab.caption) }}
-			</v-tab>
-		</v-tabs>
+	<div class="route-root">
+		<div class="settings-page dwc-page-fill">
+		<v-card class="settings-card">
+			<v-tabs v-model="activeTab" align-tabs="start" show-arrows :density="tabsDensity">
+				<v-tab v-for="tab in allTabs" :key="tab.key" :value="tab.key" class="text-none">
+					<v-icon size="small" class="mr-2">{{ tab.icon }}</v-icon>
+					{{ tab.translated ? tab.caption : $t(tab.caption) }}
+				</v-tab>
+			</v-tabs>
 
-		<v-window v-model="activeTab" :touch="false" :transition="false" :reverse-transition="false" class="settings-window">
-			<v-window-item value="General" eager>
-				<v-container fluid>
-					<v-row density="compact">
-						<v-col cols="12" md="6" class="d-flex flex-column ga-3">
-							<v-card>
-								<v-card-title>
-									<v-icon class="mr-2">mdi-database</v-icon>
-									{{ $t("settings.storage.caption") }}
-								</v-card-title>
-								<v-card-text>
-									<div class="d-flex align-center">
-										<v-switch v-model="settingsStore.settingsStorageLocal" color="primary"
-												  :disabled="!supportsLocalStorage"
-												  :label="$t('settings.storage.settingsStorageLocal')"
-												  v-hint="$t('settings.storage.settingsStorageLocalHint')"
+			<v-window v-model="activeTab" :touch="false" :transition="false" :reverse-transition="false" class="settings-window">
+				<v-window-item value="General" eager>
+					<v-container fluid>
+						<v-row density="compact">
+							<v-col cols="12" md="6" class="d-flex flex-column ga-3">
+								<v-card>
+									<v-card-title>
+										<v-icon class="mr-2">mdi-database</v-icon>
+										{{ $t("settings.storage.caption") }}
+									</v-card-title>
+									<v-card-text>
+										<div class="d-flex align-center">
+											<v-switch v-model="settingsStore.settingsStorageLocal" color="primary"
+													  :disabled="!supportsLocalStorage"
+													  :label="$t('settings.storage.settingsStorageLocal')"
+													  v-hint="$t('settings.storage.settingsStorageLocalHint')"
+													  density="comfortable" hide-details />
+											<v-spacer />
+											<v-btn v-if="!settingsStore.settingsStorageLocal && machineStore.isConnected"
+												   variant="text" size="small" density="comfortable"
+												   prepend-icon="mdi-refresh" :loading="reloadingSettings"
+												   :title="$t('settings.storage.reloadSettingsHint')"
+												   @click="reloadSettings">
+												{{ $t("settings.storage.reload") }}
+											</v-btn>
+										</div>
+										<div class="d-flex align-center">
+											<v-switch v-model="settingsStore.cacheStorageLocal" color="primary"
+													  :disabled="!supportsLocalStorage"
+													  :label="$t('settings.storage.cacheStorageLocal')"
+													  v-hint="$t('settings.storage.cacheStorageLocalHint')"
+													  density="comfortable" hide-details />
+											<v-spacer />
+											<v-btn v-if="!settingsStore.cacheStorageLocal && machineStore.isConnected"
+												   variant="text" size="small" density="comfortable"
+												   prepend-icon="mdi-refresh" :loading="reloadingCache"
+												   :title="$t('settings.storage.reloadCacheHint')"
+												   @click="reloadCache">
+												{{ $t("settings.storage.reload") }}
+											</v-btn>
+										</div>
+										<v-row density="compact" class="mt-4">
+											<v-col cols="6">
+												<v-text-field v-model.number="settingsSaveDelayMs" type="number" min="0" step="100"
+															  :label="$t('settings.storage.settingsSaveDelay')"
+															  v-hint="$t('settings.storage.settingsSaveDelayHint')"
+															  variant="outlined" density="comfortable" hide-details
+															  suffix="ms" />
+											</v-col>
+											<v-col cols="6">
+												<v-text-field v-model.number="cacheSaveDelayMs" type="number" min="0" step="100"
+															  :label="$t('settings.storage.cacheSaveDelay')"
+															  v-hint="$t('settings.storage.cacheSaveDelayHint')"
+															  variant="outlined" density="comfortable" hide-details
+															  suffix="ms" />
+											</v-col>
+										</v-row>
+									</v-card-text>
+								</v-card>
+
+								<v-card>
+									<v-card-title>
+										<v-icon class="mr-2">mdi-account-cog</v-icon>
+										{{ $t("settings.behaviour.caption") }}
+									</v-card-title>
+									<v-card-text>
+										<v-switch v-model="settingsStore.behaviour.switchToJobOnPrintStart" color="primary"
+												  :label="$t('settings.behaviour.switchToJobOnPrintStart')"
+												  v-hint="$t('settings.behaviour.switchToJobOnPrintStartHint')"
 												  density="comfortable" hide-details />
-										<v-spacer />
-										<v-btn v-if="!settingsStore.settingsStorageLocal && machineStore.isConnected"
-											   variant="text" size="small" density="comfortable"
-											   prepend-icon="mdi-refresh" :loading="reloadingSettings"
-											   :title="$t('settings.storage.reloadSettingsHint')"
-											   @click="reloadSettings">
-											{{ $t("settings.storage.reload") }}
-										</v-btn>
-									</div>
-									<div class="d-flex align-center">
-										<v-switch v-model="settingsStore.cacheStorageLocal" color="primary"
-												  :disabled="!supportsLocalStorage"
-												  :label="$t('settings.storage.cacheStorageLocal')"
-												  v-hint="$t('settings.storage.cacheStorageLocalHint')"
+										<v-switch v-model="settingsStore.checkVersions" color="primary"
+												  :label="$t('settings.behaviour.checkVersions')"
+												  v-hint="$t('settings.behaviour.checkVersionsHint')"
 												  density="comfortable" hide-details />
-										<v-spacer />
-										<v-btn v-if="!settingsStore.cacheStorageLocal && machineStore.isConnected"
-											   variant="text" size="small" density="comfortable"
-											   prepend-icon="mdi-refresh" :loading="reloadingCache"
-											   :title="$t('settings.storage.reloadCacheHint')"
-											   @click="reloadCache">
-											{{ $t("settings.storage.reload") }}
+										<v-switch v-model="settingsStore.behaviour.autoScroll" color="primary"
+												  :label="$t('settings.behaviour.autoScroll')"
+												  v-hint="$t('settings.behaviour.autoScrollHint')"
+												  density="comfortable" hide-details />
+									</v-card-text>
+								</v-card>
+							</v-col>
+
+							<v-col cols="12" md="6" class="d-flex flex-column ga-3">
+								<v-card>
+									<v-card-title>
+										<v-icon class="mr-2">mdi-lan</v-icon>
+										{{ $t("settings.communication.caption") }}
+									</v-card-title>
+									<v-alert v-if="!isPollConnector && !isRestConnector" type="info" variant="tonal" tile>
+										{{ $t("settings.communication.unavailable") }}
+									</v-alert>
+									<v-card-text v-else-if="isRestConnector" class="pt-4">
+										<v-row density="compact">
+											<v-col cols="12" sm="6">
+												<v-text-field v-model.number="settingsStore.pingInterval" type="number"
+															  :label="$t('settings.communication.pingInterval')"
+															  v-hint="$t('settings.communication.pingIntervalHint')"
+															  variant="outlined" density="comfortable" hide-details
+															  min="0" suffix="ms" />
+											</v-col>
+											<v-col cols="12" sm="6">
+												<v-text-field v-model.number="settingsStore.updateDelay" type="number"
+															  :label="$t('settings.communication.updateDelay')"
+															  v-hint="$t('settings.communication.updateDelayHint')"
+															  variant="outlined" density="comfortable" hide-details
+															  min="0" suffix="ms" />
+											</v-col>
+										</v-row>
+									</v-card-text>
+									<v-card-text v-else class="pt-4">
+										<v-row density="compact">
+											<v-col cols="12" sm="6">
+												<v-text-field v-model.number="settingsStore.maxRetries" type="number"
+															  :label="$t('settings.communication.maxRetries')"
+															  v-hint="$t('settings.communication.maxRetriesHint')"
+															  variant="outlined" density="comfortable" hide-details
+															  min="0" />
+											</v-col>
+											<v-col cols="12" sm="6">
+												<v-text-field v-model.number="settingsStore.retryDelay" type="number"
+															  :label="$t('settings.communication.retryDelay')"
+															  v-hint="$t('settings.communication.retryDelayHint')"
+															  variant="outlined" density="comfortable" hide-details
+															  min="0" suffix="ms" />
+											</v-col>
+											<v-col cols="12" sm="6">
+												<v-text-field v-model.number="settingsStore.updateInterval" type="number"
+															  :label="$t('settings.machine.updateInterval')"
+															  v-hint="$t('settings.machine.updateIntervalHint')"
+															  variant="outlined" density="comfortable" hide-details
+															  min="0" suffix="ms" />
+											</v-col>
+											<v-col cols="12" sm="6">
+												<v-text-field v-model.number="fileTransferRetryThresholdKiB"
+															  type="number"
+															  :label="$t('settings.communication.retryThreshold')"
+															  v-hint="$t('settings.communication.retryThresholdHint')"
+															  variant="outlined" density="comfortable" hide-details
+															  min="1" suffix="KiB" />
+											</v-col>
+										</v-row>
+										<v-switch v-model="settingsStore.ignoreFileTimestamps" color="primary"
+												  :label="$t('settings.communication.ignoreFileTimestamps')"
+												  v-hint="$t('settings.communication.ignoreFileTimestampsHint')"
+												  density="comfortable" hide-details class="mt-2" />
+										<v-switch v-model="settingsStore.crcUploads" color="primary"
+												  :label="$t('settings.machine.crcUploads')"
+												  v-hint="$t('settings.machine.crcUploadsHint')"
+												  density="comfortable" hide-details />
+									</v-card-text>
+								</v-card>
+
+								<v-card>
+									<v-card-title>
+										<v-icon class="mr-2">mdi-bell</v-icon>
+										{{ $t("settings.notifications.caption") }}
+									</v-card-title>
+									<v-card-text>
+										<v-switch v-model="settingsStore.notifications.errorsPersistent" color="primary"
+												  :label="$t('settings.notifications.errorsPersistent')"
+												  v-hint="$t('settings.notifications.errorsPersistentHint')"
+												  density="comfortable" hide-details />
+										<v-text-field v-model.number="settingsStore.notifications.timeout" type="number" min="1000"
+													  :label="$t('settings.notifications.timeout')"
+													  v-hint="$t('settings.notifications.timeoutHint')"
+													  variant="outlined" density="comfortable" hide-details
+													  class="mt-4" suffix="ms" />
+									</v-card-text>
+								</v-card>
+							</v-col>
+						</v-row>
+					</v-container>
+				</v-window-item>
+
+				<v-window-item value="Display" eager>
+					<v-container fluid>
+						<v-row density="compact">
+							<v-col cols="12" md="6" class="d-flex flex-column ga-3">
+								<v-card>
+									<v-card-title>
+										<v-icon class="mr-2">mdi-palette</v-icon>
+										{{ $t("settings.appearance.caption") }}
+									</v-card-title>
+									<v-card-text>
+										<v-switch v-model="settingsStore.darkTheme" color="primary"
+												  :label="$t('settings.appearance.darkTheme')"
+												  v-hint="$t('settings.appearance.darkThemeHint')"
+												  density="comfortable" hide-details />
+										<v-select :model-value="settingsStore.locale" :items="languageOptions"
+												  item-title="label" item-value="value"
+												  :label="$t('settings.appearance.language')"
+												  v-hint="$t('settings.appearance.languageHint')"
+												  variant="outlined" density="comfortable" hide-details class="mt-4"
+												  @update:model-value="(value) => settingsStore.setLocale(value as Locale)" />
+									</v-card-text>
+								</v-card>
+
+								<v-card>
+									<v-card-title>
+										<v-icon class="mr-2">mdi-view-dashboard</v-icon>
+										{{ $t("settings.display.layoutCaption") }}
+									</v-card-title>
+									<v-card-text class="pt-4">
+										<v-select v-model="settingsStore.dashboardMode" :items="dashboardModeOptions"
+												  item-title="label" item-value="value"
+												  :label="$t('settings.display.dashboardMode')"
+												  v-hint="$t('settings.display.dashboardModeHint')"
+												  variant="outlined" density="comfortable" hide-details />
+										<v-switch v-model="settingsStore.iconMenu" color="primary"
+												  :label="$t('settings.display.iconMenu')"
+												  v-hint="$t('settings.display.iconMenuHint')"
+												  density="comfortable" hide-details class="mt-4" />
+										<v-switch v-model="settingsStore.enablePanelEditing" color="primary"
+												  :label="$t('settings.display.enablePanelEditing')"
+												  v-hint="$t('settings.display.enablePanelEditingHint')"
+												  density="comfortable" hide-details />
+										<v-switch v-model="settingsStore.largeButtons" color="primary"
+												  v-hint="$t('settings.display.largeButtonsHint')"
+												  density="comfortable" hide-details>
+											<template #label>
+												{{ $t("settings.display.largeButtons") }}
+												<v-chip size="x-small" variant="tonal" color="info" class="ml-2"
+														v-hint="$t('settings.display.largeButtonsSmOnlyHint')">
+													{{ $t("settings.display.largeButtonsSmOnly") }}
+												</v-chip>
+											</template>
+										</v-switch>
+										<v-switch v-model="settingsStore.showEmergencyStop" color="primary"
+												  :label="$t('settings.display.showEmergencyStop')"
+												  v-hint="$t('settings.display.showEmergencyStopHint')"
+												  density="comfortable" hide-details />
+										<v-switch v-model="settingsStore.disableAutoComplete" color="primary"
+												  :label="$t('settings.display.disableAutoComplete')"
+												  v-hint="$t('settings.display.disableAutoCompleteHint')"
+												  density="comfortable" hide-details />
+										<v-select v-if="registeredThemes.length > 0"
+												  v-model="settingsStore.themeName"
+												  :items="themeItems" item-title="title" item-value="value"
+												  :label="$t('settings.display.theme')"
+												  v-hint="$t('settings.display.themeHint')"
+												  variant="outlined" density="comfortable" hide-details class="mt-4" />
+										<v-btn v-if="registeredLayout && !registeredLayoutOptions?.locked"
+											   variant="tonal" class="mt-4" @click="onSwitchLayoutClick">
+											{{ switchLayoutLabel }}
 										</v-btn>
-									</div>
-									<v-row density="compact" class="mt-4">
-										<v-col cols="6">
-											<v-text-field v-model.number="settingsSaveDelayMs" type="number" min="0" step="100"
-														  :label="$t('settings.storage.settingsSaveDelay')"
-														  v-hint="$t('settings.storage.settingsSaveDelayHint')"
-														  variant="outlined" density="comfortable" hide-details
-														  suffix="ms" />
-										</v-col>
-										<v-col cols="6">
-											<v-text-field v-model.number="cacheSaveDelayMs" type="number" min="0" step="100"
-														  :label="$t('settings.storage.cacheSaveDelay')"
-														  v-hint="$t('settings.storage.cacheSaveDelayHint')"
-														  variant="outlined" density="comfortable" hide-details
-														  suffix="ms" />
-										</v-col>
-									</v-row>
-								</v-card-text>
-							</v-card>
+									</v-card-text>
+								</v-card>
+							</v-col>
 
-							<v-card>
-								<v-card-title>
-									<v-icon class="mr-2">mdi-account-cog</v-icon>
-									{{ $t("settings.behaviour.caption") }}
-								</v-card-title>
-								<v-card-text>
-									<v-switch v-model="settingsStore.behaviour.switchToJobOnPrintStart" color="primary"
-											  :label="$t('settings.behaviour.switchToJobOnPrintStart')"
-											  v-hint="$t('settings.behaviour.switchToJobOnPrintStartHint')"
-											  density="comfortable" hide-details />
-									<v-switch v-model="settingsStore.checkVersions" color="primary"
-											  :label="$t('settings.behaviour.checkVersions')"
-											  v-hint="$t('settings.behaviour.checkVersionsHint')"
-											  density="comfortable" hide-details />
-									<v-switch v-model="settingsStore.behaviour.autoScroll" color="primary"
-											  :label="$t('settings.behaviour.autoScroll')"
-											  v-hint="$t('settings.behaviour.autoScrollHint')"
-											  density="comfortable" hide-details />
-								</v-card-text>
-							</v-card>
-						</v-col>
+							<v-col cols="12" md="6" class="d-flex flex-column ga-3">
+								<v-card>
+									<v-card-title>
+										<v-icon class="mr-2">mdi-counter</v-icon>
+										{{ $t("settings.units.caption") }}
+									</v-card-title>
+									<v-card-text class="pt-4">
+										<v-row density="compact">
+											<v-col cols="6">
+												<v-select v-model="settingsStore.displayUnits" :items="displayUnitOptions"
+														  item-title="label" item-value="value"
+														  :label="$t('settings.units.displayUnits')"
+														  v-hint="$t('settings.units.displayUnitsHint')"
+														  variant="outlined" density="comfortable" hide-details />
+											</v-col>
+											<v-col cols="6">
+												<v-select v-model.number="settingsStore.decimalPlaces" :items="decimalPlaceOptions"
+														  :label="$t('settings.units.decimalPlaces')"
+														  v-hint="$t('settings.units.decimalPlacesHint')"
+														  variant="outlined" density="comfortable" hide-details />
+											</v-col>
+										</v-row>
+										<v-switch v-model="settingsStore.useBinaryPrefix" color="primary"
+												  :label="$t('settings.units.binaryPrefix')"
+												  v-hint="$t('settings.units.binaryPrefixHint')"
+												  density="comfortable" hide-details class="mt-2" />
+									</v-card-text>
+								</v-card>
 
-						<v-col cols="12" md="6" class="d-flex flex-column ga-3">
-							<v-card>
-								<v-card-title>
-									<v-icon class="mr-2">mdi-lan</v-icon>
-									{{ $t("settings.communication.caption") }}
-								</v-card-title>
-								<v-alert v-if="!isPollConnector && !isRestConnector" type="info" variant="tonal" tile>
-									{{ $t("settings.communication.unavailable") }}
-								</v-alert>
-								<v-card-text v-else-if="isRestConnector" class="pt-4">
-									<v-row density="compact">
-										<v-col cols="12" sm="6">
-											<v-text-field v-model.number="settingsStore.pingInterval" type="number"
-														  :label="$t('settings.communication.pingInterval')"
-														  v-hint="$t('settings.communication.pingIntervalHint')"
-														  variant="outlined" density="comfortable" hide-details
-														  min="0" suffix="ms" />
-										</v-col>
-										<v-col cols="12" sm="6">
-											<v-text-field v-model.number="settingsStore.updateDelay" type="number"
-														  :label="$t('settings.communication.updateDelay')"
-														  v-hint="$t('settings.communication.updateDelayHint')"
-														  variant="outlined" density="comfortable" hide-details
-														  min="0" suffix="ms" />
-										</v-col>
-									</v-row>
-								</v-card-text>
-								<v-card-text v-else class="pt-4">
-									<v-row density="compact">
-										<v-col cols="12" sm="6">
-											<v-text-field v-model.number="settingsStore.maxRetries" type="number"
-														  :label="$t('settings.communication.maxRetries')"
-														  v-hint="$t('settings.communication.maxRetriesHint')"
-														  variant="outlined" density="comfortable" hide-details
-														  min="0" />
-										</v-col>
-										<v-col cols="12" sm="6">
-											<v-text-field v-model.number="settingsStore.retryDelay" type="number"
-														  :label="$t('settings.communication.retryDelay')"
-														  v-hint="$t('settings.communication.retryDelayHint')"
-														  variant="outlined" density="comfortable" hide-details
-														  min="0" suffix="ms" />
-										</v-col>
-										<v-col cols="12" sm="6">
-											<v-text-field v-model.number="settingsStore.updateInterval" type="number"
-														  :label="$t('settings.machine.updateInterval')"
-														  v-hint="$t('settings.machine.updateIntervalHint')"
-														  variant="outlined" density="comfortable" hide-details
-														  min="0" suffix="ms" />
-										</v-col>
-										<v-col cols="12" sm="6">
-											<v-text-field v-model.number="fileTransferRetryThresholdKiB"
-														  type="number"
-														  :label="$t('settings.communication.retryThreshold')"
-														  v-hint="$t('settings.communication.retryThresholdHint')"
-														  variant="outlined" density="comfortable" hide-details
-														  min="1" suffix="KiB" />
-										</v-col>
-									</v-row>
-									<v-switch v-model="settingsStore.ignoreFileTimestamps" color="primary"
-											  :label="$t('settings.communication.ignoreFileTimestamps')"
-											  v-hint="$t('settings.communication.ignoreFileTimestampsHint')"
-											  density="comfortable" hide-details class="mt-2" />
-									<v-switch v-model="settingsStore.crcUploads" color="primary"
-											  :label="$t('settings.machine.crcUploads')"
-											  v-hint="$t('settings.machine.crcUploadsHint')"
-											  density="comfortable" hide-details />
-								</v-card-text>
-							</v-card>
+								<v-card>
+									<v-card-title>
+										<v-icon class="mr-2">mdi-eye-off</v-icon>
+										{{ $t("settings.display.hideMenuItemsCaption") }}
+									</v-card-title>
+									<v-card-text>
+										<div class="text-body-small text-medium-emphasis mb-2">
+											{{ $t("settings.display.hideMenuItemsHint") }}
+										</div>
+										<v-switch v-for="item in hideableMenuItems" :key="item.path"
+												  v-model="hiddenMenuPaths" :value="item.path" color="primary"
+												  v-hint="$t('settings.display.hideMenuItemSwitchHint')"
+												  density="comfortable" hide-details>
+											<template #label>
+												<v-icon size="small" class="mr-2">{{ item.icon }}</v-icon>
+												{{ item.translated ? item.caption : $t(item.caption) }}
+												<span class="text-medium-emphasis ml-2">{{ item.path }}</span>
+												<v-chip v-if="item.conditionKey === 'xsOrSm'" size="x-small"
+														variant="tonal" color="info" class="ml-2"
+														v-hint="$t('settings.display.hideMenuItemsXsSmOnlyHint')">
+													{{ $t("settings.display.hideMenuItemsXsSmOnly") }}
+												</v-chip>
+											</template>
+										</v-switch>
+									</v-card-text>
+								</v-card>
+							</v-col>
+						</v-row>
+					</v-container>
+				</v-window-item>
 
-							<v-card>
-								<v-card-title>
-									<v-icon class="mr-2">mdi-bell</v-icon>
-									{{ $t("settings.notifications.caption") }}
-								</v-card-title>
-								<v-card-text>
-									<v-switch v-model="settingsStore.notifications.errorsPersistent" color="primary"
-											  :label="$t('settings.notifications.errorsPersistent')"
-											  v-hint="$t('settings.notifications.errorsPersistentHint')"
-											  density="comfortable" hide-details />
-									<v-text-field v-model.number="settingsStore.notifications.timeout" type="number" min="1000"
-												  :label="$t('settings.notifications.timeout')"
-												  v-hint="$t('settings.notifications.timeoutHint')"
-												  variant="outlined" density="comfortable" hide-details
-												  class="mt-4" suffix="ms" />
-								</v-card-text>
-							</v-card>
-						</v-col>
-					</v-row>
-				</v-container>
-			</v-window-item>
+				<v-window-item value="Presets" eager>
+					<v-container fluid>
+						<v-row density="compact">
+							<v-col cols="12" class="d-flex flex-column ga-3">
+								<v-card>
+									<v-card-title>
+										<v-icon class="mr-2">mdi-format-list-numbered</v-icon>
+										{{ $t("settings.presets.caption") }}
+									</v-card-title>
+									<v-card-text>
+										<v-tabs v-model="presetsTab" align-tabs="start" density="compact">
+											<v-tab value="tool" class="text-none">
+												{{ $t("settings.presets.toolTemperatures") }}
+											</v-tab>
+											<v-tab value="bed" class="text-none">
+												{{ $t("settings.presets.bedTemperatures") }}
+											</v-tab>
+											<v-tab value="chamber" class="text-none">
+												{{ $t("settings.presets.chamberTemperatures") }}
+											</v-tab>
+											<v-tab value="spindleRPM" class="text-none">
+												{{ $t("settings.presets.spindleRPM") }}
+											</v-tab>
+										</v-tabs>
+										<v-window v-model="presetsTab" :touch="false" class="mt-3">
+											<v-window-item value="tool">
+												<ListEditor item-key="tool" temperature />
+											</v-window-item>
+											<v-window-item value="bed">
+												<ListEditor item-key="bed" temperature />
+											</v-window-item>
+											<v-window-item value="chamber">
+												<ListEditor item-key="chamber" temperature />
+											</v-window-item>
+											<v-window-item value="spindleRPM">
+												<ListEditor item-key="spindleRPM" />
+											</v-window-item>
+										</v-window>
+									</v-card-text>
+								</v-card>
 
-			<v-window-item value="Display" eager>
-				<v-container fluid>
-					<v-row density="compact">
-						<v-col cols="12" md="6" class="d-flex flex-column ga-3">
-							<v-card>
-								<v-card-title>
-									<v-icon class="mr-2">mdi-palette</v-icon>
-									{{ $t("settings.appearance.caption") }}
-								</v-card-title>
-								<v-card-text>
-									<v-switch v-model="settingsStore.darkTheme" color="primary"
-											  :label="$t('settings.appearance.darkTheme')"
-											  v-hint="$t('settings.appearance.darkThemeHint')"
-											  density="comfortable" hide-details />
-									<v-select :model-value="settingsStore.locale" :items="languageOptions"
-											  item-title="label" item-value="value"
-											  :label="$t('settings.appearance.language')"
-											  v-hint="$t('settings.appearance.languageHint')"
-											  variant="outlined" density="comfortable" hide-details class="mt-4"
-											  @update:model-value="(value) => settingsStore.setLocale(value as Locale)" />
-								</v-card-text>
-							</v-card>
+							</v-col>
 
-							<v-card>
-								<v-card-title>
-									<v-icon class="mr-2">mdi-view-dashboard</v-icon>
-									{{ $t("settings.display.layoutCaption") }}
-								</v-card-title>
-								<v-card-text class="pt-4">
-									<v-select v-model="settingsStore.dashboardMode" :items="dashboardModeOptions"
-											  item-title="label" item-value="value"
-											  :label="$t('settings.display.dashboardMode')"
-											  v-hint="$t('settings.display.dashboardModeHint')"
+						</v-row>
+					</v-container>
+				</v-window-item>
+
+				<v-window-item value="Webcam" eager>
+					<v-container fluid>
+						<v-switch v-model="settingsStore.webcam.enabled" color="primary"
+								  :label="$t('settings.webcam.enabled')"
+								  v-hint="$t('settings.webcam.enabledHint')"
+								  density="comfortable" hide-details />
+						<v-row density="compact" class="mt-2">
+							<v-col cols="12" lg="6">
+								<v-text-field v-model="settingsStore.webcam.url"
+											  :label="$t('settings.webcam.url')"
+											  v-hint="$t('settings.webcam.urlHint')"
 											  variant="outlined" density="comfortable" hide-details />
-									<v-switch v-model="settingsStore.iconMenu" color="primary"
-											  :label="$t('settings.display.iconMenu')"
-											  v-hint="$t('settings.display.iconMenuHint')"
-											  density="comfortable" hide-details class="mt-4" />
-									<v-switch v-model="settingsStore.enablePanelEditing" color="primary"
-											  :label="$t('settings.display.enablePanelEditing')"
-											  v-hint="$t('settings.display.enablePanelEditingHint')"
-											  density="comfortable" hide-details />
-									<v-switch v-model="settingsStore.largeButtons" color="primary"
-											  v-hint="$t('settings.display.largeButtonsHint')"
-											  density="comfortable" hide-details>
-										<template #label>
-											{{ $t("settings.display.largeButtons") }}
-											<v-chip size="x-small" variant="tonal" color="info" class="ml-2"
-													v-hint="$t('settings.display.largeButtonsSmOnlyHint')">
-												{{ $t("settings.display.largeButtonsSmOnly") }}
-											</v-chip>
-										</template>
-									</v-switch>
-									<v-switch v-model="settingsStore.showEmergencyStop" color="primary"
-											  :label="$t('settings.display.showEmergencyStop')"
-											  v-hint="$t('settings.display.showEmergencyStopHint')"
-											  density="comfortable" hide-details />
-									<v-switch v-model="settingsStore.disableAutoComplete" color="primary"
-											  :label="$t('settings.display.disableAutoComplete')"
-											  v-hint="$t('settings.display.disableAutoCompleteHint')"
-											  density="comfortable" hide-details />
-									<v-select v-if="registeredThemes.length > 0"
-											  v-model="settingsStore.themeName"
-											  :items="themeItems" item-title="title" item-value="value"
-											  :label="$t('settings.display.theme')"
-											  v-hint="$t('settings.display.themeHint')"
-											  variant="outlined" density="comfortable" hide-details class="mt-4" />
-									<v-btn v-if="registeredLayout && !registeredLayoutOptions?.locked"
-										   variant="tonal" class="mt-4" @click="onSwitchLayoutClick">
-										{{ switchLayoutLabel }}
+							</v-col>
+							<v-col cols="12" lg="6">
+								<v-text-field v-model="settingsStore.webcam.liveUrl"
+											  :label="$t('settings.webcam.liveUrl')"
+											  v-hint="$t('settings.webcam.liveUrlHint')"
+											  variant="outlined" density="comfortable" hide-details />
+							</v-col>
+						</v-row>
+						<v-row density="compact" class="mt-2">
+							<v-col cols="12" sm="6">
+								<v-switch v-model="settingsStore.webcam.embedded" color="primary"
+										  :label="$t('settings.webcam.embedded')"
+										  v-hint="$t('settings.webcam.embeddedHint')"
+										  density="comfortable" hide-details />
+							</v-col>
+							<v-col cols="12" sm="6">
+								<v-switch v-model="settingsStore.webcam.useFix" color="primary"
+										  :label="$t('settings.webcam.useFix')"
+										  v-hint="$t('settings.webcam.useFixHint')"
+										  density="comfortable" hide-details />
+							</v-col>
+						</v-row>
+						<v-row density="compact" class="mt-4">
+							<v-col cols="4">
+								<v-select v-model="settingsStore.webcam.flip" :items="flipOptions"
+										  item-title="label" item-value="value"
+										  :label="$t('settings.webcam.flip')"
+										  v-hint="$t('settings.webcam.flipHint')"
+										  variant="outlined" density="comfortable" hide-details />
+							</v-col>
+							<v-col cols="4">
+								<v-select v-model.number="settingsStore.webcam.rotation"
+										  :items="rotationOptions" item-title="label" item-value="value"
+										  :label="$t('settings.webcam.rotation')"
+										  v-hint="$t('settings.webcam.rotationHint')"
+										  variant="outlined" density="comfortable" hide-details />
+							</v-col>
+							<v-col cols="4">
+								<v-text-field v-model.number="settingsStore.webcam.updateInterval" type="number"
+											  :label="$t('settings.webcam.updateInterval')"
+											  v-hint="$t('settings.webcam.updateIntervalHint')"
+											  variant="outlined" density="comfortable" hide-details
+											  suffix="ms" />
+							</v-col>
+						</v-row>
+					</v-container>
+				</v-window-item>
+
+				<v-window-item value="Editor" eager>
+					<v-container fluid>
+						<v-row density="compact">
+							<v-col cols="12" md="6">
+								<v-card>
+									<v-card-title>
+										<v-icon class="mr-2">mdi-format-text</v-icon>
+										{{ $t("settings.editor.appearanceCaption") }}
+									</v-card-title>
+									<v-card-text>
+										<v-switch v-model="settingsStore.editor.useMonaco" color="primary"
+												  :label="$t('settings.editor.useMonaco')"
+												  v-hint="$t('settings.editor.useMonacoHint')"
+												  density="comfortable" hide-details />
+										<v-row density="compact" class="mt-4">
+											<v-col cols="6">
+												<v-text-field v-model.number="settingsStore.editor.fontSize" type="number"
+															  :label="$t('settings.editor.fontSize')"
+															  v-hint="$t('settings.editor.fontSizeHint')"
+															  variant="outlined" density="comfortable" hide-details
+															  min="8" max="32" suffix="px" />
+											</v-col>
+											<v-col cols="6">
+												<v-select v-model.number="settingsStore.editor.tabSize"
+														  :items="[2, 4, 8]"
+														  :label="$t('settings.editor.tabSize')"
+														  v-hint="$t('settings.editor.tabSizeHint')"
+														  variant="outlined" density="comfortable" hide-details />
+											</v-col>
+										</v-row>
+										<v-select v-model="settingsStore.editor.wordWrap"
+												  :items="wordWrapOptions" item-title="label" item-value="value"
+												  :label="$t('settings.editor.wordWrap')"
+												  v-hint="$t('settings.editor.wordWrapHint')"
+												  variant="outlined" density="comfortable" hide-details class="mt-4" />
+										<v-switch v-model="settingsStore.editor.minimap" color="primary"
+												  :label="$t('settings.editor.minimap')"
+												  v-hint="$t('settings.editor.minimapHint')"
+												  density="comfortable" hide-details class="mt-2" />
+										<v-switch v-model="settingsStore.editor.lineNumbers" color="primary"
+												  :label="$t('settings.editor.lineNumbers')"
+												  v-hint="$t('settings.editor.lineNumbersHint')"
+												  density="comfortable" hide-details />
+										<v-switch v-model="settingsStore.editor.bracketPairColorization" color="primary"
+												  :label="$t('settings.editor.bracketPairColorization')"
+												  v-hint="$t('settings.editor.bracketPairColorizationHint')"
+												  density="comfortable" hide-details />
+									</v-card-text>
+								</v-card>
+							</v-col>
+
+							<v-col cols="12" md="6">
+								<v-card>
+									<v-card-title>
+										<v-icon class="mr-2">mdi-auto-fix</v-icon>
+										{{ $t("settings.editor.assistanceCaption") }}
+									</v-card-title>
+									<v-card-text>
+										<v-switch v-model="settingsStore.editor.quickSuggestions" color="primary"
+												  :label="$t('settings.editor.quickSuggestions')"
+												  v-hint="$t('settings.editor.quickSuggestionsHint')"
+												  density="comfortable" hide-details />
+										<v-switch v-model="settingsStore.editor.suggestOnTriggerCharacters" color="primary"
+												  :label="$t('settings.editor.suggestOnTriggerCharacters')"
+												  v-hint="$t('settings.editor.suggestOnTriggerCharactersHint')"
+												  density="comfortable" hide-details />
+										<v-switch v-model="settingsStore.editor.parameterHints" color="primary"
+												  :label="$t('settings.editor.parameterHints')"
+												  v-hint="$t('settings.editor.parameterHintsHint')"
+												  density="comfortable" hide-details />
+										<v-switch v-model="settingsStore.editor.hover" color="primary"
+												  :label="$t('settings.editor.hover')"
+												  v-hint="$t('settings.editor.hoverHint')"
+												  density="comfortable" hide-details />
+										<v-switch v-model="settingsStore.editor.inlineSuggest" color="primary"
+												  :label="$t('settings.editor.inlineSuggest')"
+												  v-hint="$t('settings.editor.inlineSuggestHint')"
+												  density="comfortable" hide-details />
+										<v-switch v-model="settingsStore.editor.formatOnPaste" color="primary"
+												  :label="$t('settings.editor.formatOnPaste')"
+												  v-hint="$t('settings.editor.formatOnPasteHint')"
+												  density="comfortable" hide-details />
+										<v-switch v-model="settingsStore.editor.formatOnType" color="primary"
+												  :label="$t('settings.editor.formatOnType')"
+												  v-hint="$t('settings.editor.formatOnTypeHint')"
+												  density="comfortable" hide-details />
+										<v-switch v-model="settingsStore.editor.largeFileOptimizations" color="primary"
+												  :label="$t('settings.editor.largeFileOptimizations')"
+												  v-hint="$t('settings.editor.largeFileOptimizationsHint')"
+												  density="comfortable" hide-details />
+									</v-card-text>
+								</v-card>
+							</v-col>
+						</v-row>
+					</v-container>
+				</v-window-item>
+
+				<v-window-item value="Boards" eager>
+					<v-alert v-if="boards.length === 0" type="info" variant="tonal" tile>
+						{{ $t("settings.about.noBoards") }}
+					</v-alert>
+					<v-table v-else density="compact">
+						<thead>
+							<tr>
+								<th class="text-left">{{ $t("settings.infrastructure.product") }}</th>
+								<th class="text-left">{{ $t("settings.infrastructure.shortName") }}</th>
+								<th class="text-center">{{ $t("settings.infrastructure.can") }}</th>
+								<th v-if="hasAnyVin" class="text-center d-none d-lg-table-cell">
+									{{ $t("panel.status.vIn") }}
+								</th>
+								<th v-if="hasAnyV12" class="text-center d-none d-lg-table-cell">
+									{{ $t("panel.status.v12") }}
+								</th>
+								<th v-if="hasAnyMcuTemp" class="text-center d-none d-xl-table-cell">
+									{{ $t("panel.status.mcuTemp") }}
+								</th>
+								<th class="text-left">{{ $t("settings.infrastructure.firmwareVersion") }}</th>
+								<th class="text-left d-none d-md-table-cell">
+									{{ $t("settings.infrastructure.builtOn") }}
+								</th>
+								<th v-if="hasAnyFreeRam" class="text-center d-none d-xl-table-cell">
+									{{ $t("settings.infrastructure.freeRam") }}
+								</th>
+								<th class="text-right d-none d-md-table-cell">
+									<v-btn color="primary" density="comfortable" :loading="installingFirmware"
+										   :disabled="!machineStore.isConnected || uiStore.uiFrozen"
+										   @click="pickFirmwareFiles">
+										<v-icon class="mr-1">mdi-package-down</v-icon>
+										{{ $t("settings.infrastructure.installUpdate") }}
 									</v-btn>
-								</v-card-text>
-							</v-card>
-						</v-col>
-
-						<v-col cols="12" md="6" class="d-flex flex-column ga-3">
-							<v-card>
-								<v-card-title>
-									<v-icon class="mr-2">mdi-counter</v-icon>
-									{{ $t("settings.units.caption") }}
-								</v-card-title>
-								<v-card-text class="pt-4">
-									<v-row density="compact">
-										<v-col cols="6">
-											<v-select v-model="settingsStore.displayUnits" :items="displayUnitOptions"
-													  item-title="label" item-value="value"
-													  :label="$t('settings.units.displayUnits')"
-													  v-hint="$t('settings.units.displayUnitsHint')"
-													  variant="outlined" density="comfortable" hide-details />
-										</v-col>
-										<v-col cols="6">
-											<v-select v-model.number="settingsStore.decimalPlaces" :items="decimalPlaceOptions"
-													  :label="$t('settings.units.decimalPlaces')"
-													  v-hint="$t('settings.units.decimalPlacesHint')"
-													  variant="outlined" density="comfortable" hide-details />
-										</v-col>
-									</v-row>
-									<v-switch v-model="settingsStore.useBinaryPrefix" color="primary"
-											  :label="$t('settings.units.binaryPrefix')"
-											  v-hint="$t('settings.units.binaryPrefixHint')"
-											  density="comfortable" hide-details class="mt-2" />
-								</v-card-text>
-							</v-card>
-
-							<v-card>
-								<v-card-title>
-									<v-icon class="mr-2">mdi-eye-off</v-icon>
-									{{ $t("settings.display.hideMenuItemsCaption") }}
-								</v-card-title>
-								<v-card-text>
-									<div class="text-body-small text-medium-emphasis mb-2">
-										{{ $t("settings.display.hideMenuItemsHint") }}
-									</div>
-									<v-switch v-for="item in hideableMenuItems" :key="item.path"
-											  v-model="hiddenMenuPaths" :value="item.path" color="primary"
-											  v-hint="$t('settings.display.hideMenuItemSwitchHint')"
-											  density="comfortable" hide-details>
-										<template #label>
-											<v-icon size="small" class="mr-2">{{ item.icon }}</v-icon>
-											{{ item.translated ? item.caption : $t(item.caption) }}
-											<span class="text-medium-emphasis ml-2">{{ item.path }}</span>
-											<v-chip v-if="item.conditionKey === 'xsOrSm'" size="x-small"
-													variant="tonal" color="info" class="ml-2"
-													v-hint="$t('settings.display.hideMenuItemsXsSmOnlyHint')">
-												{{ $t("settings.display.hideMenuItemsXsSmOnly") }}
-											</v-chip>
+								</th>
+							</tr>
+						</thead>
+						<tbody>
+							<tr v-for="(board, idx) in boards" :key="idx">
+								<td>{{ board.name || $t("generic.noValue") }}</td>
+								<td>{{ board.shortName || $t("generic.noValue") }}</td>
+								<td class="text-center">
+									<v-btn v-if="board.canAddress !== null && board.canAddress > 0"
+										   variant="text" density="compact" color="primary"
+										   :disabled="!machineStore.isConnected || uiStore.uiFrozen"
+										   v-hint="$t('settings.infrastructure.changeCanAddress')"
+										   @click="openCanAddressDialog(board)">
+										{{ board.canAddress }}
+									</v-btn>
+									<template v-else>{{ board.canAddress ?? $t("generic.noValue") }}</template>
+								</td>
+								<td v-if="hasAnyVin" class="text-center d-none d-lg-table-cell">
+									<v-tooltip v-if="board.vIn" location="bottom"
+											   :text="$t('panel.status.minMax', [display(board.vIn.min, 1, 'V'), display(board.vIn.max, 1, 'V')])">
+										<template #activator="{ props: tooltipProps }">
+											<span v-bind="tooltipProps" class="text-no-wrap">
+												{{ display(board.vIn.current, 1, "V") }}
+											</span>
 										</template>
-									</v-switch>
-								</v-card-text>
-							</v-card>
-						</v-col>
-					</v-row>
-				</v-container>
-			</v-window-item>
+									</v-tooltip>
+									<template v-else>{{ $t("generic.noValue") }}</template>
+								</td>
+								<td v-if="hasAnyV12" class="text-center d-none d-lg-table-cell">
+									<v-tooltip v-if="board.v12" location="bottom"
+											   :text="$t('panel.status.minMax', [display(board.v12.min, 1, 'V'), display(board.v12.max, 1, 'V')])">
+										<template #activator="{ props: tooltipProps }">
+											<span v-bind="tooltipProps" class="text-no-wrap">
+												{{ display(board.v12.current, 1, "V") }}
+											</span>
+										</template>
+									</v-tooltip>
+									<template v-else>{{ $t("generic.noValue") }}</template>
+								</td>
+								<td v-if="hasAnyMcuTemp" class="text-center d-none d-xl-table-cell">
+									<v-tooltip v-if="board.mcuTemp" location="bottom"
+											   :text="$t('panel.status.minMax', [display(board.mcuTemp.min, 1, '°C'), display(board.mcuTemp.max, 1, '°C')])">
+										<template #activator="{ props: tooltipProps }">
+											<span v-bind="tooltipProps" class="text-no-wrap">
+												{{ display(board.mcuTemp.current, 1, "°C") }}
+											</span>
+										</template>
+									</v-tooltip>
+									<template v-else>{{ $t("generic.noValue") }}</template>
+								</td>
+								<td>{{ board.firmwareVersion || $t("generic.noValue") }}</td>
+								<td class="d-none d-md-table-cell">{{ board.firmwareDate || $t("generic.noValue") }}</td>
+								<td v-if="hasAnyFreeRam" class="text-center d-none d-xl-table-cell text-no-wrap">
+									{{ displaySize(board.freeRam) }}
+								</td>
+								<td class="d-none d-md-table-cell text-right">
+									<v-btn variant="text" density="comfortable" color="primary"
+										   prepend-icon="mdi-stethoscope"
+										   :disabled="!machineStore.isConnected || uiStore.uiFrozen"
+										   v-hint="$t('settings.infrastructure.diagnosticsHint')"
+										   @click="runDiagnostics(board)">
+										{{ $t("settings.infrastructure.diagnostics") }}
+									</v-btn>
+								</td>
+							</tr>
 
-			<v-window-item value="Presets" eager>
-				<v-container fluid>
-					<v-row density="compact">
-						<v-col cols="12" class="d-flex flex-column ga-3">
+							<tr v-if="wifiVersion">
+								<td>Duet WiFi Server</td>
+								<td></td>
+								<td></td>
+								<td v-if="hasAnyVin" class="d-none d-lg-table-cell" />
+								<td v-if="hasAnyV12" class="d-none d-lg-table-cell" />
+								<td v-if="hasAnyMcuTemp" class="d-none d-xl-table-cell" />
+								<td>{{ wifiVersion }}</td>
+								<td class="d-none d-md-table-cell" />
+								<td v-if="hasAnyFreeRam" class="d-none d-xl-table-cell" />
+								<td class="d-none d-md-table-cell" />
+							</tr>
+
+							<tr v-if="dsfVersion">
+								<td>Duet Software Framework</td>
+								<td>DSF</td>
+								<td></td>
+								<td v-if="hasAnyVin" class="d-none d-lg-table-cell" />
+								<td v-if="hasAnyV12" class="d-none d-lg-table-cell" />
+								<td v-if="hasAnyMcuTemp" class="d-none d-xl-table-cell" />
+								<td>{{ dsfVersion }}</td>
+								<td class="d-none d-md-table-cell">{{ dsfBuildDateTime || $t("generic.noValue") }}</td>
+								<td v-if="hasAnyFreeRam" class="d-none d-xl-table-cell" />
+								<td class="d-none d-md-table-cell" />
+							</tr>
+
+							<tr>
+								<td>Duet Web Control</td>
+								<td>DWC</td>
+								<td></td>
+								<td v-if="hasAnyVin" class="d-none d-lg-table-cell" />
+								<td v-if="hasAnyV12" class="d-none d-lg-table-cell" />
+								<td v-if="hasAnyMcuTemp" class="d-none d-xl-table-cell" />
+								<td>{{ dwcVersion }}</td>
+								<td class="d-none d-md-table-cell">{{ dwcBuildDateTime }}</td>
+								<td v-if="hasAnyFreeRam" class="d-none d-xl-table-cell" />
+								<td class="d-none d-md-table-cell" />
+							</tr>
+						</tbody>
+					</v-table>
+
+					<v-dialog v-model="canAddressDialog.shown" width="480" persistent no-click-animation>
+						<v-form @submit.prevent="applyCanAddress">
 							<v-card>
-								<v-card-title>
-									<v-icon class="mr-2">mdi-format-list-numbered</v-icon>
-									{{ $t("settings.presets.caption") }}
-								</v-card-title>
+								<v-card-title>{{ $t("settings.infrastructure.changeCanAddress") }}</v-card-title>
 								<v-card-text>
-									<v-tabs v-model="presetsTab" align-tabs="start" density="compact">
-										<v-tab value="tool" class="text-none">
-											{{ $t("settings.presets.toolTemperatures") }}
-										</v-tab>
-										<v-tab value="bed" class="text-none">
-											{{ $t("settings.presets.bedTemperatures") }}
-										</v-tab>
-										<v-tab value="chamber" class="text-none">
-											{{ $t("settings.presets.chamberTemperatures") }}
-										</v-tab>
-										<v-tab value="spindleRPM" class="text-none">
-											{{ $t("settings.presets.spindleRPM") }}
-										</v-tab>
-									</v-tabs>
-									<v-window v-model="presetsTab" :touch="false" class="mt-3">
-										<v-window-item value="tool">
-											<ListEditor item-key="tool" temperature />
-										</v-window-item>
-										<v-window-item value="bed">
-											<ListEditor item-key="bed" temperature />
-										</v-window-item>
-										<v-window-item value="chamber">
-											<ListEditor item-key="chamber" temperature />
-										</v-window-item>
-										<v-window-item value="spindleRPM">
-											<ListEditor item-key="spindleRPM" />
-										</v-window-item>
-									</v-window>
+									<div class="mb-3">
+										{{ $t("settings.infrastructure.changeCanAddressPrompt", [canAddressDialog.boardName, canAddressDialog.currentAddress]) }}
+									</div>
+									<v-text-field v-model.number="canAddressDialog.newAddress" type="number"
+												  min="1" max="126" step="1" autofocus hide-details
+												  :label="$t('settings.infrastructure.newCanAddress')"
+												  v-hint="$t('settings.infrastructure.newCanAddressHint')"
+												  variant="outlined" density="comfortable" />
+									<v-alert type="info" variant="tonal" class="mt-3" icon="mdi-restart">
+										{{ $t("settings.infrastructure.canAddressRestartHint") }}
+									</v-alert>
 								</v-card-text>
+								<v-card-actions>
+									<v-spacer />
+									<v-btn variant="text" type="button" @click="canAddressDialog.shown = false">
+										{{ $t("generic.cancel") }}
+									</v-btn>
+									<v-btn variant="text" type="submit"
+										   :loading="canAddressDialog.busy" :disabled="!canAddressIsValid">
+										{{ $t("generic.ok") }}
+									</v-btn>
+								</v-card-actions>
 							</v-card>
+						</v-form>
+					</v-dialog>
+				</v-window-item>
 
-						</v-col>
-
-					</v-row>
-				</v-container>
-			</v-window-item>
-
-			<v-window-item value="Webcam" eager>
-				<v-container fluid>
-					<v-switch v-model="settingsStore.webcam.enabled" color="primary"
-							  :label="$t('settings.webcam.enabled')"
-							  v-hint="$t('settings.webcam.enabledHint')"
-							  density="comfortable" hide-details />
-					<v-row density="compact" class="mt-2">
-						<v-col cols="12" lg="6">
-							<v-text-field v-model="settingsStore.webcam.url"
-										  :label="$t('settings.webcam.url')"
-										  v-hint="$t('settings.webcam.urlHint')"
-										  variant="outlined" density="comfortable" hide-details />
-						</v-col>
-						<v-col cols="12" lg="6">
-							<v-text-field v-model="settingsStore.webcam.liveUrl"
-										  :label="$t('settings.webcam.liveUrl')"
-										  v-hint="$t('settings.webcam.liveUrlHint')"
-										  variant="outlined" density="comfortable" hide-details />
-						</v-col>
-					</v-row>
-					<v-row density="compact" class="mt-2">
-						<v-col cols="12" sm="6">
-							<v-switch v-model="settingsStore.webcam.embedded" color="primary"
-									  :label="$t('settings.webcam.embedded')"
-									  v-hint="$t('settings.webcam.embeddedHint')"
-									  density="comfortable" hide-details />
-						</v-col>
-						<v-col cols="12" sm="6">
-							<v-switch v-model="settingsStore.webcam.useFix" color="primary"
-									  :label="$t('settings.webcam.useFix')"
-									  v-hint="$t('settings.webcam.useFixHint')"
-									  density="comfortable" hide-details />
-						</v-col>
-					</v-row>
-					<v-row density="compact" class="mt-4">
-						<v-col cols="4">
-							<v-select v-model="settingsStore.webcam.flip" :items="flipOptions"
-									  item-title="label" item-value="value"
-									  :label="$t('settings.webcam.flip')"
-									  v-hint="$t('settings.webcam.flipHint')"
-									  variant="outlined" density="comfortable" hide-details />
-						</v-col>
-						<v-col cols="4">
-							<v-select v-model.number="settingsStore.webcam.rotation"
-									  :items="rotationOptions" item-title="label" item-value="value"
-									  :label="$t('settings.webcam.rotation')"
-									  v-hint="$t('settings.webcam.rotationHint')"
-									  variant="outlined" density="comfortable" hide-details />
-						</v-col>
-						<v-col cols="4">
-							<v-text-field v-model.number="settingsStore.webcam.updateInterval" type="number"
-										  :label="$t('settings.webcam.updateInterval')"
-										  v-hint="$t('settings.webcam.updateIntervalHint')"
-										  variant="outlined" density="comfortable" hide-details
-										  suffix="ms" />
-						</v-col>
-					</v-row>
-				</v-container>
-			</v-window-item>
-
-			<v-window-item value="Editor" eager>
-				<v-container fluid>
-					<v-row density="compact">
-						<v-col cols="12" md="6">
-							<v-card>
-								<v-card-title>
-									<v-icon class="mr-2">mdi-format-text</v-icon>
-									{{ $t("settings.editor.appearanceCaption") }}
-								</v-card-title>
-								<v-card-text>
-									<v-switch v-model="settingsStore.editor.useMonaco" color="primary"
-											  :label="$t('settings.editor.useMonaco')"
-											  v-hint="$t('settings.editor.useMonacoHint')"
-											  density="comfortable" hide-details />
-									<v-row density="compact" class="mt-4">
-										<v-col cols="6">
-											<v-text-field v-model.number="settingsStore.editor.fontSize" type="number"
-														  :label="$t('settings.editor.fontSize')"
-														  v-hint="$t('settings.editor.fontSizeHint')"
-														  variant="outlined" density="comfortable" hide-details
-														  min="8" max="32" suffix="px" />
-										</v-col>
-										<v-col cols="6">
-											<v-select v-model.number="settingsStore.editor.tabSize"
-													  :items="[2, 4, 8]"
-													  :label="$t('settings.editor.tabSize')"
-													  v-hint="$t('settings.editor.tabSizeHint')"
-													  variant="outlined" density="comfortable" hide-details />
-										</v-col>
-									</v-row>
-									<v-select v-model="settingsStore.editor.wordWrap"
-											  :items="wordWrapOptions" item-title="label" item-value="value"
-											  :label="$t('settings.editor.wordWrap')"
-											  v-hint="$t('settings.editor.wordWrapHint')"
-											  variant="outlined" density="comfortable" hide-details class="mt-4" />
-									<v-switch v-model="settingsStore.editor.minimap" color="primary"
-											  :label="$t('settings.editor.minimap')"
-											  v-hint="$t('settings.editor.minimapHint')"
-											  density="comfortable" hide-details class="mt-2" />
-									<v-switch v-model="settingsStore.editor.lineNumbers" color="primary"
-											  :label="$t('settings.editor.lineNumbers')"
-											  v-hint="$t('settings.editor.lineNumbersHint')"
-											  density="comfortable" hide-details />
-									<v-switch v-model="settingsStore.editor.bracketPairColorization" color="primary"
-											  :label="$t('settings.editor.bracketPairColorization')"
-											  v-hint="$t('settings.editor.bracketPairColorizationHint')"
-											  density="comfortable" hide-details />
-								</v-card-text>
-							</v-card>
-						</v-col>
-
-						<v-col cols="12" md="6">
-							<v-card>
-								<v-card-title>
-									<v-icon class="mr-2">mdi-auto-fix</v-icon>
-									{{ $t("settings.editor.assistanceCaption") }}
-								</v-card-title>
-								<v-card-text>
-									<v-switch v-model="settingsStore.editor.quickSuggestions" color="primary"
-											  :label="$t('settings.editor.quickSuggestions')"
-											  v-hint="$t('settings.editor.quickSuggestionsHint')"
-											  density="comfortable" hide-details />
-									<v-switch v-model="settingsStore.editor.suggestOnTriggerCharacters" color="primary"
-											  :label="$t('settings.editor.suggestOnTriggerCharacters')"
-											  v-hint="$t('settings.editor.suggestOnTriggerCharactersHint')"
-											  density="comfortable" hide-details />
-									<v-switch v-model="settingsStore.editor.parameterHints" color="primary"
-											  :label="$t('settings.editor.parameterHints')"
-											  v-hint="$t('settings.editor.parameterHintsHint')"
-											  density="comfortable" hide-details />
-									<v-switch v-model="settingsStore.editor.hover" color="primary"
-											  :label="$t('settings.editor.hover')"
-											  v-hint="$t('settings.editor.hoverHint')"
-											  density="comfortable" hide-details />
-									<v-switch v-model="settingsStore.editor.inlineSuggest" color="primary"
-											  :label="$t('settings.editor.inlineSuggest')"
-											  v-hint="$t('settings.editor.inlineSuggestHint')"
-											  density="comfortable" hide-details />
-									<v-switch v-model="settingsStore.editor.formatOnPaste" color="primary"
-											  :label="$t('settings.editor.formatOnPaste')"
-											  v-hint="$t('settings.editor.formatOnPasteHint')"
-											  density="comfortable" hide-details />
-									<v-switch v-model="settingsStore.editor.formatOnType" color="primary"
-											  :label="$t('settings.editor.formatOnType')"
-											  v-hint="$t('settings.editor.formatOnTypeHint')"
-											  density="comfortable" hide-details />
-									<v-switch v-model="settingsStore.editor.largeFileOptimizations" color="primary"
-											  :label="$t('settings.editor.largeFileOptimizations')"
-											  v-hint="$t('settings.editor.largeFileOptimizationsHint')"
-											  density="comfortable" hide-details />
-								</v-card-text>
-							</v-card>
-						</v-col>
-					</v-row>
-				</v-container>
-			</v-window-item>
-
-			<v-window-item value="Boards" eager>
-				<v-alert v-if="boards.length === 0" type="info" variant="tonal" tile>
-					{{ $t("settings.about.noBoards") }}
-				</v-alert>
-				<v-table v-else density="compact">
-					<thead>
-						<tr>
-							<th class="text-left">{{ $t("settings.infrastructure.product") }}</th>
-							<th class="text-left">{{ $t("settings.infrastructure.shortName") }}</th>
-							<th class="text-center">{{ $t("settings.infrastructure.can") }}</th>
-							<th v-if="hasAnyVin" class="text-center d-none d-lg-table-cell">
-								{{ $t("panel.status.vIn") }}
-							</th>
-							<th v-if="hasAnyV12" class="text-center d-none d-lg-table-cell">
-								{{ $t("panel.status.v12") }}
-							</th>
-							<th v-if="hasAnyMcuTemp" class="text-center d-none d-xl-table-cell">
-								{{ $t("panel.status.mcuTemp") }}
-							</th>
-							<th class="text-left">{{ $t("settings.infrastructure.firmwareVersion") }}</th>
-							<th class="text-left d-none d-md-table-cell">
-								{{ $t("settings.infrastructure.builtOn") }}
-							</th>
-							<th v-if="hasAnyFreeRam" class="text-center d-none d-xl-table-cell">
-								{{ $t("settings.infrastructure.freeRam") }}
-							</th>
-							<th class="text-right d-none d-md-table-cell">
-								<v-btn color="primary" density="comfortable" :loading="installingFirmware"
-									   :disabled="!machineStore.isConnected || uiStore.uiFrozen"
-									   @click="pickFirmwareFiles">
-									<v-icon class="mr-1">mdi-package-down</v-icon>
-									{{ $t("settings.infrastructure.installUpdate") }}
-								</v-btn>
-							</th>
-						</tr>
-					</thead>
-					<tbody>
-						<tr v-for="(board, idx) in boards" :key="idx">
-							<td>{{ board.name || $t("generic.noValue") }}</td>
-							<td>{{ board.shortName || $t("generic.noValue") }}</td>
-							<td class="text-center">
-								<v-btn v-if="board.canAddress !== null && board.canAddress > 0"
-									   variant="text" density="compact" color="primary"
-									   :disabled="!machineStore.isConnected || uiStore.uiFrozen"
-									   v-hint="$t('settings.infrastructure.changeCanAddress')"
-									   @click="openCanAddressDialog(board)">
-									{{ board.canAddress }}
-								</v-btn>
-								<template v-else>{{ board.canAddress ?? $t("generic.noValue") }}</template>
-							</td>
-							<td v-if="hasAnyVin" class="text-center d-none d-lg-table-cell">
-								<v-tooltip v-if="board.vIn" location="bottom"
-										   :text="$t('panel.status.minMax', [display(board.vIn.min, 1, 'V'), display(board.vIn.max, 1, 'V')])">
-									<template #activator="{ props: tooltipProps }">
-										<span v-bind="tooltipProps" class="text-no-wrap">
-											{{ display(board.vIn.current, 1, "V") }}
-										</span>
-									</template>
-								</v-tooltip>
-								<template v-else>{{ $t("generic.noValue") }}</template>
-							</td>
-							<td v-if="hasAnyV12" class="text-center d-none d-lg-table-cell">
-								<v-tooltip v-if="board.v12" location="bottom"
-										   :text="$t('panel.status.minMax', [display(board.v12.min, 1, 'V'), display(board.v12.max, 1, 'V')])">
-									<template #activator="{ props: tooltipProps }">
-										<span v-bind="tooltipProps" class="text-no-wrap">
-											{{ display(board.v12.current, 1, "V") }}
-										</span>
-									</template>
-								</v-tooltip>
-								<template v-else>{{ $t("generic.noValue") }}</template>
-							</td>
-							<td v-if="hasAnyMcuTemp" class="text-center d-none d-xl-table-cell">
-								<v-tooltip v-if="board.mcuTemp" location="bottom"
-										   :text="$t('panel.status.minMax', [display(board.mcuTemp.min, 1, '°C'), display(board.mcuTemp.max, 1, '°C')])">
-									<template #activator="{ props: tooltipProps }">
-										<span v-bind="tooltipProps" class="text-no-wrap">
-											{{ display(board.mcuTemp.current, 1, "°C") }}
-										</span>
-									</template>
-								</v-tooltip>
-								<template v-else>{{ $t("generic.noValue") }}</template>
-							</td>
-							<td>{{ board.firmwareVersion || $t("generic.noValue") }}</td>
-							<td class="d-none d-md-table-cell">{{ board.firmwareDate || $t("generic.noValue") }}</td>
-							<td v-if="hasAnyFreeRam" class="text-center d-none d-xl-table-cell text-no-wrap">
-								{{ displaySize(board.freeRam) }}
-							</td>
-							<td class="d-none d-md-table-cell text-right">
-								<v-btn variant="text" density="comfortable" color="primary"
-									   prepend-icon="mdi-stethoscope"
-									   :disabled="!machineStore.isConnected || uiStore.uiFrozen"
-									   v-hint="$t('settings.infrastructure.diagnosticsHint')"
-									   @click="runDiagnostics(board)">
-									{{ $t("settings.infrastructure.diagnostics") }}
-								</v-btn>
-							</td>
-						</tr>
-
-						<tr v-if="wifiVersion">
-							<td>Duet WiFi Server</td>
-							<td></td>
-							<td></td>
-							<td v-if="hasAnyVin" class="d-none d-lg-table-cell" />
-							<td v-if="hasAnyV12" class="d-none d-lg-table-cell" />
-							<td v-if="hasAnyMcuTemp" class="d-none d-xl-table-cell" />
-							<td>{{ wifiVersion }}</td>
-							<td class="d-none d-md-table-cell" />
-							<td v-if="hasAnyFreeRam" class="d-none d-xl-table-cell" />
-							<td class="d-none d-md-table-cell" />
-						</tr>
-
-						<tr v-if="dsfVersion">
-							<td>Duet Software Framework</td>
-							<td>DSF</td>
-							<td></td>
-							<td v-if="hasAnyVin" class="d-none d-lg-table-cell" />
-							<td v-if="hasAnyV12" class="d-none d-lg-table-cell" />
-							<td v-if="hasAnyMcuTemp" class="d-none d-xl-table-cell" />
-							<td>{{ dsfVersion }}</td>
-							<td class="d-none d-md-table-cell">{{ dsfBuildDateTime || $t("generic.noValue") }}</td>
-							<td v-if="hasAnyFreeRam" class="d-none d-xl-table-cell" />
-							<td class="d-none d-md-table-cell" />
-						</tr>
-
-						<tr>
-							<td>Duet Web Control</td>
-							<td>DWC</td>
-							<td></td>
-							<td v-if="hasAnyVin" class="d-none d-lg-table-cell" />
-							<td v-if="hasAnyV12" class="d-none d-lg-table-cell" />
-							<td v-if="hasAnyMcuTemp" class="d-none d-xl-table-cell" />
-							<td>{{ dwcVersion }}</td>
-							<td class="d-none d-md-table-cell">{{ dwcBuildDateTime }}</td>
-							<td v-if="hasAnyFreeRam" class="d-none d-xl-table-cell" />
-							<td class="d-none d-md-table-cell" />
-						</tr>
-					</tbody>
-				</v-table>
-
-				<v-dialog v-model="canAddressDialog.shown" width="480" persistent no-click-animation>
-					<v-form @submit.prevent="applyCanAddress">
-						<v-card>
-							<v-card-title>{{ $t("settings.infrastructure.changeCanAddress") }}</v-card-title>
-							<v-card-text>
-								<div class="mb-3">
-									{{ $t("settings.infrastructure.changeCanAddressPrompt", [canAddressDialog.boardName, canAddressDialog.currentAddress]) }}
-								</div>
-								<v-text-field v-model.number="canAddressDialog.newAddress" type="number"
-											  min="1" max="126" step="1" autofocus hide-details
-											  :label="$t('settings.infrastructure.newCanAddress')"
-											  v-hint="$t('settings.infrastructure.newCanAddressHint')"
-											  variant="outlined" density="comfortable" />
-								<v-alert type="info" variant="tonal" class="mt-3" icon="mdi-restart">
-									{{ $t("settings.infrastructure.canAddressRestartHint") }}
-								</v-alert>
-							</v-card-text>
-							<v-card-actions>
-								<v-spacer />
-								<v-btn variant="text" type="button" @click="canAddressDialog.shown = false">
-									{{ $t("generic.cancel") }}
-								</v-btn>
-								<v-btn variant="text" type="submit"
-									   :loading="canAddressDialog.busy" :disabled="!canAddressIsValid">
-									{{ $t("generic.ok") }}
-								</v-btn>
-							</v-card-actions>
-						</v-card>
-					</v-form>
-				</v-dialog>
-			</v-window-item>
-
-			<v-window-item value="About" class="pa-3" eager>
-				<v-card flat>
-					<v-card-title class="d-flex align-center">
-						<v-icon class="mr-2">mdi-information</v-icon>
-						<span>{{ $t("settings.about.dwc") }} {{ dwcVersion }}</span>
-						<v-spacer />
-						<a href="https://github.com/Duet3D/DuetWebControl" target="_blank"
-						   rel="noopener" class="text-body-medium d-inline-flex align-center">
-							<v-icon size="small" class="mr-1">mdi-star</v-icon>
-							GitHub
-						</a>
-					</v-card-title>
-					<v-card-text>
-						<div>
-							<strong>{{ $t("settings.about.hostname") }}:</strong>
-							{{ machineStore.model.network.hostname || $t("generic.noValue") }}
-						</div>
-						<div>
-							<strong>{{ $t("settings.about.connector") }}:</strong>
-							{{ connectorLabel }}
-						</div>
-						<div class="mt-4 d-flex align-center">
-							<i18n-t keypath="settings.about.credits" tag="span">
-								<template #author>
-									<a href="mailto:christian@duet3d.com">Christian Hammacher</a>
-								</template>
-								<template #duet3d>
-									<a href="https://www.duet3d.com" target="_blank" rel="noopener">Duet3D</a>
-								</template>
-							</i18n-t>
+				<v-window-item value="About" class="pa-3" eager>
+					<v-card flat>
+						<v-card-title class="d-flex align-center">
+							<v-icon class="mr-2">mdi-information</v-icon>
+							<span>{{ $t("settings.about.dwc") }} {{ dwcVersion }}</span>
 							<v-spacer />
-							<v-btn class="d-lg-none" size="small" variant="tonal"
-								   prepend-icon="mdi-refresh" @click="reloadPage">
-								{{ $t("settings.about.reload") }}
-							</v-btn>
-						</div>
-						<div class="mt-1">
-							<i18n-t keypath="settings.about.license" tag="span">
-								<template #gpl>
-									<a href="https://www.gnu.org/licenses/gpl-3.0.en.html"
-									   target="_blank" rel="noopener">GNU General Public License v3</a>
-								</template>
-							</i18n-t>
-						</div>
-					</v-card-text>
-				</v-card>
-
-				<v-card class="mt-3">
-					<v-card-title>
-						<v-icon class="mr-2">mdi-restore</v-icon>
-						{{ $t("settings.machine.resetCaption") }}
-					</v-card-title>
-					<v-card-text>
-						<div class="d-flex align-center">
-							<div class="flex-grow-1 text-body-small text-medium-emphasis">
-								{{ $t("settings.machine.resetHint") }}
+							<a href="https://github.com/Duet3D/DuetWebControl" target="_blank"
+							   rel="noopener" class="text-body-medium d-inline-flex align-center">
+								<v-icon size="small" class="mr-1">mdi-star</v-icon>
+								GitHub
+							</a>
+						</v-card-title>
+						<v-card-text>
+							<div>
+								<strong>{{ $t("settings.about.hostname") }}:</strong>
+								{{ machineStore.model.network.hostname || $t("generic.noValue") }}
 							</div>
-							<v-btn class="ms-2" color="warning" :loading="resettingSettings"
-								   :disabled="uiStore.uiFrozen" @click="askFactoryReset">
-								<v-icon class="mr-1">mdi-restore</v-icon>
-								{{ $t("settings.machine.reset") }}
-							</v-btn>
-						</div>
-
-						<v-divider class="my-3" />
-
-						<div class="d-flex align-center">
-							<div class="flex-grow-1 text-body-small text-medium-emphasis">
-								{{ $t("settings.machine.resetComponentsHint") }}
+							<div>
+								<strong>{{ $t("settings.about.connector") }}:</strong>
+								{{ connectorLabel }}
 							</div>
-							<v-btn class="ms-2" color="warning" variant="tonal" :loading="resettingComponents"
-								   :disabled="uiStore.uiFrozen" @click="resetComponents">
-								<v-icon class="mr-1">mdi-view-dashboard-outline</v-icon>
-								{{ $t("settings.machine.resetComponents") }}
-							</v-btn>
-						</div>
-					</v-card-text>
-				</v-card>
-			</v-window-item>
+							<div class="mt-4 d-flex align-center">
+								<i18n-t keypath="settings.about.credits" tag="span">
+									<template #author>
+										<a href="mailto:christian@duet3d.com">Christian Hammacher</a>
+									</template>
+									<template #duet3d>
+										<a href="https://www.duet3d.com" target="_blank" rel="noopener">Duet3D</a>
+									</template>
+								</i18n-t>
+								<v-spacer />
+								<v-btn class="d-lg-none" size="small" variant="tonal"
+									   prepend-icon="mdi-refresh" @click="reloadPage">
+									{{ $t("settings.about.reload") }}
+								</v-btn>
+							</div>
+							<div class="mt-1">
+								<i18n-t keypath="settings.about.license" tag="span">
+									<template #gpl>
+										<a href="https://www.gnu.org/licenses/gpl-3.0.en.html"
+										   target="_blank" rel="noopener">GNU General Public License v3</a>
+									</template>
+								</i18n-t>
+							</div>
+						</v-card-text>
+					</v-card>
 
-			<v-window-item v-for="tab in pluginSettingTabs" :key="tab.key" :value="tab.key" eager>
-				<component :is="tab.component" />
-			</v-window-item>
-		</v-window>
-	</v-card>
+					<v-card class="mt-3">
+						<v-card-title>
+							<v-icon class="mr-2">mdi-restore</v-icon>
+							{{ $t("settings.machine.resetCaption") }}
+						</v-card-title>
+						<v-card-text>
+							<div class="d-flex align-center">
+								<div class="flex-grow-1 text-body-small text-medium-emphasis">
+									{{ $t("settings.machine.resetHint") }}
+								</div>
+								<v-btn class="ms-2" color="warning" :loading="resettingSettings"
+									   :disabled="uiStore.uiFrozen" @click="askFactoryReset">
+									<v-icon class="mr-1">mdi-restore</v-icon>
+									{{ $t("settings.machine.reset") }}
+								</v-btn>
+							</div>
+
+							<v-divider class="my-3" />
+
+							<div class="d-flex align-center">
+								<div class="flex-grow-1 text-body-small text-medium-emphasis">
+									{{ $t("settings.machine.resetComponentsHint") }}
+								</div>
+								<v-btn class="ms-2" color="warning" variant="tonal" :loading="resettingComponents"
+									   :disabled="uiStore.uiFrozen" @click="resetComponents">
+									<v-icon class="mr-1">mdi-view-dashboard-outline</v-icon>
+									{{ $t("settings.machine.resetComponents") }}
+								</v-btn>
+							</div>
+						</v-card-text>
+					</v-card>
+				</v-window-item>
+
+				<v-window-item v-for="tab in pluginSettingTabs" :key="tab.key" :value="tab.key" eager>
+					<component :is="tab.component" />
+				</v-window-item>
+			</v-window>
+		</v-card>
+		</div>
+
+		<input ref="firmwareInput" type="file" multiple :accept="firmwareAccept" hidden
+			   @change="onFirmwarePicked" />
+
+		<FirmwareUpdateDialog v-model:shown="firmwareDialog.shown" :plan="firmwareDialog.plan"
+							  @confirmed="firmwareController.onFirmwareUpdateConfirmed"
+							  @cancelled="firmwareController.onFirmwareUpdateCancelled" />
+
+		<ConfigUpdatedDialog v-model:shown="configUpdatedDialog.shown" />
 	</div>
-
-	<input ref="firmwareInput" type="file" multiple :accept="firmwareAccept" hidden
-		   @change="onFirmwarePicked" />
-
-	<FirmwareUpdateDialog v-model:shown="firmwareDialog.shown" :plan="firmwareDialog.plan"
-						  @confirmed="firmwareController.onFirmwareUpdateConfirmed"
-						  @cancelled="firmwareController.onFirmwareUpdateCancelled" />
-
-	<ConfigUpdatedDialog v-model:shown="configUpdatedDialog.shown" />
 </template>
 
 <script setup lang="ts">
