@@ -20,9 +20,9 @@ import type {
 
 declare module 'vue-router' {
   interface TypesConfig {
-    ParamParsers:
-      | never
+    _ParamParsers: {}
     RouteNamedMap: import('vue-router/auto-routes').RouteNamedMap
+    _RouteFileInfoMap: import('vue-router/auto-routes')._RouteFileInfoMap
   }
 }
 
@@ -115,13 +115,6 @@ declare module 'vue-router/auto-routes' {
       Record<never, never>,
       | never
     >,
-    '/UseBuiltInLayout': RouteRecordInfo<
-      '/UseBuiltInLayout',
-      '/UseBuiltInLayout',
-      Record<never, never>,
-      Record<never, never>,
-      | never
-    >,
   }
 
   /**
@@ -140,17 +133,23 @@ declare module 'vue-router/auto-routes' {
         | '/'
       views:
         | never
+      pathParamNames:
+        | never
     }
     'src/pages/[...notFound].vue': {
       routes:
         | '/[...notFound]'
       views:
         | never
+      pathParamNames:
+        | 'notFound'
     }
     'src/pages/Console.vue': {
       routes:
         | '/Console'
       views:
+        | never
+      pathParamNames:
         | never
     }
     'src/pages/Dashboard.vue': {
@@ -158,17 +157,23 @@ declare module 'vue-router/auto-routes' {
         | '/Dashboard'
       views:
         | never
+      pathParamNames:
+        | never
     }
     'src/pages/Explorer/[[tab]]/[[volume]]/[[...path]].vue': {
       routes:
         | '/Explorer/[[tab]]/[[volume]]/[[...path]]'
       views:
         | never
+      pathParamNames:
+        | 'path'
     }
     'src/pages/Job/Status.vue': {
       routes:
         | '/Job/Status'
       views:
+        | never
+      pathParamNames:
         | never
     }
     'src/pages/Job/Webcam.vue': {
@@ -176,17 +181,23 @@ declare module 'vue-router/auto-routes' {
         | '/Job/Webcam'
       views:
         | never
+      pathParamNames:
+        | never
     }
     'src/pages/Jobs/[[volume]]/[[...path]].vue': {
       routes:
         | '/Jobs/[[volume]]/[[...path]]'
       views:
         | never
+      pathParamNames:
+        | 'path'
     }
     'src/pages/Macros.vue': {
       routes:
         | '/Macros'
       views:
+        | never
+      pathParamNames:
         | never
     }
     'src/pages/Plugins.vue': {
@@ -194,23 +205,23 @@ declare module 'vue-router/auto-routes' {
         | '/Plugins'
       views:
         | never
+      pathParamNames:
+        | never
     }
     'src/pages/Settings/[[tab]].vue': {
       routes:
         | '/Settings/[[tab]]'
       views:
         | never
+      pathParamNames:
+        | 'tab'
     }
     'src/pages/Temperatures.vue': {
       routes:
         | '/Temperatures'
       views:
         | never
-    }
-    'src/pages/UseBuiltInLayout.vue': {
-      routes:
-        | '/UseBuiltInLayout'
-      views:
+      pathParamNames:
         | never
     }
   }

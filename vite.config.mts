@@ -10,6 +10,7 @@ import { VitePWA } from 'vite-plugin-pwa'
 import dwcPlugins from './vite/dwc-plugins'
 import dwcVuetifySplit from './vite/dwc-vuetify-split'
 import dwcComponents from './vite/dwc-components'
+import dwcPluginApi from './vite/dwc-plugin-api'
 import buildOutputs from './vite/build-outputs'
 
 // Utilities
@@ -157,6 +158,7 @@ export default defineConfig({
     dwcPlugins(),
     dwcVuetifySplit(),
     dwcComponents(),
+    dwcPluginApi(),
     VueRouter({
       dts: 'src/typed-router.d.ts',
     }),

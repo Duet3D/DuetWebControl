@@ -298,9 +298,10 @@ async function start(id: string) {
 	busyPluginId.value = id;
 	try {
 		const plugin = machineStore.model.plugins.get(id);
-		// Any object-model entry is owned by DSF, which knows how to activate plugins regardless
-		// of whether they carry an SBC executable or are RRF-only (firmware-side) packages
-		if (plugin && (plugin.pid ?? -1) <= 0) {
+		// Only plugins shipping an SBC executable need DSF to spawn a process; start it when not
+		// already running. DWC-only plugins are registered in the object model too (standalone's
+		// PollConnector lists them), but there's no DSF to call - startSbcPlugin would throw
+		if (plugin && plugin.sbcExecutable && (plugin.pid ?? -1) <= 0) {
 			await machineStore.startSbcPlugin(id);
 		}
 		// Load the browser-side bundle when there is one (built-in plugins have no OM entry but
@@ -329,7 +330,7 @@ async function stop(id: string) {
 			// routes / components stay live until the next page load
 			dwcPluginsUnloaded.value = true;
 		}
-		if (plugin && (plugin.pid ?? -1) > 0) {
+		if (plugin && plugin.sbcExecutable && (plugin.pid ?? -1) > 0) {
 			await machineStore.stopSbcPlugin(id);
 		}
 	} catch (e) {

@@ -6,7 +6,8 @@
 					<v-icon v-if="icon" class="mr-1">{{ icon }}</v-icon>
 					{{ title }}
 				</v-card-title>
-				<v-card-text>{{ prompt }}</v-card-text>
+				<v-card-text v-if="html" v-html="prompt" />
+				<v-card-text v-else>{{ prompt }}</v-card-text>
 				<v-card-actions>
 					<slot name="extra-actions" />
 					<v-spacer />
@@ -23,10 +24,13 @@
 </template>
 
 <script setup lang="ts">
+// `html` callers pass a developer-authored, already-translated string (see showConfirmDialog);
+// it is never user input, so v-html here carries no injection surface the page doesn't already have
 defineProps<{
 	title: string;
 	prompt: string;
 	icon?: string;
+	html?: boolean;
 }>();
 
 const shown = defineModel<boolean>("shown", { required: true });

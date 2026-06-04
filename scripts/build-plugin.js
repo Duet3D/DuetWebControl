@@ -141,6 +141,13 @@ export function findEntryFile(pluginDir) {
 export async function buildPlugin(pluginDir, manifest, entryFile) {
 	const outDir = resolve(pluginDir, "dist");
 
+	// Ship sourcemaps for prerelease plugin versions (alpha/beta/rc) so installs can be debugged in
+	// the wild, like DWC's own build; stable releases skip them to keep the ZIP lean. The version is
+	// already resolved (placeholders expanded) by the caller. DWC_SOURCEMAP=1 / =0 forces either way
+	const sourcemap = process.env.DWC_SOURCEMAP !== undefined
+		? process.env.DWC_SOURCEMAP !== "0"
+		: /-(?:alpha|beta|rc)\b/i.test(manifest.version);
+
 	await build({
 		root: pluginDir,
 		plugins: [vue()],
@@ -152,6 +159,10 @@ export async function buildPlugin(pluginDir, manifest, entryFile) {
 				name: manifest.id,
 				formats: ["iife"],
 				fileName: () => `${manifest.id}.js`,
+				// A plugin dir has no package.json, so rolldown-vite has no name to derive the
+				// CSS bundle name from; set it explicitly or the build aborts for any plugin
+				// that ships styles
+				cssFileName: manifest.id,
 			},
 			rollupOptions: {
 				// `DuetWebControl` is the canonical alias plugins should use, but accept
@@ -182,6 +193,7 @@ export async function buildPlugin(pluginDir, manifest, entryFile) {
 			},
 			// Vite 8 ships with rolldown's built-in minifier - no extra deps required
 			minify: true,
+			sourcemap,
 			cssCodeSplit: false,
 		},
 		define: {
@@ -247,17 +259,23 @@ mkdirSync(join(assembleDir, "dwc", "css"), { recursive: true });
 
 let filesAdded = false;
 
-// Copy JS
+// Copy JS (+ sourcemap when emitted)
 const jsFile = join(outDir, `${manifest.id}.js`);
 if (existsSync(jsFile)) {
 	cpSync(jsFile, join(assembleDir, "dwc", "js", `${manifest.id}.js`));
+	if (existsSync(`${jsFile}.map`)) {
+		cpSync(`${jsFile}.map`, join(assembleDir, "dwc", "js", `${manifest.id}.js.map`));
+	}
 	filesAdded = true;
 }
 
-// Copy CSS (if generated)
+// Copy CSS (+ sourcemap) if generated
 const cssFile = join(outDir, `${manifest.id}.css`);
 if (existsSync(cssFile)) {
 	cpSync(cssFile, join(assembleDir, "dwc", "css", `${manifest.id}.css`));
+	if (existsSync(`${cssFile}.map`)) {
+		cpSync(`${cssFile}.map`, join(assembleDir, "dwc", "css", `${manifest.id}.css.map`));
+	}
 	filesAdded = true;
 }
 

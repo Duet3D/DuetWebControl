@@ -100,11 +100,11 @@ function derivePositionalId(): string {
 	const componentName = deriveComponentName();
 	const settingsStore = useSettingsStore();
 
-	// Static layout: the page/route is the layout, so identity is route + component name. Two
+	// Built-in layout: the page/route is the layout, so identity is route + component name. Two
 	// instances of the same component on the same route share settings; pin `options.id` to
 	// avoid that. No scope is provided to descendants because there is no layout chain to extend.
 	// Reads the *effective* state - useCustomLayout may be true while the plugin is still loading,
-	// during which window the static shell renders and route-based ids are the right derivation
+	// during which window the built-in shell renders and route-based ids are the right derivation
 	if (!settingsStore.useCustomLayout || !registeredLayout.value) {
 		return `${route.path}::${componentName}`;
 	}

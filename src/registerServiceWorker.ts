@@ -6,24 +6,39 @@
 // code against a now-different cache. Skipped on the very first install (page was loaded
 // uncontrolled), since there is no stale content to flush yet
 if (import.meta.env.PROD && "serviceWorker" in navigator) {
-	const wasControlled = navigator.serviceWorker.controller != null;
-	let reloading = false;
-	navigator.serviceWorker.addEventListener("controllerchange", () => {
-		if (!wasControlled || reloading) {
-			return;
-		}
-		reloading = true;
-		window.location.reload();
-	});
-
-	window.addEventListener("load", () => {
+	if (!window.isSecureContext) {
+		// A service worker only registers in a secure context, but one registered during an
+		// earlier HTTPS session keeps controlling the origin after TLS is turned off - and then
+		// intercepts requests, serving stale chunks so dynamic imports fail. Since we won't (and
+		// can't) run a SW here, tear down any leftover registration instead of leaving it active
 		navigator.serviceWorker
-			.register(`${import.meta.env.BASE_URL}service-worker.js`)
-			.then(() => {
-				console.log("Service worker has been registered.");
+			.getRegistrations()
+			.then((registrations) => {
+				for (const registration of registrations) {
+					registration.unregister();
+				}
 			})
-			.catch((error: unknown) => {
-				console.error("Error during service worker registration:", error);
-			});
-	});
+			.catch(() => { /* best effort - nothing actionable if the lookup fails */ });
+	} else {
+		const wasControlled = navigator.serviceWorker.controller != null;
+		let reloading = false;
+		navigator.serviceWorker.addEventListener("controllerchange", () => {
+			if (!wasControlled || reloading) {
+				return;
+			}
+			reloading = true;
+			window.location.reload();
+		});
+
+		window.addEventListener("load", () => {
+			navigator.serviceWorker
+				.register(`${import.meta.env.BASE_URL}service-worker.js`)
+				.then(() => {
+					console.log("Service worker has been registered.");
+				})
+				.catch((error: unknown) => {
+					console.error("Error during service worker registration:", error);
+				});
+		});
+	}
 }

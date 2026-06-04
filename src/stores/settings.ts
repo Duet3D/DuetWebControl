@@ -288,7 +288,7 @@ export const useSettingsStore = defineStore("settings", {
 
 		/**
 		 * When true and a custom layout has been registered via `registerLayout()` in `@/plugins/layout`,
-		 * the switcher in `src/layouts/default.vue` renders that layout instead of the built-in static
+		 * the switcher in `src/layouts/default.vue` renders that layout instead of the built-in
 		 * shell. Toggled from the Settings -> Display switch button; a registration with
 		 * `takeoverOnFirstLoad: true` also flips this on its first registration so the user does not
 		 * need to opt in

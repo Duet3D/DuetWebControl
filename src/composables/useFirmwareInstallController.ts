@@ -12,7 +12,7 @@
 // plans the install, uploads, opens the dialog if updates are needed, runs M997 on confirmation
 // and prompts for a firmware reset when config.g was replaced
 
-import { OperationCancelledError } from "@duet3d/connectors";
+import { OperationCancelledError, PollConnector, RestConnector } from "@duet3d/connectors";
 import type { InjectionKey } from "vue";
 
 import {
@@ -20,7 +20,7 @@ import {
 } from "@/composables/useFirmwareInstall";
 import i18n from "@/i18n";
 import { useMachineStore } from "@/stores/machine";
-import { useUiStore } from "@/stores/ui";
+import { LogLevel, useUiStore } from "@/stores/ui";
 import { isPrinting } from "@/utils/enums";
 import Events from "@/utils/events";
 
@@ -57,6 +57,24 @@ export function useFirmwareInstallController(): FirmwareInstallController {
 	const configUpdatedDialog = reactive({ shown: false });
 
 	async function runFirmwareUpload(files: Array<File>) {
+		// DWC release bundles are board-type specific: DuetWebControl-SD.zip carries the www assets
+		// for a standalone install, DuetWebControl-SBC.zip is the DSF package updated through apt.
+		// Uploading the wrong one for the current mode would scatter files where they do nothing, so
+		// reject the mismatch before any extraction or upload happens. The transport decides which
+		// bundle fits - RestConnector is SBC mode, PollConnector is standalone
+		const connector = machineStore.connector;
+		for (const file of files) {
+			const name = file.name.toLowerCase();
+			if (connector instanceof RestConnector && name === "duetwebcontrol-sd.zip") {
+				uiStore.log(LogLevel.error, i18n.global.t("notification.decompress.wrongBundleTitle"), i18n.global.t("notification.decompress.standaloneUpdateInSbcModeError"));
+				return;
+			}
+			if (connector instanceof PollConnector && name === "duetwebcontrol-sbc.zip") {
+				uiStore.log(LogLevel.error, i18n.global.t("notification.decompress.wrongBundleTitle"), i18n.global.t("notification.decompress.sbcUpdateInStandaloneError"));
+				return;
+			}
+		}
+
 		try {
 			let plan: FirmwareUpdatePlan;
 			try {

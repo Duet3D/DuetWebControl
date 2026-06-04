@@ -313,7 +313,9 @@
 			"title": "Entpacke Dateien...",
 			"message": "Bitte warten während Ihre Dateien entpackt werden...",
 			"errorTitle": "Konnte Dateien nicht entpacken",
-			"standaloneUpdateInSbcModeError": "Sie versuchen ein DWC-Paket für den Standalone-Modus hochzuladen, obwohl die Maschine im SBC-Modus läuft. Dies wird nicht untersützt. Bitte benutzen Sie apt update/upgrade, um ihr System zu aktualisieren."
+			"wrongBundleTitle": "Inkompatibles DWC-Paket",
+			"standaloneUpdateInSbcModeError": "Sie versuchen ein DWC-Paket für den Standalone-Modus hochzuladen, obwohl die Maschine im SBC-Modus läuft. Dies wird nicht unterstützt. Bitte benutzen Sie apt update/upgrade, um ihr System zu aktualisieren.",
+			"sbcUpdateInStandaloneError": "Sie versuchen ein DWC-Paket für den SBC-Modus hochzuladen, obwohl die Maschine im Standalone-Modus läuft. Dies wird nicht unterstützt. Bitte verwenden Sie stattdessen das Paket DuetWebControl-SD.zip."
 		},
 		"delete": {
 			"errorTitle": "Konnte {0} nicht löschen",
@@ -1036,6 +1038,8 @@
 		"display": {
 			"layoutCaption": "Layout",
 			"switchToCustomLayout": "Zu {layout} wechseln",
+			"switchToCustomLayoutTitle": "Zu benutzerdefiniertem Layout wechseln?",
+			"switchToCustomLayoutPrompt": "Damit wird die gesamte DWC-Oberfläche durch das Layout {layout} ersetzt. Um zur eingebauten Standardoberfläche zurückzukehren, rufen Sie die URL <span class=\"text-no-wrap\">/BuiltInLayout</span> im Browser auf.",
 			"switchToDefaultLayout": "Zur Standardoberfläche wechseln",
 			"theme": "Farbschema",
 			"themeHint": "Ein von einem Plugin bereitgestelltes Farbschema auswählen, oder dem Dark-Mode-Schalter folgen",

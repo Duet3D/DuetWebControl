@@ -313,7 +313,9 @@
 			"title": "Decompressing files...",
 			"message": "Please stand by while your files are being decompressed...",
 			"errorTitle": "Failed to decompress files",
-			"standaloneUpdateInSbcModeError": "You are trying to upload a standalone DWC bundle in SBC mode. This is NOT supported. Please use apt update/upgrade to update your system."
+			"wrongBundleTitle": "Incompatible DWC package",
+			"standaloneUpdateInSbcModeError": "You are trying to upload a standalone DWC bundle in SBC mode. This is NOT supported. Please use apt update/upgrade to update your system.",
+			"sbcUpdateInStandaloneError": "You are trying to upload an SBC DWC bundle in standalone mode. This is NOT supported. Please use the DuetWebControl-SD.zip package instead."
 		},
 		"delete": {
 			"errorTitle": "Failed to delete {0}",
@@ -1038,6 +1040,8 @@
 		"display": {
 			"layoutCaption": "Layout",
 			"switchToCustomLayout": "Switch to {layout}",
+			"switchToCustomLayoutTitle": "Switch to custom layout?",
+			"switchToCustomLayoutPrompt": "This replaces DWC's entire interface with the {layout} layout. To return to the built-in layout, open the URL <span class=\"text-no-wrap\">/BuiltInLayout</span> in your browser.",
 			"switchToDefaultLayout": "Switch to built-in layout",
 			"theme": "Theme",
 			"themeHint": "Select a colour theme provided by a plugin, or follow the dark-mode switch",

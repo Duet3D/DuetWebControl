@@ -5,6 +5,7 @@ export interface ConfirmRequest {
 	title: string;
 	prompt: string;
 	icon?: string;
+	html?: boolean;
 	resolve: (confirmed: boolean) => void;
 }
 
@@ -17,11 +18,12 @@ const queue = reactive<Array<ConfirmRequest>>([]);
  * @param title Already-translated dialog title
  * @param prompt Already-translated dialog body
  * @param icon Optional MDI icon shown next to the title
+ * @param html Render the prompt as HTML instead of plain text - only pass a trusted, developer-authored string
  * @returns True if the user confirmed, false if they declined
  */
-export function showConfirmDialog(title: string, prompt: string, icon?: string): Promise<boolean> {
+export function showConfirmDialog(title: string, prompt: string, icon?: string, html = false): Promise<boolean> {
 	return new Promise<boolean>((resolve) => {
-		queue.push({ id: ++counter, title, prompt, icon, resolve });
+		queue.push({ id: ++counter, title, prompt, icon, html, resolve });
 	});
 }
 

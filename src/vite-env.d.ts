@@ -31,5 +31,13 @@ declare module 'virtual:dwc-components' {
   export default components
 }
 
+// Virtual module produced by vite/dwc-plugin-api.ts. Default export is a flat object with every
+// runtime export of @/plugins and @/stores/*, keyed by export name - the surface external plugins
+// reach through window.DWC
+declare module 'virtual:dwc-plugin-api' {
+  const buildPluginApiSurface: () => Record<string, unknown>
+  export default buildPluginApiSurface
+}
+
 // Build datetime in "YYYY-MM-DD HH:MM" form, injected by vite.config.mts at build time
 declare const __BUILD_DATETIME__: string

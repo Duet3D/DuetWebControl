@@ -6,7 +6,7 @@
 import { computed, onMounted, watch } from "vue";
 import { useRoute, useRouter } from "vue-router";
 
-import StaticShell from "@/layouts/static.vue";
+import BuiltInShell from "@/layouts/builtin.vue";
 import i18n from "@/i18n";
 import { registeredLayout } from "@/plugins/layout";
 import { useSettingsStore } from "@/stores/settings";
@@ -22,7 +22,7 @@ const activeShell = computed(() => {
 	if (settingsStore.useCustomLayout && registeredLayout.value) {
 		return registeredLayout.value;
 	}
-	return StaticShell;
+	return BuiltInShell;
 });
 
 // The watcher fires only on toggles, not on first mount, because activeShell is a derived computed.

@@ -10,6 +10,8 @@ import { setupLayouts } from "virtual:generated-layouts";
 import { routes, handleHotUpdate } from "vue-router/auto-routes";
 
 import { useSettingsStore } from "@/stores/settings";
+import { registeredLayoutOptions } from "@/plugins/layout";
+import vuetify from "@/vue-plugins/vuetify";
 
 // unplugin-vue-router translates `[[...path]]` segments to `:path(.*)?`, a single optional
 // string with a `.*` regex. That isn't actually a repeatable catch-all - vue-router percent-
@@ -32,8 +34,35 @@ function fixCatchAllPath(routesIn: Array<RouteRecordRaw>) {
 const compiledRoutes = setupLayouts([...routes] as RouteRecordRaw[]);
 fixCatchAllPath(compiledRoutes);
 
-// MD breakpoint (Vuetify MD3); the bottom-anchoring below is limited to md and up
-const MD_BREAKPOINT = 840;
+// Legacy redirects: the four separate Files pages were folded into the unified Explorer
+// (Filaments/System/Macros are folders under volume 0) plus the standalone Jobs page.
+// Keep old bookmarks and externally linked URLs working
+compiledRoutes.push(
+	{ path: "/Files/Filaments", redirect: "/Explorer/filaments" },
+	{ path: "/Files/System", redirect: "/Explorer/sys" },
+	{ path: "/Files/Jobs", redirect: "/Jobs" },
+	{ path: "/Files/Macros", redirect: "/Explorer/macros" },
+);
+
+// Escape hatch back to the built-in shell. The switch runs in a navigation guard rather
+// than a page component's onMounted, so it fires during route resolution no matter which shell is
+// currently mounted - a third-party custom layout does not have to render this route through its
+// own <router-view> for the escape to work, and it is unaffected by deferred plugin loading.
+// A locked layout owns the UI for the session and must supply its own escape, so the switch is
+// refused while one is active; the layout's own beforeEach guard also redirects this path to "/"
+compiledRoutes.push({
+	path: "/BuiltInLayout",
+	component: { render: () => null },
+	beforeEnter: () => {
+		const settings = useSettingsStore();
+		if (registeredLayoutOptions.value?.locked && settings.useCustomLayout) {
+			return { path: "/" };
+		}
+		settings.useCustomLayout = false;
+		settings.layoutUserSet = true;
+		return { path: "/" };
+	},
+});
 
 // Set by the beforeEach guard from the scroll position of the page being left, consumed by
 // scrollBehavior - true when that page was scrolled to (or past) its bottom edge
@@ -65,7 +94,7 @@ const router = createRouter({
 		if (sameRoute) {
 			return false;
 		}
-		if (leftPageAtBottom && window.innerWidth >= MD_BREAKPOINT && to.meta.pageFill === true) {
+		if (leftPageAtBottom && vuetify.display.mdAndUp.value && to.meta.pageFill === true) {
 			return { top: document.documentElement.scrollHeight };
 		}
 		return { top: 0 };
@@ -87,7 +116,7 @@ router.beforeEach(() => {
 // instantly so they don't queue competing smooth animations. A no-op below md, where the
 // stacked layout has no status row to scroll past, and when the user disabled it
 export function scrollPageToBottom() {
-	if (!useSettingsStore().behaviour.autoScroll || window.innerWidth < MD_BREAKPOINT) {
+	if (!useSettingsStore().behaviour.autoScroll || !vuetify.display.mdAndUp.value) {
 		return;
 	}
 	const scrollToEnd = (smooth: boolean) => {

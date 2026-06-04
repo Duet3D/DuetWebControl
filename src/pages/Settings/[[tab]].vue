@@ -985,7 +985,13 @@ const switchLayoutLabel = computed(() => {
 	return i18n.global.t("settings.display.switchToCustomLayout", { layout: caption });
 });
 
-function onSwitchLayoutClick() {
+async function onSwitchLayoutClick() {
+	if (!settingsStore.useCustomLayout) {
+		const caption = registeredLayoutOptions.value?.caption ?? registeredLayoutOptions.value?.id ?? "";
+		if (!(await showConfirmDialog(i18n.global.t("settings.display.switchToCustomLayoutTitle"), i18n.global.t("settings.display.switchToCustomLayoutPrompt", { layout: caption }), "mdi-view-dashboard-variant", true))) {
+			return;
+		}
+	}
 	settingsStore.useCustomLayout = !settingsStore.useCustomLayout;
 	settingsStore.layoutUserSet = true;
 }

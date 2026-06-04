@@ -218,6 +218,11 @@ const isFinished = ref(false);
 const installationError = ref<string | null>(null);
 const startWhenFinished = ref(false);
 
+// Whether the plugin was already running before this install. Only an update of running code needs
+// a reload - a first install loads the fresh bundle directly. Captured before installPlugin, which
+// loads the plugin when started and would otherwise make every first install look like an update
+const wasLoadedBeforeInstall = ref(false);
+
 const zipFilename = ref("");
 const zipBlob = ref<Blob | null>(null);
 const zipFile = ref<JSZip | null>(null);
@@ -340,6 +345,7 @@ async function next() {
 	if (currentPage.value === Page.finish) {
 		installationError.value = null;
 		isFinished.value = false;
+		wasLoadedBeforeInstall.value = isPluginLoaded(pluginManifest.value.id);
 		try {
 			await machineStore.installPlugin(zipFilename.value, zipBlob.value!, zipFile.value!, startWhenFinished.value);
 		} catch (e) {
@@ -353,9 +359,10 @@ async function next() {
 
 async function finish() {
 	shown.value = false;
-	// If we just replaced a DWC plugin that's currently mounted, the user needs to reload to
-	// pick up the new bundle - otherwise the old code keeps running in the page
-	if (!(hasDwcFiles.value && isPluginLoaded(pluginManifest.value.id))) {
+	// Only prompt to reload when we replaced a plugin whose old code was already running - that
+	// stale code keeps executing until a reload. A first install just loaded the fresh bundle, so
+	// there is nothing to flush
+	if (!(hasDwcFiles.value && wasLoadedBeforeInstall.value)) {
 		return;
 	}
 	if (await showConfirmDialog(i18n.global.t("dialog.pluginInstallation.reloadPrompt.title"), i18n.global.t("dialog.pluginInstallation.reloadPrompt.prompt"), "mdi-restart")) {

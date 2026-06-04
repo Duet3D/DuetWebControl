@@ -86,6 +86,13 @@ const jsFile = join(outDir, `${manifest.id}.js`);
 if (existsSync(jsFile)) {
 	cpSync(jsFile, join(assembleDir, "dwc", "js", `${manifest.id}.js`));
 	manifest.dwcFiles.push(`js/${manifest.id}.js`);
+	// Ship the sourcemap alongside (when emitted) and list it so it gets uploaded to the board -
+	// the browser fetches it via the bundle's sourceMappingURL. It is not a .js/.css, so the
+	// plugin loader skips it when loading resources
+	if (existsSync(`${jsFile}.map`)) {
+		cpSync(`${jsFile}.map`, join(assembleDir, "dwc", "js", `${manifest.id}.js.map`));
+		manifest.dwcFiles.push(`js/${manifest.id}.js.map`);
+	}
 	filesAdded = true;
 }
 
@@ -93,6 +100,10 @@ const cssFile = join(outDir, `${manifest.id}.css`);
 if (existsSync(cssFile)) {
 	cpSync(cssFile, join(assembleDir, "dwc", "css", `${manifest.id}.css`));
 	manifest.dwcFiles.push(`css/${manifest.id}.css`);
+	if (existsSync(`${cssFile}.map`)) {
+		cpSync(`${cssFile}.map`, join(assembleDir, "dwc", "css", `${manifest.id}.css.map`));
+		manifest.dwcFiles.push(`css/${manifest.id}.css.map`);
+	}
 	filesAdded = true;
 }
 

@@ -314,6 +314,15 @@ export const useMachineStore = defineStore("machine", {
 					console.warn("Failed to load cache: " + getErrorMessage(e));
 				}
 
+				// Read the list of installed plugins off the SD card so they survive a reconnect.
+				// Must run after setCallbacks above - loadPluginList reports them through onUpdate -
+				// and before loadDwcPlugins below, which loads the resources of the enabled ones
+				try {
+					await this.connector.loadPluginList();
+				} catch (e) {
+					console.warn("Failed to load plugin list: " + getErrorMessage(e));
+				}
+
 				// Finish loading activated DWC plugins
 				await loadDwcPlugins();
 
@@ -870,9 +879,23 @@ export const useMachineStore = defineStore("machine", {
 			// Raise an event
 			Events.emit("pluginInstalled", { zipFilename, zipBlob, zipFile, start });
 
-			// Start it if required and show a message
-			if (start && plugin.dwcFiles.length > 0) {
-				await loadDwcPlugin(plugin.id);
+			// Load the browser-side bundle when starting. The manifest object carries no file lists -
+			// the connector fills in dwcFiles while extracting the dwc/ folder, so read them back from
+			// the installed object-model entry rather than the parsed manifest (which is empty). An
+			// SBC-only plugin has none here; its backend is launched by the connector's start flag.
+			// In SBC mode that entry arrives via an async object-model patch that isn't ordered
+			// against the install response, so poll briefly for it - resolves on the first check in
+			// standalone, where PollConnector applies the entry synchronously
+			if (start) {
+				const deadline = Date.now() + 5000;
+				let installed = this.model.plugins.get(plugin.id);
+				while (!installed && Date.now() < deadline) {
+					await new Promise((resolve) => setTimeout(resolve, 100));
+					installed = this.model.plugins.get(plugin.id);
+				}
+				if (installed && installed.dwcFiles.length > 0) {
+					await loadDwcPlugin(plugin.id);
+				}
 			}
 		},
 

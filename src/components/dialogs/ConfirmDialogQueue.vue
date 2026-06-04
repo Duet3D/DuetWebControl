@@ -1,6 +1,6 @@
 <template>
 	<ConfirmDialog v-model:shown="shown" :title="current?.title ?? ''" :prompt="current?.prompt ?? ''"
-				   :icon="current?.icon" @confirmed="settle(true)" @cancelled="settle(false)" />
+				   :icon="current?.icon" :html="current?.html" @confirmed="settle(true)" @cancelled="settle(false)" />
 </template>
 
 <script setup lang="ts">

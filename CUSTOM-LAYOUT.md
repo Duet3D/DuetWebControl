@@ -61,9 +61,9 @@ When a plugin has a custom layout registered, the Settings page (Display section
 
 A plugin can also opt to take over automatically on first registration by passing `takeoverOnFirstLoad: true`. This only applies when the user has never made an explicit choice; once the Settings button is clicked, the user's preference wins.
 
-### The /UseBuiltInLayout magic URL
+### The /BuiltInLayout magic URL
 
-If a custom layout's chrome breaks or the user wants a quick way back to the stock shell, navigating to `/UseBuiltInLayout` resets the layout to built-in and redirects to `/`. This works regardless of which page the user came from.
+If a custom layout's chrome breaks or the user wants a quick way back to the stock shell, navigating to `/BuiltInLayout` resets the layout to built-in and redirects to `/`. The switch runs in a navigation guard, so it works even when your custom shell does not route to this path itself, and regardless of which page the user came from. A locked layout owns the UI for the session, so `/BuiltInLayout` is refused while one is active - a locked layout must provide its own escape (see below).
 
 ## Routing under a custom layout
 

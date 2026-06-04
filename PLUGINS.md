@@ -304,7 +304,7 @@ Remove a job-view tab previously registered with the matching `key`.
 
 ### `registerLayout(component, options)` / `unregisterLayout(id)`
 
-Replace DWC's entire shell (app bar, navigation drawer, status panel, hub) with a custom one of your own. Single-slot - only one custom layout can be registered at a time; a second registration throws. The user toggles between the built-in shell and your custom layout from the Settings page, or via the `/UseBuiltInLayout` magic URL.
+Replace DWC's entire shell (app bar, navigation drawer, status panel, hub) with a custom one of your own. Single-slot - only one custom layout can be registered at a time; a second registration throws. The user toggles between the built-in shell and your custom layout from the Settings page, or returns to the built-in shell via the `/BuiltInLayout` magic URL.
 
 See [CUSTOM-LAYOUT.md](./CUSTOM-LAYOUT.md) for the full guide: lifecycle, route overrides, building the in-shell navigation UI, auto-recovery if the plugin fails to load, and how this interacts with `registerRoute` / `unregisterRoute`.
 

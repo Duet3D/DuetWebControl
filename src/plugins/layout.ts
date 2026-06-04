@@ -1,4 +1,4 @@
-import { ref, shallowRef, markRaw, defineComponent, h, type Component, type Ref, type ShallowRef } from "vue";
+import { ref, shallowRef, markRaw, defineComponent, defineAsyncComponent, h, type Component, type Ref, type ShallowRef } from "vue";
 
 import router from "@/router";
 import { useSettingsStore } from "@/stores/settings";
@@ -87,6 +87,18 @@ let _lockedGuardRemove: (() => void) | null = null;
 /** Set of route record paths the active layout has overridden. Used by the lock guard for matching */
 const _overriddenRoutePaths = new Set<string>();
 
+// A route component is either a resolved component object or a lazy import loader
+// (`() => import("./Page.vue")`) for a code-split page. The override wrapper renders the chosen
+// component with h(), which can take the object directly but would invoke a loader as a functional
+// component and render the returned Promise as "[object Promise]". Wrap loaders in
+// defineAsyncComponent so both forms render. Route components here are never plain functional
+// components, so treating every function as a loader is safe
+function asRenderableComponent(component: Component): Component {
+	return typeof component === "function"
+		? defineAsyncComponent(component as () => Promise<Component>)
+		: component;
+}
+
 /**
  * Install the layout-aware wrapper at each override target. Records that don't match an existing
  * route path are skipped with a hint. Triggers a router.replace so the currently-rendered page
@@ -118,8 +130,8 @@ function installRouteOverrides(routes: Record<string, Component>, ownerId: strin
 		_routeOverrideSnapshots.set(path, originalComp);
 		_overriddenRoutePaths.add(target.path);
 
-		const rawCustom = markRaw(customComp);
-		const rawBuiltin = markRaw(originalComp);
+		const rawCustom = markRaw(asRenderableComponent(customComp));
+		const rawBuiltin = markRaw(asRenderableComponent(originalComp));
 
 		// Layout-aware wrapper: renders the custom component only while THIS layout is the
 		// registered one AND the user has the custom layout active. The owner check guards
@@ -248,7 +260,7 @@ export function registerLayout(component: Component, options: RegisterLayoutOpti
 
 /**
  * Release the registered layout. No-op when the passed id does not match the current registration -
- * a plugin cannot unregister another plugin's layout. The switcher swaps back to the static shell
+ * a plugin cannot unregister another plugin's layout. The switcher swaps back to the built-in shell
  * on the next render; any installed route overrides are restored to their built-in components.
  *
  * Locked layouts cannot be unregistered: the lock is intended to keep the user in the registered

@@ -117,11 +117,23 @@ export function useFileBrowser(options: FileBrowserOptions) {
 		return loadDirectory(Path.extractDirectory(directory.value));
 	}
 
+	// During a multi-file transfer the connector fires a volume-changed event per written file
+	// (standalone polls RRF's per-volume change sequence), which would reload the list on every
+	// file. Defer to a single refresh once the transfer finishes
+	let refreshPending = false;
+
 	function onFilesOrDirectoriesChanged(payload: { files?: Array<string>; volume?: number }) {
-		if ((payload.files !== undefined && Path.filesAffectDirectory(payload.files, directory.value))
-			|| payload.volume === Path.getVolume(directory.value)) {
-			refresh();
+		const affectsDirectory = (payload.files !== undefined && Path.filesAffectDirectory(payload.files, directory.value))
+			|| payload.volume === Path.getVolume(directory.value);
+		if (!affectsDirectory) {
+			return;
 		}
+		if (machineStore.changingMultipleFiles) {
+			refreshPending = true;
+			return;
+		}
+		refreshPending = false;
+		refresh();
 	}
 
 	onMounted(() => {
@@ -152,6 +164,16 @@ export function useFileBrowser(options: FileBrowserOptions) {
 			// fire). Clear the flag here so a subsequent reconnect can re-enter loadDirectory
 			// instead of being short-circuited by the "already loading" guard
 			loading.value = false;
+		}
+	});
+
+	// Run the single refresh that was deferred during a multi-file transfer once it ends. upload()
+	// flips this flag false and then emits a final files event; if that already refreshed us the
+	// flag is cleared, so this only fires for transfers that produced no covering files event
+	watch(() => machineStore.changingMultipleFiles, (changing) => {
+		if (!changing && refreshPending) {
+			refreshPending = false;
+			refresh();
 		}
 	});
 
