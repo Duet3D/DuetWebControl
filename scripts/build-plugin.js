@@ -148,7 +148,7 @@ export async function buildPlugin(pluginDir, manifest, entryFile) {
 		? process.env.DWC_SOURCEMAP !== "0"
 		: /-(?:alpha|beta|rc)\b/i.test(manifest.version);
 
-	await build({
+	const result = await build({
 		root: pluginDir,
 		plugins: [vue()],
 		build: {
@@ -158,11 +158,6 @@ export async function buildPlugin(pluginDir, manifest, entryFile) {
 				entry: entryFile,
 				name: manifest.id,
 				formats: ["iife"],
-				fileName: () => `${manifest.id}.js`,
-				// A plugin dir has no package.json, so rolldown-vite has no name to derive the
-				// CSS bundle name from; set it explicitly or the build aborts for any plugin
-				// that ships styles
-				cssFileName: manifest.id,
 			},
 			rollupOptions: {
 				// `DuetWebControl` is the canonical alias plugins should use, but accept
@@ -180,7 +175,12 @@ export async function buildPlugin(pluginDir, manifest, entryFile) {
 							"@duet3d/objectmodel", "@duet3d/connectors"].includes(id);
 				},
 				output: {
-					assetFileNames: `${manifest.id}.[ext]`,
+					// Content-hashed filenames for cache-busting, matching DWC's own build. A plugin
+					// dir has no package.json, so the [name] token has nothing to derive from in lib
+					// mode; use the manifest id explicitly so JS and CSS land as `<id>-<hash>.<ext>`
+					entryFileNames: `${manifest.id}-[hash].js`,
+					chunkFileNames: `${manifest.id}-[hash].js`,
+					assetFileNames: `${manifest.id}-[hash][extname]`,
 					globals: (id) => {
 						// Named imports like `{ useMachineStore }` from @/plugins or @/stores paths
 						// resolve to `DWC.useMachineStore` at runtime
@@ -201,7 +201,14 @@ export async function buildPlugin(pluginDir, manifest, entryFile) {
 		},
 	});
 
-	return outDir;
+	// Filenames are content-hashed, so report back the actual emitted JS and CSS names rather
+	// than letting callers reconstruct them from the manifest id
+	const outputs = Array.isArray(result) ? result : [result];
+	const emitted = outputs.flatMap((bundle) => bundle.output.map((chunk) => chunk.fileName));
+	const jsFile = emitted.find((name) => name.endsWith(".js"));
+	const cssFile = emitted.find((name) => name.endsWith(".css"));
+
+	return { outDir, jsFile, cssFile };
 }
 
 export async function createZip(archiveDir, zipPath) {
@@ -245,7 +252,7 @@ const entryFile = findEntryFile(resolvedPluginDir);
 console.log(`Building plugin: ${manifest.id} (${manifest.name}) v${manifest.version}`);
 console.log(`Entry point: ${entryFile}`);
 
-const outDir = await buildPlugin(resolvedPluginDir, manifest, entryFile);
+const { outDir, jsFile, cssFile } = await buildPlugin(resolvedPluginDir, manifest, entryFile);
 
 // Build a simple ZIP containing compiled chunks + optional extra
 // directories + plugin.json. File lists are NOT populated - use
@@ -260,21 +267,21 @@ mkdirSync(join(assembleDir, "dwc", "css"), { recursive: true });
 let filesAdded = false;
 
 // Copy JS (+ sourcemap when emitted)
-const jsFile = join(outDir, `${manifest.id}.js`);
-if (existsSync(jsFile)) {
-	cpSync(jsFile, join(assembleDir, "dwc", "js", `${manifest.id}.js`));
-	if (existsSync(`${jsFile}.map`)) {
-		cpSync(`${jsFile}.map`, join(assembleDir, "dwc", "js", `${manifest.id}.js.map`));
+if (jsFile) {
+	const jsPath = join(outDir, jsFile);
+	cpSync(jsPath, join(assembleDir, "dwc", "js", jsFile));
+	if (existsSync(`${jsPath}.map`)) {
+		cpSync(`${jsPath}.map`, join(assembleDir, "dwc", "js", `${jsFile}.map`));
 	}
 	filesAdded = true;
 }
 
 // Copy CSS (+ sourcemap) if generated
-const cssFile = join(outDir, `${manifest.id}.css`);
-if (existsSync(cssFile)) {
-	cpSync(cssFile, join(assembleDir, "dwc", "css", `${manifest.id}.css`));
-	if (existsSync(`${cssFile}.map`)) {
-		cpSync(`${cssFile}.map`, join(assembleDir, "dwc", "css", `${manifest.id}.css.map`));
+if (cssFile) {
+	const cssPath = join(outDir, cssFile);
+	cpSync(cssPath, join(assembleDir, "dwc", "css", cssFile));
+	if (existsSync(`${cssPath}.map`)) {
+		cpSync(`${cssPath}.map`, join(assembleDir, "dwc", "css", `${cssFile}.map`));
 	}
 	filesAdded = true;
 }

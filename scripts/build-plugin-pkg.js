@@ -70,7 +70,7 @@ const entryFile = findEntryFile(resolvedPluginDir);
 console.log(`Building plugin package: ${manifest.id} (${manifest.name}) v${manifest.version}`);
 console.log(`Entry point: ${entryFile}`);
 
-const outDir = await buildPlugin(resolvedPluginDir, manifest, entryFile);
+const { outDir, jsFile, cssFile } = await buildPlugin(resolvedPluginDir, manifest, entryFile);
 
 const assembleDir = resolve(resolvedPluginDir, "pkg");
 mkdirSync(join(assembleDir, "dwc", "js"), { recursive: true });
@@ -82,27 +82,27 @@ manifest.dwcFiles ??= [];
 manifest.dsfFiles ??= [];
 manifest.rrfFiles ??= [];
 
-const jsFile = join(outDir, `${manifest.id}.js`);
-if (existsSync(jsFile)) {
-	cpSync(jsFile, join(assembleDir, "dwc", "js", `${manifest.id}.js`));
-	manifest.dwcFiles.push(`js/${manifest.id}.js`);
+if (jsFile) {
+	const jsPath = join(outDir, jsFile);
+	cpSync(jsPath, join(assembleDir, "dwc", "js", jsFile));
+	manifest.dwcFiles.push(`js/${jsFile}`);
 	// Ship the sourcemap alongside (when emitted) and list it so it gets uploaded to the board -
 	// the browser fetches it via the bundle's sourceMappingURL. It is not a .js/.css, so the
 	// plugin loader skips it when loading resources
-	if (existsSync(`${jsFile}.map`)) {
-		cpSync(`${jsFile}.map`, join(assembleDir, "dwc", "js", `${manifest.id}.js.map`));
-		manifest.dwcFiles.push(`js/${manifest.id}.js.map`);
+	if (existsSync(`${jsPath}.map`)) {
+		cpSync(`${jsPath}.map`, join(assembleDir, "dwc", "js", `${jsFile}.map`));
+		manifest.dwcFiles.push(`js/${jsFile}.map`);
 	}
 	filesAdded = true;
 }
 
-const cssFile = join(outDir, `${manifest.id}.css`);
-if (existsSync(cssFile)) {
-	cpSync(cssFile, join(assembleDir, "dwc", "css", `${manifest.id}.css`));
-	manifest.dwcFiles.push(`css/${manifest.id}.css`);
-	if (existsSync(`${cssFile}.map`)) {
-		cpSync(`${cssFile}.map`, join(assembleDir, "dwc", "css", `${manifest.id}.css.map`));
-		manifest.dwcFiles.push(`css/${manifest.id}.css.map`);
+if (cssFile) {
+	const cssPath = join(outDir, cssFile);
+	cpSync(cssPath, join(assembleDir, "dwc", "css", cssFile));
+	manifest.dwcFiles.push(`css/${cssFile}`);
+	if (existsSync(`${cssPath}.map`)) {
+		cpSync(`${cssPath}.map`, join(assembleDir, "dwc", "css", `${cssFile}.map`));
+		manifest.dwcFiles.push(`css/${cssFile}.map`);
 	}
 	filesAdded = true;
 }
