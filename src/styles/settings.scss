@@ -36,6 +36,13 @@ a:not(:hover) {
     display: none !important;
 }
 
+.global-container .v-card.v-theme--light {
+    background-color: #F5F5F5;
+}
+.global-container .v-card.v-theme--dark {
+    background-color: #333333;
+}
+
 /* Make a page-level panel fill the visible viewport below the app bar. --v-layout-top is the
    app-bar height Vuetify publishes on <v-main> (64 px, or larger on sm touchscreens). xs/sm:
    the layout strips outer padding so only the app bar is subtracted; md+: the layout keeps

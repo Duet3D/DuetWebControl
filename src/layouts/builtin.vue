@@ -116,7 +116,7 @@
 				</v-container>
 			</template>
 			<div v-show="!showHub">
-				<v-container v-if="statusPanelVisible" fluid>
+				<v-container v-if="statusPanelVisible" class="global-container" fluid>
 					<FFFContainerPanel v-if="uiStore.isFFF" />
 					<CNCContainerPanel v-else />
 				</v-container>
