@@ -302,6 +302,31 @@ export const useCacheStore = defineStore("cache", {
 			} else {
 				this.plugins[plugin][key] = value;
 			}
+		},
+
+		/**
+		 * Delete all cached data for a plugin, e.g. when it is uninstalled. Plugin ids are
+		 * case-insensitive, so every key matching the id ignoring case is removed - a plugin may have
+		 * stored under a differently-cased key, or several keys differing only in case
+		 * @param plugin Plugin ID
+		 */
+		deletePluginData(plugin: string) {
+			const target = plugin.toLowerCase();
+			for (const key of Object.keys(this.plugins)) {
+				if (key.toLowerCase() === target) {
+					delete this.plugins[key];
+				}
+			}
+		},
+
+		/**
+		 * Check whether a plugin has any cached data, comparing ids case-insensitively
+		 * @param plugin Plugin ID
+		 * @returns Whether a matching key holds at least one value
+		 */
+		hasPluginData(plugin: string): boolean {
+			const target = plugin.toLowerCase();
+			return Object.keys(this.plugins).some((key) => key.toLowerCase() === target && Object.keys(this.plugins[key] ?? {}).length > 0);
 		}
 	}
 })

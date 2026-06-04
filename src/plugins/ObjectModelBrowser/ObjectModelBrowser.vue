@@ -117,9 +117,7 @@ import { useDisplay } from "vuetify";
 import i18n from "@/i18n";
 import { useMachineStore } from "@/stores/machine";
 import { useSettingsStore } from "@/stores/settings";
-import {
-	extractTag, getDuetApiDocument, getDuetApiError, loadDuetApi, lookupApiMember
-} from "@/utils/duetApi";
+import { extractTag, getDuetApiDocument, getDuetApiError, loadDuetApi, lookupApiMember } from "@/utils/duetApi";
 
 interface ModelTreeItem {
 	id: string;

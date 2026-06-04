@@ -1200,6 +1200,7 @@
 			"uninstall": "Deinstallieren",
 			"uninstallTitle": "Plugin deinstallieren?",
 			"uninstallPrompt": "Soll {0} wirklich deinstalliert werden?",
+			"uninstallDeleteData": "Auch die gespeicherten Daten dieses Plugins löschen",
 			"startError": "Konnte Plugin {0} nicht starten",
 			"stopError": "Konnte Plugin {0} nicht stoppen",
 			"installError": "Konnte {0} nicht installieren",

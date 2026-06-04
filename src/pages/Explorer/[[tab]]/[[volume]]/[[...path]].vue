@@ -2,7 +2,7 @@
 {
 	"meta": {
 		"pageFill": true,
-		"keepAlive": true,
+		"keepAlive": "Explorer",
 		"menu": {
 			"category": "files",
 			"icon": "mdi-folder-multiple",
@@ -320,9 +320,7 @@ import { useLargeButtons } from "@/composables/useLargeButtons";
 import FirmwareUpdateDialog from "@/components/dialogs/FirmwareUpdateDialog.vue";
 import JobThumbnailCell from "@/components/lists/JobThumbnailCell.vue";
 import MonacoEditor from "@/components/editor/MonacoEditor.vue";
-import {
-	firmwareInstallControllerKey, useFirmwareInstallController
-} from "@/composables/useFirmwareInstallController";
+import { firmwareInstallControllerKey, useFirmwareInstallController } from "@/composables/useFirmwareInstallController";
 import i18n from "@/i18n";
 import { LogLevel, useUiStore } from "@/stores/ui";
 

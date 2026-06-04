@@ -138,7 +138,7 @@ Field reference:
 
 | Field | Type | Notes |
 | --- | --- | --- |
-| `id` | string | Must match `[a-zA-Z0-9 .\-_]`, max 32 chars. Used as the directory name and the chunk filename |
+| `id` | string | Must match `[a-zA-Z0-9 .\-_]`, max 32 chars. Compared case-insensitively, so two ids differing only in case are the same plugin and cannot coexist. Used as the directory name and the chunk filename |
 | `name` | string | Human-readable display name |
 | `author` | string | Free-form |
 | `version` | string | Plugin version. `"auto"` resolves to the DWC version at build time; `"auto-major"` resolves to `<major>.<minor>` |

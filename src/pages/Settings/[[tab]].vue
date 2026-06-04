@@ -837,9 +837,7 @@ import FirmwareUpdateDialog from "@/components/dialogs/FirmwareUpdateDialog.vue"
 import ListEditor from "@/components/inputs/ListEditor.vue";
 import { useFirmwareInstallController } from "@/composables/useFirmwareInstallController";
 import i18n, { type Locale } from "@/i18n";
-import {
-	getPluginSettingTabs
-} from "@/plugins";
+import { getPluginSettingTabs } from "@/plugins";
 import { registeredLayout, registeredLayoutOptions } from "@/plugins/layout";
 import { registeredThemes } from "@/plugins/theme";
 import { localStorageSupported, removeLocalSetting } from "@/utils/localStorage";

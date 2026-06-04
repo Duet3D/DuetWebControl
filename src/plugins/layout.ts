@@ -1,6 +1,7 @@
-import { ref, shallowRef, markRaw, defineComponent, defineAsyncComponent, h, type Component, type Ref, type ShallowRef } from "vue";
+import { ref, shallowRef, markRaw, defineComponent, h, type Component, type Ref, type ShallowRef } from "vue";
 
 import router from "@/router";
+import { asRenderableComponent, findPageRecord } from "@/router/pages";
 import { useSettingsStore } from "@/stores/settings";
 
 /**
@@ -87,34 +88,17 @@ let _lockedGuardRemove: (() => void) | null = null;
 /** Set of route record paths the active layout has overridden. Used by the lock guard for matching */
 const _overriddenRoutePaths = new Set<string>();
 
-// A route component is either a resolved component object or a lazy import loader
-// (`() => import("./Page.vue")`) for a code-split page. The override wrapper renders the chosen
-// component with h(), which can take the object directly but would invoke a loader as a functional
-// component and render the returned Promise as "[object Promise]". Wrap loaders in
-// defineAsyncComponent so both forms render. Route components here are never plain functional
-// components, so treating every function as a loader is safe
-function asRenderableComponent(component: Component): Component {
-	return typeof component === "function"
-		? defineAsyncComponent(component as () => Promise<Component>)
-		: component;
-}
-
 /**
  * Install the layout-aware wrapper at each override target. Records that don't match an existing
  * route path are skipped with a hint. Triggers a router.replace so the currently-rendered page
  * picks up the new component without waiting for the next navigation
  */
 function installRouteOverrides(routes: Record<string, Component>, ownerId: string): void {
-	const allRecords = router.getRoutes();
-
 	for (const [path, customComp] of Object.entries(routes)) {
-		// setupLayouts produces two flattened records per file-based route: the parent (marked
-		// meta.isLayout = true, component = the layout switcher) and the child (component = the
-		// actual page). We want to swap the child's component, not the layout-switcher parent
-		const target = allRecords.find((r) => r.path === path && r.meta?.isLayout !== true);
+		const target = findPageRecord(path);
 		if (!target) {
-			const knownPaths = allRecords
-				.filter((r) => r.meta?.isLayout !== true)
+			const knownPaths = router.getRoutes()
+				.filter((r) => r.meta.isLayout !== true)
 				.map((r) => r.path)
 				.sort();
 			console.warn(`[DWC] Cannot override route "${path}": no registered route matches that path. Available paths: ${knownPaths.join(", ")}`);
@@ -165,9 +149,8 @@ function uninstallRouteOverrides(): void {
 		return;
 	}
 
-	const allRecords = router.getRoutes();
 	for (const [path, original] of _routeOverrideSnapshots) {
-		const target = allRecords.find((r) => r.path === path && r.meta?.isLayout !== true);
+		const target = findPageRecord(path);
 		if (target && target.components) {
 			target.components.default = original;
 		}

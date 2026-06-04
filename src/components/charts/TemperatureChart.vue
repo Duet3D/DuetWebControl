@@ -76,14 +76,7 @@ import { Chart, Filler, Legend, LineController, LineElement, LinearScale, PointE
 import "chartjs-adapter-date-fns";
 import { enUS } from "date-fns/locale/en-US";
 
-import {
-	initTemperatureSampling,
-	maxSampleTime,
-	onSampleAdded,
-	sampleSeries,
-	sampleTimes,
-	type TempChartDataset,
-} from "@/composables/useTemperatureSamples";
+import { initTemperatureSampling, maxSampleTime, onSampleAdded, sampleSeries, sampleTimes, type TempChartDataset } from "@/composables/useTemperatureSamples";
 import CustomChartDataDialog from "@/components/dialogs/CustomChartDataDialog.vue";
 import { useComponentSettings } from "@/composables/useComponentSettings";
 import i18n from "@/i18n";

@@ -15,9 +15,7 @@
 import { OperationCancelledError, PollConnector, RestConnector } from "@duet3d/connectors";
 import type { InjectionKey } from "vue";
 
-import {
-	type FirmwareUpdatePlan, PluginBundleDetectedError, useFirmwareInstall
-} from "@/composables/useFirmwareInstall";
+import { type FirmwareUpdatePlan, PluginBundleDetectedError, useFirmwareInstall } from "@/composables/useFirmwareInstall";
 import i18n from "@/i18n";
 import { useMachineStore } from "@/stores/machine";
 import { LogLevel, useUiStore } from "@/stores/ui";

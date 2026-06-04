@@ -168,20 +168,9 @@
 			</v-expand-transition>
 
 			<v-container fluid class="pa-0 pa-md-4 route-area">
-				<router-view v-slot="{ Component }">
-					<!-- Below md the `/` route renders the nav hub, so navigating to/from it slides
-						 the hub and the destination page together (transitionName is set by the
-						 route guard). Every other navigation leaves transitionName empty and stays
-						 instant. The transition keys off the component type, so it fires on a real
-						 route change but not on in-route param changes (e.g. browsing folders).
-						 include caches the Explorer route across navigations - its component is named
-						 "Explorer"; any further keep-alive route must defineOptions a name listed here -->
-					<Transition :name="transitionName">
-						<keep-alive :include="keepAliveInclude">
-							<component :is="Component" />
-						</keep-alive>
-					</Transition>
-				</router-view>
+				<!-- transitionName drives the hub slide below md (see its declaration); page caching
+					 is route-driven inside DwcRouterView via meta.keepAlive -->
+				<DwcRouterView :transition-name="transitionName" />
 			</v-container>
 		</v-main>
 	</v-app>
@@ -243,9 +232,6 @@ const showHub = computed(() => !isMdAndUp.value && isAtHub.value && menuStore.al
 const statusPanelVisible = computed(() => (isMdAndUp.value || settingsStore.showStatusPanel) && !showHub.value);
 const showDrawerToggle = computed(() => isMdAndUp.value);
 const showBackButton = computed(() => !isMdAndUp.value && !isAtHub.value);
-
-// Component names of routes that opt into keep-alive caching; matched by <keep-alive include>
-const keepAliveInclude = ["Explorer"];
 
 // Directional slide between the hub (`/` below md) and a page. Set in a navigation guard so it is
 // correct before the route component swaps; left empty for page-to-page and all md+ navigation,

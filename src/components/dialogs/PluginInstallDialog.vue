@@ -190,7 +190,7 @@ import type JSZip from "jszip";
 
 import { showConfirmDialog } from "@/composables/useConfirmDialog";
 import i18n from "@/i18n";
-import { checkManifest, checkVersion, getBuiltInPlugins, isPluginLoaded } from "@/plugins";
+import { checkManifest, checkVersion, isPluginBuiltIn, isPluginLoaded } from "@/plugins";
 import { useMachineStore } from "@/stores/machine";
 import { getErrorMessage } from "@/utils/errors";
 import Events from "@/utils/events";
@@ -394,7 +394,7 @@ async function openWizard(payload: { zipFilename: string; zipBlob: Blob; zipFile
 		pluginManifest.value = initObject(PluginManifest, manifestJson);
 
 		pluginManifestValid.value = checkManifest(pluginManifest.value);
-		if (pluginManifestValid.value && getBuiltInPlugins().some((p) => p.id === pluginManifest.value.id)) {
+		if (pluginManifestValid.value && isPluginBuiltIn(pluginManifest.value.id)) {
 			console.warn("Plugin identifier already reserved by built-in plugin");
 			pluginManifestValid.value = false;
 		}

@@ -29,6 +29,7 @@ declare module 'vue' {
     ControlList: typeof import('./components/panels/ToolsPanel/ControlList/ControlList.vue')['default']
     CustomChartDataDialog: typeof import('./components/dialogs/CustomChartDataDialog.vue')['default']
     DashboardContent: typeof import('./components/panels/DashboardContent.vue')['default']
+    DwcRouterView: typeof import('./components/misc/DwcRouterView.vue')['default']
     EmergencyButton: typeof import('./components/buttons/EmergencyButton.vue')['default']
     EntityVisibilityList: typeof import('./components/inputs/EntityVisibilityList.vue')['default']
     EventList: typeof import('./components/lists/EventList.vue')['default']

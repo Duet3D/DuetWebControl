@@ -36,6 +36,8 @@ import router from "@/router";
 export { registerLayout, unregisterLayout } from "./layout";
 export type { RegisterLayoutOptions } from "./layout";
 
+export { getPageComponent } from "@/router/pages";
+
 export { registerTheme, unregisterTheme } from "./theme";
 export type { RegisterThemeDefinition, RegisteredTheme } from "./theme";
 
@@ -59,6 +61,7 @@ import plugins from "virtual:dwc-builtin-plugins";
 import vuetifyCoreComponents from "virtual:dwc-vuetify-core";
 
 import Events from "@/utils/events";
+import { samePluginId } from "@/utils/plugins";
 import i18n from "@/i18n";
 
 import { useSettingsStore } from "@/stores/settings";
@@ -592,14 +595,14 @@ export function getLoadedPlugins(): ReadonlySet<string> {
  * Check whether a plugin is currently loaded
  */
 export function isPluginLoaded(id: string): boolean {
-	return loadedPlugins.has(id);
+	return Array.from(loadedPlugins).some(p => samePluginId(p, id));
 }
 
 /**
  * Check whether a plugin is a built-in plugin
  */
 export function isPluginBuiltIn(id: string): boolean {
-	return builtInPlugins.some(p => p.id === id);
+	return builtInPlugins.some(p => samePluginId(p.id, id));
 }
 
 /**
@@ -621,12 +624,12 @@ export function getMenuCategories(): ReadonlyMap<string, MenuCategory> {
  * @param saveSettings Whether to persist the enabled state
  */
 export async function loadDwcPlugin(id: string, saveSettings = true): Promise<void> {
-	if (loadedPlugins.has(id)) {
+	if (isPluginLoaded(id)) {
 		console.warn(`Plugin "${id}" is already loaded`);
 		return;
 	}
 
-	const builtIn = builtInPlugins.find(p => p.id === id);
+	const builtIn = builtInPlugins.find(p => samePluginId(p.id, id));
 	if (builtIn) {
 		await loadBuiltInPlugin(builtIn);
 	} else if (import.meta.env.DEV) {
@@ -678,11 +681,15 @@ export async function loadDwcPlugins(): Promise<void> {
  * @param id Plugin ID
  */
 export async function unloadDwcPlugin(id: string): Promise<void> {
-	if (!loadedPlugins.has(id)) {
+	if (!isPluginLoaded(id)) {
 		return;
 	}
 
-	loadedPlugins.delete(id);
+	for (const loaded of loadedPlugins) {
+		if (samePluginId(loaded, id)) {
+			loadedPlugins.delete(loaded);
+		}
+	}
 
 	useSettingsStore().disableDwcPlugin(id);
 
@@ -741,7 +748,7 @@ async function loadExternalPlugin(id: string): Promise<void> {
 
 	// Check dependencies
 	for (const dep of machinePlugin.dwcDependencies) {
-		if (!loadedPlugins.has(dep)) {
+		if (!isPluginLoaded(dep)) {
 			throw new Error(`Plugin "${id}" depends on "${dep}" which is not loaded`);
 		}
 	}

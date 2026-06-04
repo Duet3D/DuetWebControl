@@ -127,6 +127,30 @@
 			</div>
 		</v-alert>
 
+		<v-dialog v-model="uninstallDialog.shown" width="480">
+			<v-card>
+				<v-card-title>
+					<v-icon class="mr-1">mdi-delete</v-icon>
+					{{ $t("settings.plugins.uninstallTitle") }}
+				</v-card-title>
+				<v-card-text>
+					{{ $t("settings.plugins.uninstallPrompt", [uninstallDialog.plugin?.name]) }}
+					<v-checkbox v-if="uninstallHasData" v-model="uninstallDialog.deleteData"
+								hide-details density="compact" class="mt-2"
+								:label="$t('settings.plugins.uninstallDeleteData')" />
+				</v-card-text>
+				<v-card-actions>
+					<v-spacer />
+					<v-btn color="blue-darken-1" variant="text" @click="uninstallDialog.shown = false">
+						{{ $t("generic.cancel") }}
+					</v-btn>
+					<v-btn color="error" variant="text" @click="confirmUninstall">
+						{{ $t("settings.plugins.uninstall") }}
+					</v-btn>
+				</v-card-actions>
+			</v-card>
+		</v-dialog>
+
 		<input ref="pluginInput" type="file" accept=".zip" hidden @change="onPluginPicked" />
 	</div>
 </template>
@@ -135,16 +159,16 @@
 import { useDisplay } from "vuetify";
 import type { Plugin, PluginManifest } from "@duet3d/objectmodel";
 
-import { showConfirmDialog } from "@/composables/useConfirmDialog";
 import i18n from "@/i18n";
-import {
-	getBuiltInPlugins, isPluginBuiltIn, isPluginLoaded, loadDwcPlugin, unloadDwcPlugin
-} from "@/plugins";
+import { getBuiltInPlugins, isPluginBuiltIn, isPluginLoaded, loadDwcPlugin, unloadDwcPlugin } from "@/plugins";
+import { samePluginId } from "@/utils/plugins";
+import { useCacheStore } from "@/stores/cache";
 import { useMachineStore } from "@/stores/machine";
 import { useSettingsStore } from "@/stores/settings";
-import { useUiStore } from "@/stores/ui";
+import { LogLevel, useUiStore } from "@/stores/ui";
 import Events from "@/utils/events";
 
+const cacheStore = useCacheStore();
 const machineStore = useMachineStore();
 const settingsStore = useSettingsStore();
 const uiStore = useUiStore();
@@ -199,7 +223,7 @@ function isStarted(id: string): boolean {
 	if (sbcPid > 0) {
 		return true;
 	}
-	return settingsStore.enabledPlugins.includes(id);
+	return settingsStore.enabledPlugins.some(p => samePluginId(p, id));
 }
 
 type PluginStatus = "started" | "partial" | "installed" | "pending" | "stopped";
@@ -240,7 +264,7 @@ function pluginStatus(id: string): PluginStatus {
 	}
 
 	// External plugin enabled in settings but not yet loaded by the runtime (reconnect away)
-	if (settingsStore.enabledPlugins.includes(id)) {
+	if (settingsStore.enabledPlugins.some(p => samePluginId(p, id))) {
 		return "pending";
 	}
 	return "stopped";
@@ -327,6 +351,7 @@ async function start(id: string) {
 		if (hasDwcAssets) {
 			await loadDwcPlugin(id);
 		}
+		uiStore.log(LogLevel.success, i18n.global.t("notification.plugins.started"));
 	} catch (e) {
 		console.warn(e);
 		uiStore.notifyError(e, i18n.global.t("settings.plugins.startError", [id]));
@@ -348,6 +373,7 @@ async function stop(id: string) {
 		if (plugin && plugin.sbcExecutable && (plugin.pid ?? -1) > 0) {
 			await machineStore.stopSbcPlugin(id);
 		}
+		uiStore.log(LogLevel.success, i18n.global.t("notification.plugins.stopped"));
 	} catch (e) {
 		console.warn(e);
 		uiStore.notifyError(e, i18n.global.t("settings.plugins.stopError", [id]));
@@ -392,15 +418,43 @@ async function onPluginPicked(event: Event) {
 	}
 }
 
-async function askUninstall(plugin: PluginManifest) {
-	if (!(await showConfirmDialog(i18n.global.t("settings.plugins.uninstallTitle"), i18n.global.t("settings.plugins.uninstallPrompt", [plugin.name]), "mdi-delete"))) {
+const uninstallDialog = reactive<{ shown: boolean; plugin: PluginManifest | null; deleteData: boolean }>({
+	shown: false,
+	plugin: null,
+	deleteData: false,
+});
+
+// Offer the "delete stored data" option only when the plugin actually has persisted DWC settings or
+// cache values - an SBC/RRF-only plugin (or one that never called registerPluginData) has nothing to
+// delete on the DWC side
+const uninstallHasData = computed(() => {
+	const id = uninstallDialog.plugin?.id;
+	return !!id && (settingsStore.hasPluginData(id) || cacheStore.hasPluginData(id));
+});
+
+function askUninstall(plugin: PluginManifest) {
+	uninstallDialog.plugin = plugin;
+	uninstallDialog.deleteData = true;
+	uninstallDialog.shown = true;
+}
+
+async function confirmUninstall() {
+	const plugin = uninstallDialog.plugin;
+	if (!plugin) {
 		return;
 	}
+	const deleteData = uninstallDialog.deleteData;
+	uninstallDialog.shown = false;
 	busyPluginId.value = plugin.id;
 	try {
 		// machineStore.uninstallPlugin expects a Plugin; only OM-reported entries reach here
 		// because the Uninstall button is gated on !isBuiltin
 		await machineStore.uninstallPlugin(plugin as Plugin);
+		if (deleteData) {
+			settingsStore.deletePluginData(plugin.id);
+			cacheStore.deletePluginData(plugin.id);
+		}
+		uiStore.log(LogLevel.success, i18n.global.t("notification.plugins.uninstalled"));
 	} catch (e) {
 		console.warn(e);
 		uiStore.notifyError(e, i18n.global.t("settings.plugins.uninstallError", [plugin.name]));

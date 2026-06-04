@@ -4,9 +4,7 @@
 
 <script setup lang="ts">
 import type { ChartDataset, ChartEvent, ChartOptions, LegendElement, LegendItem, TooltipItem } from "chart.js";
-import {
-	CategoryScale, Chart, Filler, Legend, LineController, LineElement, LinearScale, PointElement, Tooltip,
-} from "chart.js";
+import { CategoryScale, Chart, Filler, Legend, LineController, LineElement, LinearScale, PointElement, Tooltip } from "chart.js";
 
 // Chart.js v4 requires explicit registration of every scale / controller / element used by a
 // chart instance; missing one trips a runtime "X is not a registered scale" error on first draw

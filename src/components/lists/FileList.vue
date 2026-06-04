@@ -466,9 +466,7 @@ import { useFileDrag } from "@/composables/useFileDrag";
 import { useFileBrowser } from "@/composables/useFileBrowser";
 import { useLargeButtons } from "@/composables/useLargeButtons";
 import { useCacheStore } from "@/stores/cache";
-import {
-	firmwareInstallControllerKey, useFirmwareInstallController
-} from "@/composables/useFirmwareInstallController";
+import { firmwareInstallControllerKey, useFirmwareInstallController } from "@/composables/useFirmwareInstallController";
 import { useComponentSettings } from "@/composables/useComponentSettings";
 import i18n from "@/i18n";
 import { useMachineStore } from "@/stores/machine";

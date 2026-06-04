@@ -1202,6 +1202,7 @@
 			"uninstall": "Uninstall",
 			"uninstallTitle": "Uninstall plugin?",
 			"uninstallPrompt": "Are you sure you want to uninstall {0}?",
+			"uninstallDeleteData": "Also delete this plugin's stored data",
 			"startError": "Failed to start plugin {0}",
 			"stopError": "Failed to stop plugin {0}",
 			"installError": "Failed to install {0}",
