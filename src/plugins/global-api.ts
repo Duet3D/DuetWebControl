@@ -18,6 +18,7 @@ import * as VueI18n from "vue-i18n";
 import * as VueRouter from "vue-router";
 
 import i18n from "@/i18n";
+import Events from "@/utils/events";
 import buildPluginApiSurface from "virtual:dwc-plugin-api";
 import vuetifyCoreComponents from "virtual:dwc-vuetify-core";
 
@@ -32,6 +33,7 @@ type DwcGlobal = Record<string, unknown> & {
 	ObjectModel: typeof ObjectModel;
 	Connectors: typeof Connectors;
 	i18n: typeof i18n;
+	Events: typeof Events;
 	Components: Record<string, unknown>;
 	VuetifyComponents: Record<string, unknown>;
 };
@@ -53,6 +55,7 @@ export function exposeGlobalAPI() {
 		{
 			Vue, VueRouter, Pinia, VueI18n, ObjectModel, Connectors,
 			i18n,
+			Events,
 			Components: {},
 			VuetifyComponents: { ...vuetifyCoreComponents },
 		},

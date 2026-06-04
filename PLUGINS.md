@@ -587,6 +587,19 @@ v3.x's `PluginDataType.machineCache` / `machineSetting` stored values per connec
 
 DWC's global events no longer carry a `machine` field in their payloads (single-machine architecture). Other events were added: `dwcPluginLoaded`, `dwcPluginUnloaded`, `pluginInstalled`, `pluginUninstalled`, connection lifecycle (`connecting`, `connected`, `disconnecting`, `disconnected`, `cacheLoaded`, `settingsLoaded`, ...). See `src/utils/events.ts` for the full type definition.
 
+The event emitter is exposed as `window.DWC.Events` (or `import Events from "@/utils/events"` for an in-tree plugin). Subscribe to `dwcPluginUnloaded` to clean up anything that outlives a component - router guards, global watchers and dialogs are not tied to a component's lifecycle and otherwise leak when the plugin is stopped:
+
+```ts
+import Events from "@/utils/events";
+
+const stopGuard = router.beforeEach(/* ... */);
+Events.on("dwcPluginUnloaded", (id) => {
+    if (id === "MyPlugin") {
+        stopGuard();
+    }
+});
+```
+
 ## Reference implementations
 
 Four plugins ship in-tree under `src/plugins/`:

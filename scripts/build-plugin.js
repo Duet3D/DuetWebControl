@@ -50,6 +50,7 @@ const PLUGIN_GLOBALS = {
 	"DuetWebControl/components": "DWC.Components",
 	"vuetify/components": "DWC.VuetifyComponents",
 	"@/i18n": "DWC.i18n",
+	"@/utils/events": "DWC.Events",
 	"vue": "DWC.Vue",
 	"vue-router": "DWC.VueRouter",
 	"pinia": "DWC.Pinia",
@@ -170,6 +171,7 @@ export async function buildPlugin(pluginDir, manifest, entryFile) {
 					return id === "DuetWebControl"
 						|| id === "DuetWebControl/components"
 						|| /^@\/(plugins|stores|i18n)(\/.*)?$/.test(id)
+						|| id === "@/utils/events"
 						|| id === "vuetify/components"
 						|| ["vue", "vue-router", "pinia", "vue-i18n",
 							"@duet3d/objectmodel", "@duet3d/connectors"].includes(id);
