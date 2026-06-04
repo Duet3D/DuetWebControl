@@ -15,133 +15,37 @@
 }
 </route>
 
-<script lang="ts">
-// Pre-fetch the active tab's content during navigation: a directory listing for browser tabs,
-// the file contents for editor tabs. Result is consumed in <script setup> to seed either the
-// initial FileList or the MonacoEditor. `lazy: true` keeps the route transition snappy on slow
-// boards - the editor and file list render their own loading state in the meantime
-import type { FileListItem } from "@duet3d/connectors";
-import { defineBasicLoader } from "vue-router/experimental";
-
-import { useMachineStore } from "@/stores/machine";
-import Path from "@/utils/path";
-
-interface ExplorerInitialPayload {
-	path: string;
-	kind: "directory" | "editor" | "none";
-	files?: Array<FileListItem>;
-	content?: string;
+<style scoped>
+.explorer-tab-label {
+	max-width: 8rem;
+}
+@media (min-width: 600px) {
+	.explorer-tab-label { max-width: 12rem; }
+}
+@media (min-width: 840px) {
+	.explorer-tab-label { max-width: 16rem; }
 }
 
-// Shape matches the typed `/Explorer/[[tab]]/[[volume]]/[[...path]]` route. The data loader gets
-// vue-router's generic params and casts in (one boundary); useRoute(...) inside the component is
-// already this shape natively
-export interface ExplorerRouteParams {
-	tab?: string;
-	volume?: string;
-	// vue-router's `:path*` catch-all returns an array of segments. `[[...path]]` produces
-	// `string[]` when populated; treat both forms downstream via normalisePathParam()
-	path?: string | string[];
+/* Viewport fill comes from the global `.dwc-page-fill` class on the v-card. When the active
+   tab is in a collapsed state (Monaco editor failed to load OR the FileList is empty +
+   disconnected) advertise that downstream so the card can fall back to content height */
+.explorer-card:has(.v-window-item--active .monaco-editor-host--collapsed),
+.explorer-card:has(.v-window-item--active .file-list-card--empty) {
+	height: auto;
 }
 
-function normalisePathParam(value: string | string[] | undefined): string {
-	if (Array.isArray(value)) {
-		return value.join("/");
-	}
-	return value ?? "";
+.explorer-window {
+	min-height: 0;
 }
 
-// The Explorer URL packs up to three things into its segments: an optional `t<n>` tab ordinal
-// (1-based position in the tab strip, dropped for the first tab), an optional numeric volume
-// index (dropped for volume 0), then the directory/file path. unplugin-vue-router hands these
-// back as three positional params regardless of which were actually present, so flatten them
-// into one ordered segment list and parse it front-to-back
-function resolveExplorerRoute(params: ExplorerRouteParams): {
-	tab: number | undefined; volume: number; path: string; editor: boolean;
-} {
-	const segments: Array<string> = [];
-	if (params.tab !== undefined) {
-		segments.push(params.tab);
-	}
-	if (params.volume !== undefined) {
-		segments.push(params.volume);
-	}
-	if (Array.isArray(params.path)) {
-		segments.push(...params.path);
-	} else if (params.path) {
-		segments.push(...params.path.split("/"));
-	}
-	const cleaned = segments.filter((segment) => segment !== "");
-
-	let tab: number | undefined;
-	if (cleaned.length > 0 && /^t\d+$/.test(cleaned[0])) {
-		tab = Number.parseInt(cleaned[0].substring(1), 10);
-		cleaned.shift();
-	}
-	// A reserved `edit` segment before the volume marks the URL as a file to open in the editor;
-	// vue-router can't carry a trailing-slash signal (strict mode 404s it, non-strict strips it),
-	// so the path itself is unambiguous about file vs directory. Shadows a root folder named "edit"
-	// the same way a `t<n>` ordinal shadows a folder named "t2"
-	let editor = false;
-	if (cleaned.length > 0 && cleaned[0] === "edit") {
-		editor = true;
-		cleaned.shift();
-	}
-	let volume = 0;
-	if (cleaned.length > 0 && /^\d+$/.test(cleaned[0])) {
-		volume = Number.parseInt(cleaned[0], 10);
-		cleaned.shift();
-	}
-	return { tab, volume, path: cleaned.join("/"), editor };
+.explorer-tab--drop-target {
+	background-color: rgba(var(--v-theme-primary), 0.18) !important;
 }
-
-function sdPathFromParams(params: ExplorerRouteParams): string {
-	const { volume, path } = resolveExplorerRoute(params);
-	return path ? `${volume}:/${path}` : `${volume}:/`;
+.explorer-window :deep(.v-window__container),
+.explorer-window :deep(.v-window-item) {
+	height: 100%;
 }
-
-function isBareExplorerRoute(params: ExplorerRouteParams): boolean {
-	return !params.tab && !params.volume && !params.path;
-}
-
-export const useExplorerInitialData = defineBasicLoader(async (to): Promise<ExplorerInitialPayload> => {
-	const params = to.params as ExplorerRouteParams;
-	if (isBareExplorerRoute(params)) {
-		return { path: "0:/", kind: "directory" };
-	}
-	const path = sdPathFromParams(params);
-	if (!path) {
-		return { path: "", kind: "none" };
-	}
-	// The URL itself declares file vs directory (the `edit` prefix), so no FS probe / extension
-	// guessing is needed - we only fetch the matching payload to seed the tab
-	const { editor } = resolveExplorerRoute(params);
-	const machineStore = useMachineStore();
-	if (editor) {
-		if (machineStore.isConnected) {
-			try {
-				const content = await machineStore.download({ filename: path, type: "text" }, false, false, false);
-				return { path, kind: "editor", content };
-			} catch (e) {
-				// The editor tab still opens and surfaces its own load error/empty state
-				console.warn("Explorer editor preload failed", e);
-			}
-		}
-		return { path, kind: "editor" };
-	}
-	if (!machineStore.isConnected) {
-		// No FS to query; the page renders an empty browser tab until a real connection arrives
-		return { path, kind: "directory" };
-	}
-	try {
-		const files = await machineStore.getFileList(path);
-		return { path, kind: "directory", files };
-	} catch (e) {
-		console.warn("Explorer directory listing failed", e);
-		return { path, kind: "directory" };
-	}
-}, { lazy: true });
-</script>
+</style>
 
 <template>
 	<div class="route-root">
@@ -277,6 +181,134 @@ export const useExplorerInitialData = defineBasicLoader(async (to): Promise<Expl
 		<ConfigUpdatedDialog v-model:shown="sharedFirmwareController.configUpdatedDialog.shown" />
 	</div>
 </template>
+
+<script lang="ts">
+// Pre-fetch the active tab's content during navigation: a directory listing for browser tabs,
+// the file contents for editor tabs. Result is consumed in <script setup> to seed either the
+// initial FileList or the MonacoEditor. `lazy: true` keeps the route transition snappy on slow
+// boards - the editor and file list render their own loading state in the meantime
+import type { FileListItem } from "@duet3d/connectors";
+import { defineBasicLoader } from "vue-router/experimental";
+
+import { useMachineStore } from "@/stores/machine";
+import Path from "@/utils/path";
+
+interface ExplorerInitialPayload {
+	path: string;
+	kind: "directory" | "editor" | "none";
+	files?: Array<FileListItem>;
+	content?: string;
+}
+
+// Shape matches the typed `/Explorer/[[tab]]/[[volume]]/[[...path]]` route. The data loader gets
+// vue-router's generic params and casts in (one boundary); useRoute(...) inside the component is
+// already this shape natively
+export interface ExplorerRouteParams {
+	tab?: string;
+	volume?: string;
+	// vue-router's `:path*` catch-all returns an array of segments. `[[...path]]` produces
+	// `string[]` when populated; treat both forms downstream via normalisePathParam()
+	path?: string | string[];
+}
+
+function normalisePathParam(value: string | string[] | undefined): string {
+	if (Array.isArray(value)) {
+		return value.join("/");
+	}
+	return value ?? "";
+}
+
+// The Explorer URL packs up to three things into its segments: an optional `t<n>` tab ordinal
+// (1-based position in the tab strip, dropped for the first tab), an optional numeric volume
+// index (dropped for volume 0), then the directory/file path. unplugin-vue-router hands these
+// back as three positional params regardless of which were actually present, so flatten them
+// into one ordered segment list and parse it front-to-back
+function resolveExplorerRoute(params: ExplorerRouteParams): {
+	tab: number | undefined; volume: number; path: string; editor: boolean;
+} {
+	const segments: Array<string> = [];
+	if (params.tab !== undefined) {
+		segments.push(params.tab);
+	}
+	if (params.volume !== undefined) {
+		segments.push(params.volume);
+	}
+	if (Array.isArray(params.path)) {
+		segments.push(...params.path);
+	} else if (params.path) {
+		segments.push(...params.path.split("/"));
+	}
+	const cleaned = segments.filter((segment) => segment !== "");
+
+	let tab: number | undefined;
+	if (cleaned.length > 0 && /^t\d+$/.test(cleaned[0])) {
+		tab = Number.parseInt(cleaned[0].substring(1), 10);
+		cleaned.shift();
+	}
+	// A reserved `edit` segment before the volume marks the URL as a file to open in the editor;
+	// vue-router can't carry a trailing-slash signal (strict mode 404s it, non-strict strips it),
+	// so the path itself is unambiguous about file vs directory. Shadows a root folder named "edit"
+	// the same way a `t<n>` ordinal shadows a folder named "t2"
+	let editor = false;
+	if (cleaned.length > 0 && cleaned[0] === "edit") {
+		editor = true;
+		cleaned.shift();
+	}
+	let volume = 0;
+	if (cleaned.length > 0 && /^\d+$/.test(cleaned[0])) {
+		volume = Number.parseInt(cleaned[0], 10);
+		cleaned.shift();
+	}
+	return { tab, volume, path: cleaned.join("/"), editor };
+}
+
+function sdPathFromParams(params: ExplorerRouteParams): string {
+	const { volume, path } = resolveExplorerRoute(params);
+	return path ? `${volume}:/${path}` : `${volume}:/`;
+}
+
+function isBareExplorerRoute(params: ExplorerRouteParams): boolean {
+	return !params.tab && !params.volume && !params.path;
+}
+
+export const useExplorerInitialData = defineBasicLoader(async (to): Promise<ExplorerInitialPayload> => {
+	const params = to.params as ExplorerRouteParams;
+	if (isBareExplorerRoute(params)) {
+		return { path: "0:/", kind: "directory" };
+	}
+	const path = sdPathFromParams(params);
+	if (!path) {
+		return { path: "", kind: "none" };
+	}
+	// The URL itself declares file vs directory (the `edit` prefix), so no FS probe / extension
+	// guessing is needed - we only fetch the matching payload to seed the tab
+	const { editor } = resolveExplorerRoute(params);
+	const machineStore = useMachineStore();
+	if (editor) {
+		if (machineStore.isConnected) {
+			try {
+				const content = await machineStore.download({ filename: path, type: "text" }, false, false, false);
+				return { path, kind: "editor", content };
+			} catch (e) {
+				// The editor tab still opens and surfaces its own load error/empty state
+				console.warn("Explorer editor preload failed", e);
+			}
+		}
+		return { path, kind: "editor" };
+	}
+	if (!machineStore.isConnected) {
+		// No FS to query; the page renders an empty browser tab until a real connection arrives
+		return { path, kind: "directory" };
+	}
+	try {
+		const files = await machineStore.getFileList(path);
+		return { path, kind: "directory", files };
+	} catch (e) {
+		console.warn("Explorer directory listing failed", e);
+		return { path, kind: "directory" };
+	}
+}, { lazy: true });
+</script>
 
 <script setup lang="ts">
 import type { FileBrowserItem } from "@/composables/useFileBrowser";
@@ -1010,35 +1042,3 @@ function pushUrl(ordinal: number, path: string, editor: boolean, replace = false
 
 // #endregion
 </script>
-
-<style scoped>
-.explorer-tab-label {
-	max-width: 8rem;
-}
-@media (min-width: 600px) {
-	.explorer-tab-label { max-width: 12rem; }
-}
-@media (min-width: 840px) {
-	.explorer-tab-label { max-width: 16rem; }
-}
-
-/* Viewport fill comes from the global `.dwc-page-fill` class on the v-card. When the active
-   tab is in a collapsed state (Monaco editor failed to load OR the FileList is empty +
-   disconnected) advertise that downstream so the card can fall back to content height */
-.explorer-card:has(.v-window-item--active .monaco-editor-host--collapsed),
-.explorer-card:has(.v-window-item--active .file-list-card--empty) {
-	height: auto;
-}
-
-.explorer-window {
-	min-height: 0;
-}
-
-.explorer-tab--drop-target {
-	background-color: rgba(var(--v-theme-primary), 0.18) !important;
-}
-.explorer-window :deep(.v-window__container),
-.explorer-window :deep(.v-window-item) {
-	height: 100%;
-}
-</style>

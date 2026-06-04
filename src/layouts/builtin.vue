@@ -1,3 +1,63 @@
+<style scoped>
+.machine-name {
+	min-width: 0;
+	max-width: 12rem;
+}
+@media (min-width: 600px) {
+	.machine-name { max-width: 20rem; }
+}
+@media (min-width: 840px) {
+	.machine-name { max-width: none; }
+}
+
+.route-area {
+	position: relative;
+}
+@media (max-width: 839.98px) {
+	.route-area { overflow-x: clip; }
+}
+
+.hub-forward-enter-active,
+.hub-forward-leave-active,
+.hub-back-enter-active,
+.hub-back-leave-active {
+	transition: transform 0.25s ease;
+}
+.hub-forward-leave-active,
+.hub-back-leave-active {
+	position: absolute;
+	top: 0;
+	left: 0;
+	right: 0;
+}
+.hub-forward-enter-from { transform: translateX(100%); }
+.hub-forward-leave-to { transform: translateX(-100%); }
+.hub-back-enter-from { transform: translateX(-100%); }
+.hub-back-leave-to { transform: translateX(100%); }
+@media (prefers-reduced-motion: reduce) {
+	.hub-forward-enter-active,
+	.hub-forward-leave-active,
+	.hub-back-enter-active,
+	.hub-back-leave-active {
+		transition: none;
+	}
+}
+
+.header-job-progress {
+	cursor: pointer;
+}
+
+.code-input {
+	width: 330px;
+}
+@media (min-width: 1545px) {
+	.code-input { width: 500px; }
+}
+@media (min-width: 2138px) {
+	.code-input { width: 720px; }
+}
+</style>
+
 <template>
 	<v-app>
 		<v-app-bar :elevation="2" :height="appBarHeight">
@@ -267,63 +327,3 @@ function shouldFlattenCategory(category: MenuCategoryDef): boolean {
 	return i18n.global.t(category.captionKey) === resolveItemTitle(items[0]);
 }
 </script>
-
-<style scoped>
-.machine-name {
-	min-width: 0;
-	max-width: 12rem;
-}
-@media (min-width: 600px) {
-	.machine-name { max-width: 20rem; }
-}
-@media (min-width: 840px) {
-	.machine-name { max-width: none; }
-}
-
-.route-area {
-	position: relative;
-}
-@media (max-width: 839.98px) {
-	.route-area { overflow-x: clip; }
-}
-
-.hub-forward-enter-active,
-.hub-forward-leave-active,
-.hub-back-enter-active,
-.hub-back-leave-active {
-	transition: transform 0.25s ease;
-}
-.hub-forward-leave-active,
-.hub-back-leave-active {
-	position: absolute;
-	top: 0;
-	left: 0;
-	right: 0;
-}
-.hub-forward-enter-from { transform: translateX(100%); }
-.hub-forward-leave-to { transform: translateX(-100%); }
-.hub-back-enter-from { transform: translateX(-100%); }
-.hub-back-leave-to { transform: translateX(100%); }
-@media (prefers-reduced-motion: reduce) {
-	.hub-forward-enter-active,
-	.hub-forward-leave-active,
-	.hub-back-enter-active,
-	.hub-back-leave-active {
-		transition: none;
-	}
-}
-
-.header-job-progress {
-	cursor: pointer;
-}
-
-.code-input {
-	width: 330px;
-}
-@media (min-width: 1545px) {
-	.code-input { width: 500px; }
-}
-@media (min-width: 2138px) {
-	.code-input { width: 720px; }
-}
-</style>

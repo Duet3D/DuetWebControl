@@ -361,7 +361,7 @@ async function ensurePluginExtras(): Promise<void> {
 /**
  * Register a new route and menu item.
  *
- * Follows the same convention as the previous DWC:
+ * Call shape:
  *   registerRoute(Component, { CategoryName: { PageName: { icon, caption, path, condition? } } })
  *
  * @param component Vue component to render

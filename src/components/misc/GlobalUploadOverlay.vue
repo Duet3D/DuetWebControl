@@ -1,3 +1,15 @@
+<style scoped>
+.upload-overlay {
+	position: fixed;
+	top: var(--v-layout-top, 64px);
+	left: 0;
+	right: 0;
+	bottom: 0;
+	z-index: 2000;
+	pointer-events: none;
+}
+</style>
+
 <template>
 	<div v-if="dragActive" class="upload-overlay">
 		<UploadBackdrop />
@@ -177,15 +189,3 @@ onBeforeUnmount(() => {
 	window.removeEventListener("drop", onDrop, true);
 });
 </script>
-
-<style scoped>
-.upload-overlay {
-	position: fixed;
-	top: var(--v-layout-top, 64px);
-	left: 0;
-	right: 0;
-	bottom: 0;
-	z-index: 2000;
-	pointer-events: none;
-}
-</style>

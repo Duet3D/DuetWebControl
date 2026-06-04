@@ -1,3 +1,12 @@
+<style scoped>
+p {
+	margin: 0;
+	display: flex;
+	align-items: baseline;
+	gap: 0.35em;
+}
+</style>
+
 <template>
 	<PanelCard icon="mdi-information" :title="$t('panel.jobInfo.caption')">
 		<v-card-text class="d-flex flex-column pt-0">
@@ -28,15 +37,6 @@
 		</template>
 	</PanelCard>
 </template>
-
-<style scoped>
-p {
-	margin: 0;
-	display: flex;
-	align-items: baseline;
-	gap: 0.35em;
-}
-</style>
 
 <script setup lang="ts">
 import { MachineMode } from "@duet3d/objectmodel";

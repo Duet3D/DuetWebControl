@@ -1,3 +1,54 @@
+<style scoped>
+.heightmap-container {
+	background-color: #000;
+	color: #fff;
+	border-radius: 8px;
+	display: flex;
+}
+
+.canvas-container {
+	position: relative;
+	height: 100%;
+	width: 100%;
+	overflow: hidden;
+}
+
+.canvas-container > :first-child {
+	border-radius: 4px 0 0 4px;
+}
+
+.canvas-container > :last-child {
+	border-radius: 0 4px 4px 0;
+}
+
+.canvas-container > canvas {
+	position: absolute;
+}
+
+.canvas-container > .legend {
+	right: 0;
+}
+
+.legend.clickable {
+	cursor: pointer;
+}
+
+.no-cursor {
+	pointer-events: none;
+}
+
+.hm-tooltip {
+	position: absolute;
+	background: rgba(0, 0, 0, 0.7);
+	color: #fff;
+	padding: 4px 8px;
+	border-radius: 4px;
+	font-size: 12px;
+	white-space: nowrap;
+	z-index: 5;
+}
+</style>
+
 <template>
 	<v-row class="ma-0">
 		<v-col :class="{ 'pa-1': isXs }" cols="12" md="7" lg="auto" class="flex-grow-1 order-0">
@@ -636,54 +687,3 @@ watch(isDelta, (to) => {
 
 // #endregion
 </script>
-
-<style scoped>
-.heightmap-container {
-	background-color: #000;
-	color: #fff;
-	border-radius: 8px;
-	display: flex;
-}
-
-.canvas-container {
-	position: relative;
-	height: 100%;
-	width: 100%;
-	overflow: hidden;
-}
-
-.canvas-container > :first-child {
-	border-radius: 4px 0 0 4px;
-}
-
-.canvas-container > :last-child {
-	border-radius: 0 4px 4px 0;
-}
-
-.canvas-container > canvas {
-	position: absolute;
-}
-
-.canvas-container > .legend {
-	right: 0;
-}
-
-.legend.clickable {
-	cursor: pointer;
-}
-
-.no-cursor {
-	pointer-events: none;
-}
-
-.hm-tooltip {
-	position: absolute;
-	background: rgba(0, 0, 0, 0.7);
-	color: #fff;
-	padding: 4px 8px;
-	border-radius: 4px;
-	font-size: 12px;
-	white-space: nowrap;
-	z-index: 5;
-}
-</style>

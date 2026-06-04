@@ -1,3 +1,15 @@
+<style scoped>
+table {
+	width: 100%;
+	border-spacing: 0;
+}
+
+table td,
+table th {
+	text-align: center;
+}
+</style>
+
 <template>
 	<table v-if="sensors.length > 0">
 		<colgroup>
@@ -32,18 +44,6 @@
 		{{ $t("panel.tools.extra.noItems") }}
 	</v-alert>
 </template>
-
-<style scoped>
-table {
-	width: 100%;
-	border-spacing: 0;
-}
-
-table td,
-table th {
-	text-align: center;
-}
-</style>
 
 <script setup lang="ts">
 import type { AnalogSensor } from "@duet3d/objectmodel";

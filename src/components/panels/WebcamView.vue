@@ -1,21 +1,3 @@
-<template>
-	<div class="webcam-view flex-grow-1">
-		<v-responsive v-if="settingsStore.webcam.embedded" :aspect-ratio="16 / 9">
-			<iframe :src="settingsStore.webcam.url" :class="classList" />
-		</v-responsive>
-
-		<a v-else-if="settingsStore.webcam.enabled" class="media-link"
-		   :href="settingsStore.webcam.liveUrl || 'javascript:void(0)'">
-			<video v-if="webcamIsRTC" ref="remoteVideo" autoplay playsinline :class="classList" />
-			<img v-else :alt="$t('panel.webcam.alt')" :src="active ? url : ''" :class="classList">
-		</a>
-
-		<v-alert v-else type="info" variant="tonal" tile>
-			{{ $t("panel.webcam.disabled") }}
-		</v-alert>
-	</div>
-</template>
-
 <style scoped>
 .webcam-view {
 	position: relative;
@@ -61,6 +43,24 @@ iframe {
 	transform: rotate(270deg);
 }
 </style>
+
+<template>
+	<div class="webcam-view flex-grow-1">
+		<v-responsive v-if="settingsStore.webcam.embedded" :aspect-ratio="16 / 9">
+			<iframe :src="settingsStore.webcam.url" :class="classList" />
+		</v-responsive>
+
+		<a v-else-if="settingsStore.webcam.enabled" class="media-link"
+		   :href="settingsStore.webcam.liveUrl || 'javascript:void(0)'">
+			<video v-if="webcamIsRTC" ref="remoteVideo" autoplay playsinline :class="classList" />
+			<img v-else :alt="$t('panel.webcam.alt')" :src="active ? url : ''" :class="classList">
+		</a>
+
+		<v-alert v-else type="info" variant="tonal" tile>
+			{{ $t("panel.webcam.disabled") }}
+		</v-alert>
+	</div>
+</template>
 
 <script setup lang="ts">
 import { useMachineStore } from "@/stores/machine";

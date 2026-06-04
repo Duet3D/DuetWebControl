@@ -1,3 +1,197 @@
+<style scoped>
+.babylon-canvas {
+	position: absolute;
+	top: 0;
+	left: 0;
+	width: 100%;
+	height: 100%;
+	background-color: black;
+}
+
+.babylon-canvas-codeview {
+	position: absolute;
+	top: 0;
+	left: 0;
+	width: 70%;
+	height: 100%;
+	background-color: black;
+}
+
+.codeview {
+	position: absolute;
+	top: 0;
+	left: 70%;
+	width: 30%;
+	height: 100%;
+}
+
+.codeview-sm {
+	position: absolute;
+	top: 0;
+	left: 70%;
+	width: 30%;
+	height: 90%;
+}
+
+.btn-toggle { flex-direction: column; }
+
+.primary-container {
+	position: relative;
+	width: 100%;
+	height: 100%;
+	border-radius: 8px;
+	overflow: hidden;
+	margin: 8px;
+	width: calc(100% - 16px);
+}
+
+.gcv-drawer-actions {
+	padding: 12px;
+}
+.gcv-drawer-switches {
+	padding: 0 12px 12px;
+}
+@media (min-width: 840px) {
+	.primary-container {
+		margin: 0;
+		width: 100%;
+	}
+}
+
+.viewer-box {
+	position: absolute;
+	inset: 0;
+}
+
+.full-screen {
+	position: fixed;
+	inset: 0;
+	/* Vuetify v-app-bar sits at z-index 1008; the fullscreen viewer needs to cover it (the user
+	   asked for the full screen, not "everything below the app bar") so go above that layer */
+	z-index: 1100;
+	background-color: black;
+}
+
+.full-screen-icon {
+	height: 40px;
+	width: 40px;
+}
+
+/* Settings slide-in panel + backdrop, scoped to `.viewer-box`. Above the canvas + scrubber +
+   loading bar (z-indexes <=19) but below Vuetify dialogs/overlays (1006+) so a v-dialog opened
+   from inside the panel still renders on top */
+.gcv-settings-backdrop {
+	position: absolute;
+	inset: 0;
+	background-color: rgba(0, 0, 0, 0.4);
+	z-index: 30;
+}
+
+.gcv-settings-panel {
+	position: absolute;
+	top: 0;
+	left: 0;
+	bottom: 0;
+	width: 350px;
+	max-width: 100%;
+	background-color: rgb(var(--v-theme-surface));
+	color: rgb(var(--v-theme-on-surface));
+	z-index: 31;
+	overflow-y: auto;
+	box-shadow: 0 0 12px rgba(0, 0, 0, 0.3);
+}
+
+.gcv-settings-slide-enter-active,
+.gcv-settings-slide-leave-active {
+	transition: transform 0.25s ease;
+}
+
+.gcv-settings-slide-enter-from,
+.gcv-settings-slide-leave-to {
+	transform: translateX(-100%);
+}
+
+.button-container {
+	position: absolute;
+	top: 5px;
+	left: 5px;
+	transition-duration: 0.3s;
+}
+
+.button-container-drawer {
+	left: 355px !important;
+}
+
+/* z-index kept well below Vuetify 4's overlay stack (which starts around 1006 for menus +
+   dialogs) so a popover/dialog opened over the viewer renders above the emergency button.
+   Pinned to the bottom-right corner so it never sits on top of Babylon's orientation gizmo at
+   the top-right of the viewport */
+.emergency-button-placement {
+	position: absolute;
+	bottom: 14px;
+	right: 16px;
+	z-index: 5;
+}
+
+.emergency-button-placement-codeview {
+	position: absolute;
+	bottom: 14px;
+	right: 30%;
+	z-index: 5;
+}
+
+.loading-progress {
+	position: absolute;
+	width: 50%;
+	left: 0;
+	margin-left: 25%;
+	top: 5px;
+	z-index: 19;
+}
+
+.scrubber {
+	position: absolute;
+	left: 5%;
+	right: 5%;
+	bottom: 15px;
+	z-index: 19;
+}
+
+.scrubber-codeview {
+	position: absolute;
+	left: 5%;
+	right: 35%;
+	bottom: 15px;
+	z-index: 19;
+}
+
+.scrubber-sm {
+	position: absolute;
+	left: 5%;
+	right: 5%;
+	bottom: 70px;
+	z-index: 19;
+}
+
+.scrubber-sm-codeview {
+	position: absolute;
+	left: 5%;
+	right: 35%;
+	bottom: 70px;
+	z-index: 19;
+}
+
+.disable-transition {
+	transition: none !important;
+}
+
+.fsoverlay {
+	position: absolute;
+	pointer-events: none;
+	background-color: transparent;
+}
+</style>
+
 <template>
 	<div ref="primaryContainer" class="primary-container">
 		<div :class="{ 'full-screen': fullscreen }" class="viewer-box">
@@ -1351,197 +1545,3 @@ watch(progressMode, async () => {
 
 // #endregion
 </script>
-
-<style scoped>
-.babylon-canvas {
-	position: absolute;
-	top: 0;
-	left: 0;
-	width: 100%;
-	height: 100%;
-	background-color: black;
-}
-
-.babylon-canvas-codeview {
-	position: absolute;
-	top: 0;
-	left: 0;
-	width: 70%;
-	height: 100%;
-	background-color: black;
-}
-
-.codeview {
-	position: absolute;
-	top: 0;
-	left: 70%;
-	width: 30%;
-	height: 100%;
-}
-
-.codeview-sm {
-	position: absolute;
-	top: 0;
-	left: 70%;
-	width: 30%;
-	height: 90%;
-}
-
-.btn-toggle { flex-direction: column; }
-
-.primary-container {
-	position: relative;
-	width: 100%;
-	height: 100%;
-	border-radius: 8px;
-	overflow: hidden;
-	margin: 8px;
-	width: calc(100% - 16px);
-}
-
-.gcv-drawer-actions {
-	padding: 12px;
-}
-.gcv-drawer-switches {
-	padding: 0 12px 12px;
-}
-@media (min-width: 840px) {
-	.primary-container {
-		margin: 0;
-		width: 100%;
-	}
-}
-
-.viewer-box {
-	position: absolute;
-	inset: 0;
-}
-
-.full-screen {
-	position: fixed;
-	inset: 0;
-	/* Vuetify v-app-bar sits at z-index 1008; the fullscreen viewer needs to cover it (the user
-	   asked for the full screen, not "everything below the app bar") so go above that layer */
-	z-index: 1100;
-	background-color: black;
-}
-
-.full-screen-icon {
-	height: 40px;
-	width: 40px;
-}
-
-/* Settings slide-in panel + backdrop, scoped to `.viewer-box`. Above the canvas + scrubber +
-   loading bar (z-indexes <=19) but below Vuetify dialogs/overlays (1006+) so a v-dialog opened
-   from inside the panel still renders on top */
-.gcv-settings-backdrop {
-	position: absolute;
-	inset: 0;
-	background-color: rgba(0, 0, 0, 0.4);
-	z-index: 30;
-}
-
-.gcv-settings-panel {
-	position: absolute;
-	top: 0;
-	left: 0;
-	bottom: 0;
-	width: 350px;
-	max-width: 100%;
-	background-color: rgb(var(--v-theme-surface));
-	color: rgb(var(--v-theme-on-surface));
-	z-index: 31;
-	overflow-y: auto;
-	box-shadow: 0 0 12px rgba(0, 0, 0, 0.3);
-}
-
-.gcv-settings-slide-enter-active,
-.gcv-settings-slide-leave-active {
-	transition: transform 0.25s ease;
-}
-
-.gcv-settings-slide-enter-from,
-.gcv-settings-slide-leave-to {
-	transform: translateX(-100%);
-}
-
-.button-container {
-	position: absolute;
-	top: 5px;
-	left: 5px;
-	transition-duration: 0.3s;
-}
-
-.button-container-drawer {
-	left: 355px !important;
-}
-
-/* z-index kept well below Vuetify 4's overlay stack (which starts around 1006 for menus +
-   dialogs) so a popover/dialog opened over the viewer renders above the emergency button.
-   Pinned to the bottom-right corner so it never sits on top of Babylon's orientation gizmo at
-   the top-right of the viewport */
-.emergency-button-placement {
-	position: absolute;
-	bottom: 14px;
-	right: 16px;
-	z-index: 5;
-}
-
-.emergency-button-placement-codeview {
-	position: absolute;
-	bottom: 14px;
-	right: 30%;
-	z-index: 5;
-}
-
-.loading-progress {
-	position: absolute;
-	width: 50%;
-	left: 0;
-	margin-left: 25%;
-	top: 5px;
-	z-index: 19;
-}
-
-.scrubber {
-	position: absolute;
-	left: 5%;
-	right: 5%;
-	bottom: 15px;
-	z-index: 19;
-}
-
-.scrubber-codeview {
-	position: absolute;
-	left: 5%;
-	right: 35%;
-	bottom: 15px;
-	z-index: 19;
-}
-
-.scrubber-sm {
-	position: absolute;
-	left: 5%;
-	right: 5%;
-	bottom: 70px;
-	z-index: 19;
-}
-
-.scrubber-sm-codeview {
-	position: absolute;
-	left: 5%;
-	right: 35%;
-	bottom: 70px;
-	z-index: 19;
-}
-
-.disable-transition {
-	transition: none !important;
-}
-
-.fsoverlay {
-	position: absolute;
-	pointer-events: none;
-	background-color: transparent;
-}
-</style>

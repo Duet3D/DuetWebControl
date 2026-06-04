@@ -1,3 +1,25 @@
+<style scoped lang="scss">
+.spindle-table {
+	td {
+		text-align: center;
+		vertical-align: middle;
+	}
+	tbody tr:hover {
+		background-color: transparent !important;
+	}
+}
+
+.spindle-active {
+	animation: spindle-on-pulse 5s infinite;
+}
+
+@keyframes spindle-on-pulse {
+	0%   { background-color: #00aa00; }
+	50%  { background-color: #00ff00; }
+	100% { background-color: #00aa00; }
+}
+</style>
+
 <template>
 	<v-card>
 		<v-card-title class="d-flex align-center">
@@ -53,28 +75,6 @@
 		</v-card-text>
 	</v-card>
 </template>
-
-<style scoped lang="scss">
-.spindle-table {
-	td {
-		text-align: center;
-		vertical-align: middle;
-	}
-	tbody tr:hover {
-		background-color: transparent !important;
-	}
-}
-
-.spindle-active {
-	animation: spindle-on-pulse 5s infinite;
-}
-
-@keyframes spindle-on-pulse {
-	0%   { background-color: #00aa00; }
-	50%  { background-color: #00ff00; }
-	100% { background-color: #00aa00; }
-}
-</style>
 
 <script setup lang="ts">
 import { Spindle, SpindleState } from "@duet3d/objectmodel";

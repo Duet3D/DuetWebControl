@@ -1,3 +1,17 @@
+<style scoped>
+.macro-list-card {
+	min-height: 0;
+}
+.macro-list-card :deep(.v-card-title) {
+	flex-shrink: 0;
+}
+.macro-list-body {
+	flex: 1 1 auto;
+	min-height: 0;
+	overflow-y: auto;
+}
+</style>
+
 <template>
 	<PanelCard icon="mdi-polymer" :title="$t('list.macro.caption')" class="d-flex flex-column macro-list-card">
 		<template #title-append>
@@ -84,20 +98,6 @@
 		</template>
 	</PanelCard>
 </template>
-
-<style scoped>
-.macro-list-card {
-	min-height: 0;
-}
-.macro-list-card :deep(.v-card-title) {
-	flex-shrink: 0;
-}
-.macro-list-body {
-	flex: 1 1 auto;
-	min-height: 0;
-	overflow-y: auto;
-}
-</style>
 
 <script setup lang="ts">
 import { useDisplay } from "vuetify";

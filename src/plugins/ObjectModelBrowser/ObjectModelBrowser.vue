@@ -1,3 +1,35 @@
+<style scoped>
+input[readonly] {
+	background: transparent;
+	border: 1px solid rgba(var(--v-theme-on-surface), 0.12);
+	border-radius: 4px;
+	padding: 2px 6px;
+	flex: 1 1 8rem;
+	min-width: 0;
+	max-width: 100%;
+}
+
+.deprecated-label {
+	text-decoration: line-through;
+	color: rgb(var(--v-theme-warning));
+}
+
+@media (min-width: 840px) {
+	.om-column {
+		min-height: 0;
+		overflow-y: auto;
+	}
+}
+
+@media (min-width: 600px) and (max-width: 839.98px) {
+	.om-description {
+		position: sticky;
+		top: calc(var(--v-layout-top, 64px) + 12px);
+		align-self: flex-start;
+	}
+}
+</style>
+
 <template>
 	<v-row class="ma-0 pt-3 pt-md-0 pe-3 pe-md-0" :class="{ 'dwc-page-fill overflow-hidden flex-nowrap': mdAndUp }">
 		<v-col ref="leftContainer" cols="12" :sm="active.length === 0 ? 12 : 6" class="om-column">
@@ -409,35 +441,3 @@ onMounted(async () => {
 	}
 });
 </script>
-
-<style scoped>
-input[readonly] {
-	background: transparent;
-	border: 1px solid rgba(var(--v-theme-on-surface), 0.12);
-	border-radius: 4px;
-	padding: 2px 6px;
-	flex: 1 1 8rem;
-	min-width: 0;
-	max-width: 100%;
-}
-
-.deprecated-label {
-	text-decoration: line-through;
-	color: rgb(var(--v-theme-warning));
-}
-
-@media (min-width: 840px) {
-	.om-column {
-		min-height: 0;
-		overflow-y: auto;
-	}
-}
-
-@media (min-width: 600px) and (max-width: 839.98px) {
-	.om-description {
-		position: sticky;
-		top: calc(var(--v-layout-top, 64px) + 12px);
-		align-self: flex-start;
-	}
-}
-</style>

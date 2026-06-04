@@ -1,3 +1,19 @@
+<style scoped>
+.disabled {
+	color: inherit;
+	cursor: default;
+}
+
+.disabled-heater {
+	cursor: default;
+}
+
+.disabled:hover,
+.disabled-heater {
+	text-decoration: none;
+}
+</style>
+
 <template>
 	<tbody>
 		<template v-if="toolsToDisplay.length > 0">
@@ -159,22 +175,6 @@
 						:prompt-during-change="toolSettings.promptDuringFilamentChange" :tool="filamentDialogTool" />
 	</tbody>
 </template>
-
-<style scoped>
-.disabled {
-	color: inherit;
-	cursor: default;
-}
-
-.disabled-heater {
-	cursor: default;
-}
-
-.disabled:hover,
-.disabled-heater {
-	text-decoration: none;
-}
-</style>
 
 <script setup lang="ts">
 import { type Heater, HeaterState, MachineStatus, type Spindle, SpindleState, type Tool } from "@duet3d/objectmodel";

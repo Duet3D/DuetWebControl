@@ -22,4 +22,3 @@
 <script setup lang="ts">
 import MacroList from "@/components/lists/MacroList.vue";
 </script>
-

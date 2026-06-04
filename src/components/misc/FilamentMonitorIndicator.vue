@@ -1,3 +1,70 @@
+<style scoped>
+.fm-title {
+	font-weight: 600;
+	margin-bottom: 4px;
+	text-align: center;
+}
+
+.fm-bar {
+	width: 200px;
+	max-width: 100%;
+}
+
+.fm-head {
+	fill: currentColor;
+	font-size: 9px;
+	opacity: 0.7;
+}
+
+.fm-label {
+	fill: currentColor;
+	font-size: 11px;
+}
+
+.fm-label-current {
+	font-weight: 600;
+}
+
+.fm-label-measured {
+	fill: black;
+}
+
+.fm-tick {
+	stroke: currentColor;
+	stroke-width: 1;
+	opacity: 0.6;
+}
+
+.fm-zone-out {
+	fill: rgb(229, 57, 53);
+}
+
+.fm-zone-in {
+	fill: rgb(67, 160, 71);
+}
+
+.fm-zone-warn {
+	fill: rgb(251, 140, 0);
+}
+
+.fm-zone-measured {
+	fill: rgb(255, 235, 59);
+	opacity: 0.7;
+}
+
+.fm-current {
+	stroke: currentColor;
+	stroke-width: 2.5;
+}
+
+.fm-outline {
+	fill: none;
+	stroke: currentColor;
+	stroke-width: 1;
+	opacity: 0.5;
+}
+</style>
+
 <template>
 	<v-tooltip v-if="info" location="top">
 		<template #activator="{ props: tooltipProps }">
@@ -176,70 +243,3 @@ const geom = computed(() => {
 	};
 });
 </script>
-
-<style scoped>
-.fm-title {
-	font-weight: 600;
-	margin-bottom: 4px;
-	text-align: center;
-}
-
-.fm-bar {
-	width: 200px;
-	max-width: 100%;
-}
-
-.fm-head {
-	fill: currentColor;
-	font-size: 9px;
-	opacity: 0.7;
-}
-
-.fm-label {
-	fill: currentColor;
-	font-size: 11px;
-}
-
-.fm-label-current {
-	font-weight: 600;
-}
-
-.fm-label-measured {
-	fill: black;
-}
-
-.fm-tick {
-	stroke: currentColor;
-	stroke-width: 1;
-	opacity: 0.6;
-}
-
-.fm-zone-out {
-	fill: rgb(229, 57, 53);
-}
-
-.fm-zone-in {
-	fill: rgb(67, 160, 71);
-}
-
-.fm-zone-warn {
-	fill: rgb(251, 140, 0);
-}
-
-.fm-zone-measured {
-	fill: rgb(255, 235, 59);
-	opacity: 0.7;
-}
-
-.fm-current {
-	stroke: currentColor;
-	stroke-width: 2.5;
-}
-
-.fm-outline {
-	fill: none;
-	stroke: currentColor;
-	stroke-width: 1;
-	opacity: 0.5;
-}
-</style>

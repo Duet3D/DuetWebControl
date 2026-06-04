@@ -1,3 +1,9 @@
+<style scoped>
+.center-label {
+	text-align: center;
+}
+</style>
+
 <template>
 	<div>
 		<div class="center-label">{{ label }}</div>
@@ -55,9 +61,3 @@ onBeforeUnmount(() => {
 
 watch(() => [props.max, props.curval, props.settemp, props.state], () => refresh());
 </script>
-
-<style scoped>
-.center-label {
-	text-align: center;
-}
-</style>

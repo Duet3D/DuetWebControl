@@ -13,6 +13,19 @@
 }
 </route>
 
+<style scoped>
+/* The wrapping `.jobs-page` div is `.dwc-page-fill` so the v-card inside picks up the same
+   viewport-fill behavior as the Explorer. Pull the FileList's card to 100% of that wrapper
+   so it actually fills, and let the empty-state shrink kick in when the list has nothing
+   to show + the machine is disconnected */
+.jobs-page :deep(.file-list-card) {
+	height: 100%;
+}
+.jobs-page :deep(.file-list-card.file-list-card--empty) {
+	height: auto;
+}
+</style>
+
 <template>
 	<div class="jobs-page dwc-page-fill">
 		<JobFileList :key="selectedVolume" v-model:directory="currentDirectory"
@@ -233,16 +246,3 @@ async function simulateJob(item: FileBrowserItem, directory: string) {
 	await machineStore.sendCode(`M37 P"${Path.escapeFilename(fullPath)}"`);
 }
 </script>
-
-<style scoped>
-/* The wrapping `.jobs-page` div is `.dwc-page-fill` so the v-card inside picks up the same
-   viewport-fill behavior as the Explorer. Pull the FileList's card to 100% of that wrapper
-   so it actually fills, and let the empty-state shrink kick in when the list has nothing
-   to show + the machine is disconnected */
-.jobs-page :deep(.file-list-card) {
-	height: 100%;
-}
-.jobs-page :deep(.file-list-card.file-list-card--empty) {
-	height: auto;
-}
-</style>

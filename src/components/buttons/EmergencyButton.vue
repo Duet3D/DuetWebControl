@@ -1,3 +1,16 @@
+<!-- NOT scoped: the rendered v-btn lives inside CodeButton's scope so this component's
+     data-v hash never makes it onto the element -->
+<style>
+@media (max-width: 599.98px) {
+	.estop-button.v-btn {
+		min-width: 48px;
+		width: 48px;
+		height: 48px;
+		padding: 0;
+	}
+}
+</style>
+
 <template>
 	<CodeButton :code="emergencyCode" :log="false" :color="color || 'error'" variant="flat"
 				:size="large ? 'large' : undefined"
@@ -18,16 +31,3 @@ defineProps<{
 // M112: immediate emergency stop; M999: restart the firmware afterwards so the user can continue
 const emergencyCode = "M112\nM999";
 </script>
-
-<!-- NOT scoped: the rendered v-btn lives inside CodeButton's scope so this component's
-     data-v hash never makes it onto the element -->
-<style>
-@media (max-width: 599.98px) {
-	.estop-button.v-btn {
-		min-width: 48px;
-		width: 48px;
-		height: 48px;
-		padding: 0;
-	}
-}
-</style>

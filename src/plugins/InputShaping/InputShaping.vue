@@ -1,3 +1,51 @@
+<style scoped>
+.empty-state {
+	display: flex;
+	flex-direction: column;
+	align-items: center;
+	justify-content: center;
+	text-align: center;
+	padding: 2rem;
+}
+.empty-state > div {
+	max-width: 480px;
+}
+
+.content {
+	position: relative;
+	min-height: 320px;
+}
+@media (min-width: 840px) {
+	.content {
+		min-height: 480px;
+	}
+}
+
+.content canvas {
+	position: absolute;
+}
+
+/* When the Motion Analysis col stacks below the file list (xs/sm) the col has no parent height
+   to fill, so the canvas inside collapses to 0. Give the chart wrapper a sensible minimum so
+   it actually paints on small screens - kept short on sm so the surrounding panels fit in the
+   viewport without scrolling */
+.analysis-chart-col {
+	min-height: 260px;
+}
+@media (min-width: 840px) {
+	.analysis-chart-col {
+		min-height: 0;
+	}
+}
+
+/* Let the v-window inner element grow into the page-fill card and propagate that to each
+   window-item so charts can size against the actual viewport-relative height */
+.input-shaping-window :deep(.v-window__container),
+.input-shaping-window :deep(.v-window-item) {
+	height: 100%;
+}
+</style>
+
 <template>
 	<v-row class="ma-0">
 		<v-col cols="12" md="9" lg="9" xl="10">
@@ -497,51 +545,3 @@ watch(() => shaping.value.damping, (to) => { damping.value = to; });
 
 // #endregion
 </script>
-
-<style scoped>
-.empty-state {
-	display: flex;
-	flex-direction: column;
-	align-items: center;
-	justify-content: center;
-	text-align: center;
-	padding: 2rem;
-}
-.empty-state > div {
-	max-width: 480px;
-}
-
-.content {
-	position: relative;
-	min-height: 320px;
-}
-@media (min-width: 840px) {
-	.content {
-		min-height: 480px;
-	}
-}
-
-.content canvas {
-	position: absolute;
-}
-
-/* When the Motion Analysis col stacks below the file list (xs/sm) the col has no parent height
-   to fill, so the canvas inside collapses to 0. Give the chart wrapper a sensible minimum so
-   it actually paints on small screens - kept short on sm so the surrounding panels fit in the
-   viewport without scrolling */
-.analysis-chart-col {
-	min-height: 260px;
-}
-@media (min-width: 840px) {
-	.analysis-chart-col {
-		min-height: 0;
-	}
-}
-
-/* Let the v-window inner element grow into the page-fill card and propagate that to each
-   window-item so charts can size against the actual viewport-relative height */
-.input-shaping-window :deep(.v-window__container),
-.input-shaping-window :deep(.v-window-item) {
-	height: 100%;
-}
-</style>

@@ -13,6 +13,37 @@
 }
 </route>
 
+<style scoped>
+.panel-grid {
+	min-height: 0;
+}
+
+@media (max-width: 839px) {
+	.mobile-first-screen {
+		min-height: calc(100dvh - var(--v-layout-top, 64px));
+	}
+}
+
+.sm-panel {
+	display: block;
+	margin-bottom: 8px;
+}
+
+.sm-panel:last-child {
+	margin-bottom: 0;
+}
+
+@media (min-width: 600px) and (max-width: 839px) {
+	.sm-panel-grid {
+		column-count: 2;
+		column-gap: 8px;
+	}
+	.sm-panel {
+		break-inside: avoid;
+	}
+}
+</style>
+
 <template>
 	<div class="d-flex flex-column" :class="{ 'dwc-page-fill overflow-y-auto': mdAndUp }">
 		<div v-if="!mdAndUp" class="d-flex flex-column flex-shrink-0 mobile-first-screen">
@@ -79,37 +110,6 @@
 		</div>
 	</div>
 </template>
-
-<style scoped>
-.panel-grid {
-	min-height: 0;
-}
-
-@media (max-width: 839px) {
-	.mobile-first-screen {
-		min-height: calc(100dvh - var(--v-layout-top, 64px));
-	}
-}
-
-.sm-panel {
-	display: block;
-	margin-bottom: 8px;
-}
-
-.sm-panel:last-child {
-	margin-bottom: 0;
-}
-
-@media (min-width: 600px) and (max-width: 839px) {
-	.sm-panel-grid {
-		column-count: 2;
-		column-gap: 8px;
-	}
-	.sm-panel {
-		break-inside: avoid;
-	}
-}
-</style>
 
 <script setup lang="ts">
 import { useDisplay } from "vuetify";

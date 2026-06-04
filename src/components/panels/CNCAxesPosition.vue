@@ -1,3 +1,22 @@
+<style scoped>
+.axis-span {
+	border-radius: 5px;
+}
+
+/* Tool position is rendered large because it's the value the operator references constantly. The
+   media-query rather than a Vuetify utility class is intentional - this size depends on viewport, not on
+   the container, and the value-glance UX is the same on every device class */
+@media screen and (max-width: 600px) {
+	.large-font-height { height: 35px; }
+	.large-font { font-size: 30px; }
+}
+
+@media screen and (min-width: 601px) {
+	.large-font-height { height: 55px; }
+	.large-font { font-size: 50px; }
+}
+</style>
+
 <template>
 	<v-card class="py-0">
 		<v-card-title class="py-2">
@@ -19,25 +38,6 @@
 		</v-card-text>
 	</v-card>
 </template>
-
-<style scoped>
-.axis-span {
-	border-radius: 5px;
-}
-
-/* Tool position is rendered large because it's the value the operator references constantly. The
-   media-query rather than a Vuetify utility class is intentional - this size depends on viewport, not on
-   the container, and the value-glance UX is the same on every device class */
-@media screen and (max-width: 600px) {
-	.large-font-height { height: 35px; }
-	.large-font { font-size: 30px; }
-}
-
-@media screen and (min-width: 601px) {
-	.large-font-height { height: 55px; }
-	.large-font { font-size: 50px; }
-}
-</style>
 
 <script setup lang="ts">
 import { useMachineStore } from "@/stores/machine";

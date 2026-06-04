@@ -1,3 +1,11 @@
+<style scoped>
+.panel-title {
+	user-select: none;
+	-webkit-user-select: none;
+	-webkit-touch-callout: none;
+}
+</style>
+
 <template>
 	<v-card>
 		<v-card-title class="py-2 d-flex align-center">
@@ -151,11 +159,3 @@ function onContextMenu(index: number, event: Event) {
 
 onBeforeUnmount(cancelLongPress);
 </script>
-
-<style scoped>
-.panel-title {
-	user-select: none;
-	-webkit-user-select: none;
-	-webkit-touch-callout: none;
-}
-</style>

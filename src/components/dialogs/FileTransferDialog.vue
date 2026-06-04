@@ -1,3 +1,38 @@
+<style scoped>
+.file-transfer-table {
+	width: 100%;
+	table-layout: fixed;
+}
+/* table-layout: fixed reads column widths from the colgroup, not the body cells */
+.col-filename {
+	width: 50%;
+}
+.col-size {
+	width: 15%;
+}
+.col-progress {
+	width: 35%;
+}
+.file-transfer-table tr {
+	height: 32px;
+}
+.file-transfer-table th,
+.file-transfer-table td {
+	text-align: left;
+	white-space: nowrap;
+}
+.file-transfer-table td {
+	vertical-align: middle;
+}
+.filename-cell {
+	overflow: hidden;
+	text-overflow: ellipsis;
+}
+.progress-static :deep(.v-progress-linear__determinate) {
+	animation: none;
+}
+</style>
+
 <template>
 	<v-dialog v-model="shown" max-width="800" persistent no-click-animation scrollable>
 		<v-card>
@@ -56,41 +91,6 @@
 		</v-card>
 	</v-dialog>
 </template>
-
-<style scoped>
-.file-transfer-table {
-	width: 100%;
-	table-layout: fixed;
-}
-/* table-layout: fixed reads column widths from the colgroup, not the body cells */
-.col-filename {
-	width: 50%;
-}
-.col-size {
-	width: 15%;
-}
-.col-progress {
-	width: 35%;
-}
-.file-transfer-table tr {
-	height: 32px;
-}
-.file-transfer-table th,
-.file-transfer-table td {
-	text-align: left;
-	white-space: nowrap;
-}
-.file-transfer-table td {
-	vertical-align: middle;
-}
-.filename-cell {
-	overflow: hidden;
-	text-overflow: ellipsis;
-}
-.progress-static :deep(.v-progress-linear__determinate) {
-	animation: none;
-}
-</style>
 
 <script setup lang="ts">
 import { type CancellationToken, OperationCancelledError } from "@duet3d/connectors";

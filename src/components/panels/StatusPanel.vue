@@ -1,3 +1,40 @@
+<style scoped>
+.axis-span {
+	border-radius: 5px;
+}
+
+strong {
+	align-self: center;
+	text-align: center;
+}
+
+.category-header {
+	flex: 0 0 100px;
+}
+
+a {
+	color: inherit;
+	text-decoration: none;
+}
+
+.content span,
+.content strong {
+	padding-left: 8px;
+	padding-right: 8px;
+}
+
+.probe-span {
+	border-radius: 5px;
+	text-align: center;
+	white-space: nowrap;
+	min-width: 60px;
+}
+
+.probe-span:not(:last-child) {
+	margin-right: 8px;
+}
+</style>
+
 <template>
 	<PanelCard icon="mdi-information" :title="$t('panel.status.caption')">
 		<template #title-append>
@@ -293,43 +330,6 @@
 		</template>
 	</PanelCard>
 </template>
-
-<style scoped>
-.axis-span {
-	border-radius: 5px;
-}
-
-strong {
-	align-self: center;
-	text-align: center;
-}
-
-.category-header {
-	flex: 0 0 100px;
-}
-
-a {
-	color: inherit;
-	text-decoration: none;
-}
-
-.content span,
-.content strong {
-	padding-left: 8px;
-	padding-right: 8px;
-}
-
-.probe-span {
-	border-radius: 5px;
-	text-align: center;
-	white-space: nowrap;
-	min-width: 60px;
-}
-
-.probe-span:not(:last-child) {
-	margin-right: 8px;
-}
-</style>
 
 <script setup lang="ts">
 import { type FilamentMonitor, MachineMode, ProbeType, type Extruder, type Probe } from "@duet3d/objectmodel";

@@ -205,7 +205,9 @@ export const useCacheStore = defineStore("cache", {
 
 			try {
 				const content = new Blob([JSON.stringify(this.$state)]);
-				// Snapshot pre-await; see the same pattern in settings.save()
+				// Snapshot the state being uploaded before awaiting, so cache changes the user makes
+				// while the upload is in flight stay outside the baseline and aren't mistaken for
+				// already-saved state by the next three-way merge
 				const newBaseline = snapshot(this.$state);
 				await machineStore.upload([{ filename: Path.dwcCacheFile, content }], false, false, false);
 				cacheBaseline = newBaseline;

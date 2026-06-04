@@ -1,3 +1,42 @@
+<style scoped>
+.monaco-editor-host {
+	display: flex;
+	flex-direction: column;
+	height: 100%;
+	min-height: 320px;
+}
+
+@media (min-width: 840px) {
+	.monaco-editor-host {
+		min-height: 400px;
+	}
+}
+
+.monaco-editor-host--collapsed {
+	height: auto;
+	min-height: 0;
+}
+
+.editor-pane {
+	flex: 1 1 auto;
+	min-height: 0;
+}
+
+.editor-textarea {
+	width: 100%;
+	font-family: ui-monospace, "Cascadia Code", Menlo, Consolas, monospace;
+	background: rgb(var(--v-theme-surface));
+	color: rgb(var(--v-theme-on-surface));
+	border: 0;
+	padding: 8px;
+	resize: none;
+	outline: none;
+	white-space: pre;
+	overflow: auto;
+	tab-size: 4;
+}
+</style>
+
 <template>
 	<div class="monaco-editor-host" :class="{ 'monaco-editor-host--collapsed': !!loadError }"
 		 @dragover.capture.prevent="onEditorDragOver" @drop.capture.prevent.stop="onEditorDrop">
@@ -518,42 +557,3 @@ function detectLanguage(filename: string, directories: DirectoriesShape, machine
 
 // #endregion
 </script>
-
-<style scoped>
-.monaco-editor-host {
-	display: flex;
-	flex-direction: column;
-	height: 100%;
-	min-height: 320px;
-}
-
-@media (min-width: 840px) {
-	.monaco-editor-host {
-		min-height: 400px;
-	}
-}
-
-.monaco-editor-host--collapsed {
-	height: auto;
-	min-height: 0;
-}
-
-.editor-pane {
-	flex: 1 1 auto;
-	min-height: 0;
-}
-
-.editor-textarea {
-	width: 100%;
-	font-family: ui-monospace, "Cascadia Code", Menlo, Consolas, monospace;
-	background: rgb(var(--v-theme-surface));
-	color: rgb(var(--v-theme-on-surface));
-	border: 0;
-	padding: 8px;
-	resize: none;
-	outline: none;
-	white-space: pre;
-	overflow: auto;
-	tab-size: 4;
-}
-</style>

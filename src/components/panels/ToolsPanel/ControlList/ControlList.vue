@@ -1,3 +1,38 @@
+<!-- Unscoped: the table rows are emitted by ToolRows / HeaterRows (child components). Vue 3
+	 scoped CSS only attaches the parent's data-v hash to elements in the parent's own
+	 template, so `table.tools td` under `<style scoped>` wouldn't match the child-rendered
+	 cells and the centering rule would silently drop -->
+<style>
+table.tools {
+	width: 100%;
+	border-spacing: 0;
+}
+
+table.tools i {
+	color: inherit !important;
+}
+
+table.tools td,
+table.tools th {
+	text-align: center;
+}
+
+/* Tool rows stretch vertically with their multi-line content (tool name, filament link, sub-line),
+   while bed/chamber rows have only a single short label and would otherwise collapse to ~42px and
+   read as visually squashed against the much taller tool row. Give the heater-row cells a
+   comfortable vertical padding so the table reads as balanced */
+table.tools tbody.heater-rows td,
+table.tools tbody.heater-rows th {
+	padding-block: 0.75rem;
+}
+
+/* Tool / heater names render as anchors for the click handlers - strip the browser default
+   underline so the table reads as data, not a link list. Hover feedback is the cursor */
+table.tools a {
+	text-decoration: none;
+}
+</style>
+
 <template>
 	<table v-if="hasTools || hasBeds || hasChambers || hasExtra" class="tools">
 		<colgroup>
@@ -65,41 +100,6 @@
 
 	<ResetHeaterFaultDialog v-model:shown="resettingHeaterFault" :heater="faultyHeaterToReset" />
 </template>
-
-<!-- Unscoped: the table rows are emitted by ToolRows / HeaterRows (child components). Vue 3
-	 scoped CSS only attaches the parent's data-v hash to elements in the parent's own
-	 template, so `table.tools td` under `<style scoped>` wouldn't match the child-rendered
-	 cells and the centering rule would silently drop -->
-<style>
-table.tools {
-	width: 100%;
-	border-spacing: 0;
-}
-
-table.tools i {
-	color: inherit !important;
-}
-
-table.tools td,
-table.tools th {
-	text-align: center;
-}
-
-/* Tool rows stretch vertically with their multi-line content (tool name, filament link, sub-line),
-   while bed/chamber rows have only a single short label and would otherwise collapse to ~42px and
-   read as visually squashed against the much taller tool row. Give the heater-row cells a
-   comfortable vertical padding so the table reads as balanced */
-table.tools tbody.heater-rows td,
-table.tools tbody.heater-rows th {
-	padding-block: 0.75rem;
-}
-
-/* Tool / heater names render as anchors for the click handlers - strip the browser default
-   underline so the table reads as data, not a link list. Hover feedback is the cursor */
-table.tools a {
-	text-decoration: none;
-}
-</style>
 
 <script setup lang="ts">
 import type { AnalogSensor } from "@duet3d/objectmodel";

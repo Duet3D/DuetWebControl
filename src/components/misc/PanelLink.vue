@@ -1,3 +1,9 @@
+<style scoped>
+span {
+	cursor: default;
+}
+</style>
+
 <template>
 	<a v-if="!active" href="javascript:void(0)" @click="$emit('click', $event)">
 		<slot></slot>
@@ -6,12 +12,6 @@
 		<slot></slot>
 	</span>
 </template>
-
-<style scoped>
-span {
-	cursor: default;
-}
-</style>
 
 <script setup lang="ts">
 defineProps<{

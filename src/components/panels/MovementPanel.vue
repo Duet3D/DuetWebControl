@@ -1,3 +1,20 @@
+<style scoped>
+/* Don't reset min-width here - Vuetify's `.v-btn--block` rule (`min-width: 100%`) loses to
+   `min-width: 0` in the cascade and the button falls back to its intrinsic width */
+.move-btn {
+	padding-left: 0 !important;
+	padding-right: 0 !important;
+}
+
+.cnc-movement .move-btn {
+	height: 65px !important;
+}
+
+.wcs-selection {
+	max-width: 260px;
+}
+</style>
+
 <template>
 	<PanelCard icon="mdi-swap-horizontal" :title="$t('panel.movement.caption')" :class="{ 'cnc-movement': cnc }">
 		<template #title-append>
@@ -347,23 +364,6 @@
 		</template>
 	</PanelCard>
 </template>
-
-<style scoped>
-/* Don't reset min-width here - Vuetify's `.v-btn--block` rule (`min-width: 100%`) loses to
-   `min-width: 0` in the cascade and the button falls back to its intrinsic width */
-.move-btn {
-	padding-left: 0 !important;
-	padding-right: 0 !important;
-}
-
-.cnc-movement .move-btn {
-	height: 65px !important;
-}
-
-.wcs-selection {
-	max-width: 260px;
-}
-</style>
 
 <script setup lang="ts">
 import { Axis, AxisLetter, KinematicsName, MachineStatus, MoveCompensationType } from "@duet3d/objectmodel";

@@ -1,3 +1,11 @@
+<style scoped>
+.hub-tile-badge {
+	position: absolute;
+	top: 6px;
+	right: 6px;
+}
+</style>
+
 <template>
 	<v-container class="pa-3">
 		<v-row density="compact">
@@ -43,11 +51,3 @@ function hubTileStyle(item: MenuItem): Record<string, string> {
 	return color ? { backgroundColor: `rgba(var(--dwc-category-${color}), 0.08)` } : {};
 }
 </script>
-
-<style scoped>
-.hub-tile-badge {
-	position: absolute;
-	top: 6px;
-	right: 6px;
-}
-</style>

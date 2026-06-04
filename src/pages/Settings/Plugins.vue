@@ -12,6 +12,18 @@
 }
 </route>
 
+<style>
+/* Consistent width for the action buttons so Start/Stop and Uninstall right-align with
+   matching edges across rows. Not scoped because the v-btn class data-v hash from this page
+   isn't reliably applied to Vuetify's inner button element. md+ only - xs/sm renders icon
+   buttons through a different template branch and doesn't need (or want) the width cap */
+@media (min-width: 840px) {
+	.plugin-action-btn {
+		min-width: 130px;
+	}
+}
+</style>
+
 <template>
 	<div class="route-root">
 		<v-card>
@@ -397,15 +409,3 @@ async function askUninstall(plugin: PluginManifest) {
 	}
 }
 </script>
-
-<style>
-/* Consistent width for the action buttons so Start/Stop and Uninstall right-align with
-   matching edges across rows. Not scoped because the v-btn class data-v hash from this page
-   isn't reliably applied to Vuetify's inner button element. md+ only - xs/sm renders icon
-   buttons through a different template branch and doesn't need (or want) the width cap */
-@media (min-width: 840px) {
-	.plugin-action-btn {
-		min-width: 130px;
-	}
-}
-</style>

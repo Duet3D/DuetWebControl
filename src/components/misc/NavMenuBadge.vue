@@ -1,3 +1,9 @@
+<style scoped>
+.nav-menu-badge-clickable {
+	cursor: pointer;
+}
+</style>
+
 <template>
 	<!-- Wrapping span gets a real native click listener so .stop.prevent reliably halts the
 		 bubble before it reaches the v-list-item's RouterLink. Going through @click on v-chip
@@ -40,9 +46,3 @@ function onWrapperClick(e: MouseEvent) {
 	props.badge.onClear!();
 }
 </script>
-
-<style scoped>
-.nav-menu-badge-clickable {
-	cursor: pointer;
-}
-</style>

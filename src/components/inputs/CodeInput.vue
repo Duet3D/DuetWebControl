@@ -1,3 +1,10 @@
+<style scoped>
+.code-input-row {
+	width: 100%;
+	flex-wrap: nowrap;
+}
+</style>
+
 <template>
 	<v-row class="component code-input-row align-center" :class="{ 'mt-2 mt-md-0': variant === 'solo' }"
 		   no-gutters>
@@ -29,13 +36,6 @@
 		</v-col>
 	</v-row>
 </template>
-
-<style scoped>
-.code-input-row {
-	width: 100%;
-	flex-wrap: nowrap;
-}
-</style>
 
 <script setup lang="ts">
 import type { MessageBox } from "@duet3d/objectmodel";

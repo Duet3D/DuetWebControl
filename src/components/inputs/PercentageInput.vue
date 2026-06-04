@@ -1,3 +1,9 @@
+<style scoped>
+.slider {
+	margin-top: 40px;
+}
+</style>
+
 <template>
 	<v-row density="compact" class="align-center">
 		<v-col v-if="numericInput">
@@ -42,12 +48,6 @@
 		</template>
 	</v-row>
 </template>
-
-<style scoped>
-.slider {
-	margin-top: 40px;
-}
-</style>
 
 <script setup lang="ts">
 import { useLargeButtons } from "@/composables/useLargeButtons";

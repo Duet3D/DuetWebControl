@@ -1,3 +1,30 @@
+<style scoped>
+.job-thumbnail-cell {
+	display: flex;
+	flex-shrink: 0;
+	align-items: center;
+	justify-content: flex-start;
+	width: 48px;
+	margin-right: 8px;
+}
+
+/* When the row has no thumbnail we fall back to the same small file/folder icon the Explorer
+   uses; shrink the cell to that icon's intrinsic width so the trailing name aligns with
+   non-thumbnail file lists instead of being pushed right by a 48px placeholder */
+.job-thumbnail-cell--icon-only {
+	width: auto;
+}
+
+.job-thumbnail-cell--tile {
+	width: auto;
+	margin-right: 0;
+}
+.job-thumbnail-cell__big {
+	max-width: 100%;
+	max-height: 160px;
+}
+</style>
+
 <template>
 	<div class="job-thumbnail-cell"
 		 :class="{ 'job-thumbnail-cell--tile': tile, 'job-thumbnail-cell--icon-only': !tile && !smallThumbnail }">
@@ -71,30 +98,3 @@ const bigThumbnail = computed<ThumbnailInfo | null>(() => {
 	return biggest;
 });
 </script>
-
-<style scoped>
-.job-thumbnail-cell {
-	display: flex;
-	flex-shrink: 0;
-	align-items: center;
-	justify-content: flex-start;
-	width: 48px;
-	margin-right: 8px;
-}
-
-/* When the row has no thumbnail we fall back to the same small file/folder icon the Explorer
-   uses; shrink the cell to that icon's intrinsic width so the trailing name aligns with
-   non-thumbnail file lists instead of being pushed right by a 48px placeholder */
-.job-thumbnail-cell--icon-only {
-	width: auto;
-}
-
-.job-thumbnail-cell--tile {
-	width: auto;
-	margin-right: 0;
-}
-.job-thumbnail-cell__big {
-	max-width: 100%;
-	max-height: 160px;
-}
-</style>

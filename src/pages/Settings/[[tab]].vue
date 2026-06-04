@@ -13,6 +13,24 @@
 }
 </route>
 
+<style scoped>
+.settings-card {
+	display: flex;
+	flex-direction: column;
+	height: 100%;
+}
+.settings-window {
+	flex: 1;
+	overflow-y: auto;
+}
+.settings-window :deep(.v-window__container) {
+	height: 100%;
+}
+.settings-window :deep(.v-window-item) {
+	position: static !important;
+}
+</style>
+
 <template>
 	<div class="route-root">
 		<div class="settings-page dwc-page-fill">
@@ -1234,21 +1252,3 @@ async function resetComponents() {
 
 // #endregion
 </script>
-
-<style scoped>
-.settings-card {
-	display: flex;
-	flex-direction: column;
-	height: 100%;
-}
-.settings-window {
-	flex: 1;
-	overflow-y: auto;
-}
-.settings-window :deep(.v-window__container) {
-	height: 100%;
-}
-.settings-window :deep(.v-window-item) {
-	position: static !important;
-}
-</style>

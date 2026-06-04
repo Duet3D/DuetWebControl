@@ -1,14 +1,14 @@
-<template>
-	<span class="px-2 text-title-small status-label" :class="statusClass">
-		{{ statusText }}
-	</span>
-</template>
-
 <style scoped>
 .status-label {
 	border-radius: 5px;
 }
 </style>
+
+<template>
+	<span class="px-2 text-title-small status-label" :class="statusClass">
+		{{ statusText }}
+	</span>
+</template>
 
 <script setup lang="ts">
 import { MachineMode, MachineStatus } from "@duet3d/objectmodel";

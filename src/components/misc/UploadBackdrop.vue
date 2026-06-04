@@ -1,12 +1,3 @@
-<template>
-	<div class="upload-backdrop">
-		<div class="upload-backdrop-card">
-			<v-icon size="64" class="mb-3">mdi-cloud-upload-outline</v-icon>
-			<div class="text-headline-small text-center">{{ $t("layout.uploadOverlay.prompt") }}</div>
-		</div>
-	</div>
-</template>
-
 <style scoped>
 .upload-backdrop {
 	position: absolute;
@@ -35,3 +26,12 @@
 	to { opacity: 1; }
 }
 </style>
+
+<template>
+	<div class="upload-backdrop">
+		<div class="upload-backdrop-card">
+			<v-icon size="64" class="mb-3">mdi-cloud-upload-outline</v-icon>
+			<div class="text-headline-small text-center">{{ $t("layout.uploadOverlay.prompt") }}</div>
+		</div>
+	</div>
+</template>

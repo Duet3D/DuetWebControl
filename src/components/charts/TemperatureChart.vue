@@ -1,3 +1,13 @@
+<style scoped>
+.content {
+	position: relative;
+}
+
+.content > canvas {
+	position: absolute;
+}
+</style>
+
 <template>
 	<PanelCard v-model:active-title="activeTab" :titles="titles"
 			   :class="['d-flex', 'flex-column', shouldFill ? 'flex-grow-1' : '']">
@@ -60,16 +70,6 @@
 
 	<CustomChartDataDialog v-model:shown="customDialogShown" :edit-id="customEditId" />
 </template>
-
-<style scoped>
-.content {
-	position: relative;
-}
-
-.content > canvas {
-	position: absolute;
-}
-</style>
 
 <script setup lang="ts">
 import { Chart, Filler, Legend, LineController, LineElement, LinearScale, PointElement, TimeScale, Tooltip } from "chart.js";

@@ -1,3 +1,29 @@
+<style scoped>
+.filelist {
+	overflow-y: scroll;
+	max-height: 480px;
+}
+
+.no-overflow {
+	/* Let long subtitles wrap to a second line and ellipsis any extreme overflow rather than
+	   clipping mid-word - the previous nowrap + clip combo dropped trailing characters
+	   ("ZVD @ 62Hz, 2 n" instead of "2 moves") with no indication that they were cut */
+	white-space: normal;
+	overflow-wrap: anywhere;
+}
+
+/* Vuetify 4 wraps the subtitle slot in a `.v-list-item-subtitle` element that uses
+   `display: -webkit-box` with `-webkit-line-clamp: N` (N from the `lines` prop). With two
+   subtitle lines packed inside that single clamp budget, secondary text gets ellipsised even
+   though there's vertical room in the row. Opt out of the webkit-box layout so each child
+   renders as a normal block element and shows its content in full */
+:deep(.v-list-item-subtitle) {
+	display: block;
+	-webkit-line-clamp: unset;
+	overflow: visible;
+}
+</style>
+
 <template>
 	<v-card variant="flat" class="d-flex flex-column">
 		<v-card-title class="d-flex align-center pt-2 pb-1 flex-nowrap text-no-wrap">
@@ -471,29 +497,3 @@ watch(showSamples, (to) => {
 
 watch(wideBandModel, () => update());
 </script>
-
-<style scoped>
-.filelist {
-	overflow-y: scroll;
-	max-height: 480px;
-}
-
-.no-overflow {
-	/* Let long subtitles wrap to a second line and ellipsis any extreme overflow rather than
-	   clipping mid-word - the previous nowrap + clip combo dropped trailing characters
-	   ("ZVD @ 62Hz, 2 n" instead of "2 moves") with no indication that they were cut */
-	white-space: normal;
-	overflow-wrap: anywhere;
-}
-
-/* Vuetify 4 wraps the subtitle slot in a `.v-list-item-subtitle` element that uses
-   `display: -webkit-box` with `-webkit-line-clamp: N` (N from the `lines` prop). With two
-   subtitle lines packed inside that single clamp budget, secondary text gets ellipsised even
-   though there's vertical room in the row. Opt out of the webkit-box layout so each child
-   renders as a normal block element and shows its content in full */
-:deep(.v-list-item-subtitle) {
-	display: block;
-	-webkit-line-clamp: unset;
-	overflow: visible;
-}
-</style>

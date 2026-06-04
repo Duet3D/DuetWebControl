@@ -1,3 +1,19 @@
+<style scoped>
+.disabled {
+	color: inherit;
+	cursor: default;
+}
+
+.disabled-heater {
+	cursor: default;
+}
+
+.disabled:hover,
+.disabled-heater {
+	text-decoration: none;
+}
+</style>
+
 <template>
 	<tbody class="heater-rows">
 		<template v-if="singleControl && firstHeater !== null">
@@ -118,22 +134,6 @@
 		</template>
 	</tbody>
 </template>
-
-<style scoped>
-.disabled {
-	color: inherit;
-	cursor: default;
-}
-
-.disabled-heater {
-	cursor: default;
-}
-
-.disabled:hover,
-.disabled-heater {
-	text-decoration: none;
-}
-</style>
 
 <script setup lang="ts">
 import { type Heater, HeaterState, MachineStatus } from "@duet3d/objectmodel";

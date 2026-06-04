@@ -1,4 +1,4 @@
-// based on the VerticalLinePlugin
+// Chart.js plugin (id "range") that shades a vertical band between two x values
 import { Chart, ChartConfiguration, Scale } from 'chart.js';
 
 interface RangeConfig {
@@ -26,7 +26,6 @@ const verticalLinePlugin = {
 		const scale = chartInstance.scales['y'] as Scale;
 		const context = chartInstance.ctx;
 
-		// render vertical line
 		context.beginPath();
 		context.rect(startX, scale.top, endX - startX, scale.bottom - scale.top);
 		context.fillStyle = (chartInstance.options.plugins?.range && chartInstance.options.plugins.range.color) || '#0000FF30';

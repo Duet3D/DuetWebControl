@@ -1,3 +1,122 @@
+<style scoped>
+.file-list-card {
+	height: 100%;
+}
+
+.file-list-breadcrumbs {
+	flex: 1 1 auto;
+	min-width: 0;
+	display: flex;
+	flex-wrap: nowrap;
+	align-items: center;
+	align-self: center;
+	overflow-x: auto;
+	overflow-y: hidden;
+	scrollbar-width: none;
+	transform: translateY(2px);
+}
+:deep(.file-list-breadcrumbs > li),
+:deep(.file-list-breadcrumbs > .v-breadcrumbs-item) {
+	display: inline-flex;
+	align-items: center;
+}
+.file-list-breadcrumbs::-webkit-scrollbar {
+	display: none;
+}
+/* Chevron dividers default to text-baseline alignment, sitting ~1-2px below the toolbar's
+   icon centres. Pull them into geometric centre so the whole row reads as one baseline */
+:deep(.file-list-breadcrumbs .v-breadcrumbs-divider) {
+	display: inline-flex;
+	align-items: center;
+	line-height: 1;
+}
+
+.file-list-card--empty {
+	height: auto;
+}
+
+.file-list-body {
+	flex: 1 1 auto;
+	min-height: 0;
+	overflow-y: auto;
+}
+
+:deep(.v-data-table-rows-no-data > td),
+:deep(.v-data-table__tr--no-data > td) {
+	padding: 0 !important;
+	height: auto !important;
+}
+
+:deep(.v-data-table-rows-no-data),
+:deep(.v-data-table__tr--no-data) {
+	height: auto !important;
+}
+
+:deep(.v-data-table .v-table__wrapper) {
+	min-height: 0;
+}
+
+.file-drop-target {
+	position: relative;
+	container-type: inline-size;
+}
+
+:deep(.file-row--drop-target) {
+	background-color: rgba(var(--v-theme-primary), 0.18) !important;
+}
+
+.file-list-breadcrumb-item {
+	padding: 2px 6px;
+	border-radius: 4px;
+	transition: background-color 0.12s ease;
+}
+
+.tile-grid {
+	display: grid;
+	grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+	gap: 8px;
+}
+
+/* Vuetify sm breakpoint (600-959 px) - force exactly four tile columns so the Jobs page
+   shows a consistent 4-up grid on tablets instead of auto-fill snapping to 2 or 3 depending
+   on the exact width */
+@media (min-width: 600px) and (max-width: 959px) {
+	.tile-grid {
+		grid-template-columns: repeat(4, 1fr);
+	}
+}
+
+.tile-grid-empty {
+	grid-column: 1 / -1;
+}
+
+.tile-card {
+	cursor: pointer;
+	min-height: 200px;
+	background-color: rgba(var(--v-theme-on-surface), 0.04);
+}
+
+.tile-card:hover {
+	background-color: rgba(var(--v-theme-on-surface), 0.07);
+}
+
+.tile-card-icon {
+	min-height: 120px;
+}
+
+.tile-card--active {
+	background-color: rgba(var(--v-theme-primary), 0.12) !important;
+}
+
+.tile-card-name {
+	font-weight: 500;
+}
+
+:deep(.v-data-table__tr > td) {
+	white-space: nowrap;
+}
+</style>
+
 <template>
 	<v-card ref="cardRef" :class="['file-list-card', 'd-flex', 'flex-column', { 'file-list-card--empty': shouldShrink }]">
 		<v-toolbar :density="controlDensity" color="surface" class="px-2 flex-shrink-0">
@@ -1572,122 +1691,3 @@ async function downloadAsZip(dir: string, items: Array<FileBrowserItem>) {
 
 // #endregion
 </script>
-
-<style scoped>
-.file-list-card {
-	height: 100%;
-}
-
-.file-list-breadcrumbs {
-	flex: 1 1 auto;
-	min-width: 0;
-	display: flex;
-	flex-wrap: nowrap;
-	align-items: center;
-	align-self: center;
-	overflow-x: auto;
-	overflow-y: hidden;
-	scrollbar-width: none;
-	transform: translateY(2px);
-}
-:deep(.file-list-breadcrumbs > li),
-:deep(.file-list-breadcrumbs > .v-breadcrumbs-item) {
-	display: inline-flex;
-	align-items: center;
-}
-.file-list-breadcrumbs::-webkit-scrollbar {
-	display: none;
-}
-/* Chevron dividers default to text-baseline alignment, sitting ~1-2px below the toolbar's
-   icon centres. Pull them into geometric centre so the whole row reads as one baseline */
-:deep(.file-list-breadcrumbs .v-breadcrumbs-divider) {
-	display: inline-flex;
-	align-items: center;
-	line-height: 1;
-}
-
-.file-list-card--empty {
-	height: auto;
-}
-
-.file-list-body {
-	flex: 1 1 auto;
-	min-height: 0;
-	overflow-y: auto;
-}
-
-:deep(.v-data-table-rows-no-data > td),
-:deep(.v-data-table__tr--no-data > td) {
-	padding: 0 !important;
-	height: auto !important;
-}
-
-:deep(.v-data-table-rows-no-data),
-:deep(.v-data-table__tr--no-data) {
-	height: auto !important;
-}
-
-:deep(.v-data-table .v-table__wrapper) {
-	min-height: 0;
-}
-
-.file-drop-target {
-	position: relative;
-	container-type: inline-size;
-}
-
-:deep(.file-row--drop-target) {
-	background-color: rgba(var(--v-theme-primary), 0.18) !important;
-}
-
-.file-list-breadcrumb-item {
-	padding: 2px 6px;
-	border-radius: 4px;
-	transition: background-color 0.12s ease;
-}
-
-.tile-grid {
-	display: grid;
-	grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
-	gap: 8px;
-}
-
-/* Vuetify sm breakpoint (600-959 px) - force exactly four tile columns so the Jobs page
-   shows a consistent 4-up grid on tablets instead of auto-fill snapping to 2 or 3 depending
-   on the exact width */
-@media (min-width: 600px) and (max-width: 959px) {
-	.tile-grid {
-		grid-template-columns: repeat(4, 1fr);
-	}
-}
-
-.tile-grid-empty {
-	grid-column: 1 / -1;
-}
-
-.tile-card {
-	cursor: pointer;
-	min-height: 200px;
-	background-color: rgba(var(--v-theme-on-surface), 0.04);
-}
-
-.tile-card:hover {
-	background-color: rgba(var(--v-theme-on-surface), 0.07);
-}
-
-.tile-card-icon {
-	min-height: 120px;
-}
-
-.tile-card--active {
-	background-color: rgba(var(--v-theme-primary), 0.12) !important;
-}
-
-.tile-card-name {
-	font-weight: 500;
-}
-
-:deep(.v-data-table__tr > td) {
-	white-space: nowrap;
-}
-</style>

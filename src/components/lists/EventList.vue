@@ -1,3 +1,56 @@
+<style scoped>
+.event-log {
+	/* Establishes a containment context so the rows below can switch layout via @container queries */
+	container-type: inline-size;
+}
+
+.event-log-header {
+	border-bottom: thin solid rgba(var(--v-border-color), var(--v-border-opacity));
+}
+
+.event-log-list {
+	list-style: none;
+	padding: 0;
+	margin: 0;
+}
+
+.event-log-row {
+	display: grid;
+	grid-template-columns: 1fr;
+	gap: 0.125rem;
+	padding: 0.5rem 0.75rem;
+	border-bottom: thin solid rgba(var(--v-border-color), var(--v-border-opacity));
+}
+
+.event-log-row:last-child {
+	border-bottom: none;
+}
+
+.event-log-time {
+	font-size: 0.875rem;
+	opacity: 0.75;
+}
+
+.event-log-message {
+	white-space: pre-wrap;
+}
+
+/* Switch to a date | message two-column layout once the card is wide enough to fit it comfortably */
+@container (min-width: 600px) {
+	.event-log-row {
+		grid-template-columns: 11rem 1fr;
+		gap: 0.75rem;
+		align-items: baseline;
+	}
+}
+
+/* Row tinting per log level - light themes use accent tints, dark gets darker ones */
+.event-log-row.level-success { background-color: rgba(76, 175, 80, 0.18); }
+.event-log-row.level-warning { background-color: rgba(255, 193, 7, 0.20); }
+.event-log-row.level-error { background-color: rgba(244, 67, 54, 0.20); }
+.event-log-row.level-primary { background-color: rgba(33, 150, 243, 0.18); }
+</style>
+
 <template>
 	<v-card class="event-log elevation-3">
 		<v-toolbar density="compact" color="surface" class="event-log-header">
@@ -54,59 +107,6 @@
 		</v-menu>
 	</v-card>
 </template>
-
-<style scoped>
-.event-log {
-	/* Establishes a containment context so the rows below can switch layout via @container queries */
-	container-type: inline-size;
-}
-
-.event-log-header {
-	border-bottom: thin solid rgba(var(--v-border-color), var(--v-border-opacity));
-}
-
-.event-log-list {
-	list-style: none;
-	padding: 0;
-	margin: 0;
-}
-
-.event-log-row {
-	display: grid;
-	grid-template-columns: 1fr;
-	gap: 0.125rem;
-	padding: 0.5rem 0.75rem;
-	border-bottom: thin solid rgba(var(--v-border-color), var(--v-border-opacity));
-}
-
-.event-log-row:last-child {
-	border-bottom: none;
-}
-
-.event-log-time {
-	font-size: 0.875rem;
-	opacity: 0.75;
-}
-
-.event-log-message {
-	white-space: pre-wrap;
-}
-
-/* Switch to a date | message two-column layout once the card is wide enough to fit it comfortably */
-@container (min-width: 600px) {
-	.event-log-row {
-		grid-template-columns: 11rem 1fr;
-		gap: 0.75rem;
-		align-items: baseline;
-	}
-}
-
-/* Row tinting per log level - light themes use accent tints, dark gets darker ones */
-.event-log-row.level-success { background-color: rgba(76, 175, 80, 0.18); }
-.event-log-row.level-warning { background-color: rgba(255, 193, 7, 0.20); }
-.event-log-row.level-error { background-color: rgba(244, 67, 54, 0.20); }
-.event-log-row.level-primary { background-color: rgba(33, 150, 243, 0.18); }
-</style>
 
 <script setup lang="ts">
 import { useComponentSettings } from "@/composables/useComponentSettings";

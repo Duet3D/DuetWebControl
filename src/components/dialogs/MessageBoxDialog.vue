@@ -1,3 +1,11 @@
+<style scoped>
+.emergency-overlay {
+	position: absolute;
+	top: 0;
+	right: 0;
+}
+</style>
+
 <template>
 	<v-dialog v-model="shown" :no-click-animation="isPersistent" :persistent="isPersistent">
 		<v-card :title="messageBox.title" class="text-center">
@@ -77,14 +85,6 @@
 		</div>
 	</v-dialog>
 </template>
-
-<style scoped>
-.emergency-overlay {
-	position: absolute;
-	top: 0;
-	right: 0;
-}
-</style>
 
 <script setup lang="ts">
 import { Axis, AxisLetter, MessageBox, MessageBoxMode } from "@duet3d/objectmodel";

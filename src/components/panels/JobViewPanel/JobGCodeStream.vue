@@ -1,3 +1,23 @@
+<style>
+.gcode-exec-line {
+	background-color: rgba(255, 213, 79, 0.22);
+	box-shadow: inset 3px 0 0 0 #ffb300;
+}
+</style>
+
+<style scoped>
+.gcode-stream {
+	display: flex;
+	flex-direction: column;
+	flex: 1 1 auto;
+	min-height: 320px;
+}
+
+.editor-host {
+	flex: 1 1 auto;
+}
+</style>
+
 <template>
 	<div class="gcode-stream">
 		<div v-if="monacoLoading" class="d-flex justify-center align-center flex-grow-1">
@@ -111,23 +131,3 @@ watch(() => settingsStore.darkTheme, (dark) => {
 	monacoNamespace?.editor.setTheme(dark ? "vs-dark" : "vs");
 });
 </script>
-
-<style scoped>
-.gcode-stream {
-	display: flex;
-	flex-direction: column;
-	flex: 1 1 auto;
-	min-height: 320px;
-}
-
-.editor-host {
-	flex: 1 1 auto;
-}
-</style>
-
-<style>
-.gcode-exec-line {
-	background-color: rgba(255, 213, 79, 0.22);
-	box-shadow: inset 3px 0 0 0 #ffb300;
-}
-</style>

@@ -1,3 +1,12 @@
+<style scoped>
+.macros-wrap {
+	display: flex;
+	flex-direction: column;
+	flex: 1 1 0;
+	min-height: 0;
+}
+</style>
+
 <template>
 	<v-row :density="mobile ? 'compact' : 'default'">
 		<v-col cols="12" md="8" lg="8" xl="9">
@@ -23,15 +32,6 @@
 		</v-col>
 	</v-row>
 </template>
-
-<style scoped>
-.macros-wrap {
-	display: flex;
-	flex-direction: column;
-	flex: 1 1 0;
-	min-height: 0;
-}
-</style>
 
 <script setup lang="ts">
 import { useDisplay } from "vuetify";

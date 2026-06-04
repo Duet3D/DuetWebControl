@@ -1,3 +1,9 @@
+<style>
+.cm-activeLine {
+	background-color: #333 !important;
+}
+</style>
+
 <template>
 	<div class="editor-monaco" @mouseup="cursorChange" @keydown="cursorChange" @keyup="cursorChange">
 		<div v-if="monacoLoading" class="d-flex justify-center align-center fill-height">
@@ -95,9 +101,3 @@ watch(() => props.document, (to) => {
 	}
 });
 </script>
-
-<style>
-.cm-activeLine {
-	background-color: #333 !important;
-}
-</style>

@@ -1,3 +1,55 @@
+<style scoped>
+/* The overlay only renders inside GCodeViewer's fullscreen mode (the v-show guard at
+   GCodeViewer.vue's <FSOverlay v-show="fullscreen && showOverlay">), so the fixed positioning
+   is anchored to a viewport that's already taken over by the .full-screen wrapper - no app-bar
+   overlap risk. z-index 5 keeps it above the canvas but below Vuetify's overlay stack */
+.overlay-container {
+	position: fixed;
+	inset: 0;
+	width: 100%;
+	height: 100%;
+	z-index: 5;
+	pointer-events: none;
+}
+
+.axes-container,
+.axes-container-viewgcode,
+.heater-container,
+.heater-container-viewgcode {
+	pointer-events: auto;
+}
+
+.axes-container { position: fixed; left: 50%; }
+.axes-container-viewgcode { position: fixed; right: 50%; }
+
+.heater-container {
+	position: fixed;
+	right: 0;
+	top: 20%;
+	width: 200px;
+	text-align: center;
+	font-size: large;
+}
+
+.heater-container-viewgcode {
+	position: fixed;
+	right: 30.5%;
+	top: 20%;
+	width: 200px;
+	text-align: center;
+	font-size: large;
+}
+
+.axes {
+	position: relative;
+	top: 10px;
+	left: -50%;
+	text-align: center;
+	font-size: large;
+	width: 300px;
+}
+</style>
+
 <template>
 	<div ref="overlay" class="overlay-container">
 		<div :class="viewgcode ? 'axes-container-viewgcode' : 'axes-container'">
@@ -110,55 +162,3 @@ function getChamberLabel(chamberIdx: number): string {
 	return heat.value.chamberHeaterMapping.length <= 2 ? "Chamber" : `Chamber ${chamberIdx}`;
 }
 </script>
-
-<style scoped>
-/* The overlay only renders inside GCodeViewer's fullscreen mode (the v-show guard at
-   GCodeViewer.vue's <FSOverlay v-show="fullscreen && showOverlay">), so the fixed positioning
-   is anchored to a viewport that's already taken over by the .full-screen wrapper - no app-bar
-   overlap risk. z-index 5 keeps it above the canvas but below Vuetify's overlay stack */
-.overlay-container {
-	position: fixed;
-	inset: 0;
-	width: 100%;
-	height: 100%;
-	z-index: 5;
-	pointer-events: none;
-}
-
-.axes-container,
-.axes-container-viewgcode,
-.heater-container,
-.heater-container-viewgcode {
-	pointer-events: auto;
-}
-
-.axes-container { position: fixed; left: 50%; }
-.axes-container-viewgcode { position: fixed; right: 50%; }
-
-.heater-container {
-	position: fixed;
-	right: 0;
-	top: 20%;
-	width: 200px;
-	text-align: center;
-	font-size: large;
-}
-
-.heater-container-viewgcode {
-	position: fixed;
-	right: 30.5%;
-	top: 20%;
-	width: 200px;
-	text-align: center;
-	font-size: large;
-}
-
-.axes {
-	position: relative;
-	top: 10px;
-	left: -50%;
-	text-align: center;
-	font-size: large;
-	width: 300px;
-}
-</style>

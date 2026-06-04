@@ -26,4 +26,3 @@ import TemperatureChart from "@/components/charts/TemperatureChart.vue";
 const chartRef = ref<{ shouldFill: boolean } | null>(null);
 const shouldFill = computed(() => chartRef.value?.shouldFill ?? false);
 </script>
-

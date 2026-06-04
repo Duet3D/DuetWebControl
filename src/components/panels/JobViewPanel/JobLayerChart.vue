@@ -1,9 +1,3 @@
-<template>
-	<div class="content flex-grow-1 px-2 py-0">
-		<canvas ref="canvasRef" />
-	</div>
-</template>
-
 <style scoped>
 .content {
 	position: relative;
@@ -13,6 +7,12 @@
 	position: absolute;
 }
 </style>
+
+<template>
+	<div class="content flex-grow-1 px-2 py-0">
+		<canvas ref="canvasRef" />
+	</div>
+</template>
 
 <script lang="ts">
 export interface LayerChartSettings {

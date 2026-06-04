@@ -1,16 +1,3 @@
-<template>
-	<v-row density="compact" class="mb-4">
-		<v-col cols="12" class="d-flex job-status-line">
-			<span class="job-status-name">{{ printStatus }}</span>
-			<v-spacer />
-			<span class="job-status-details">{{ printDetails }}</span>
-		</v-col>
-		<v-col cols="12" class="pt-0">
-			<v-progress-linear :model-value="machineStore.jobProgress * 100" height="6" />
-		</v-col>
-	</v-row>
-</template>
-
 <style scoped>
 @media (max-width: 839px) {
 	.job-status-line {
@@ -28,6 +15,19 @@
 	}
 }
 </style>
+
+<template>
+	<v-row density="compact" class="mb-4">
+		<v-col cols="12" class="d-flex job-status-line">
+			<span class="job-status-name">{{ printStatus }}</span>
+			<v-spacer />
+			<span class="job-status-details">{{ printDetails }}</span>
+		</v-col>
+		<v-col cols="12" class="pt-0">
+			<v-progress-linear :model-value="machineStore.jobProgress * 100" height="6" />
+		</v-col>
+	</v-row>
+</template>
 
 <script setup lang="ts">
 import { MachineMode, MachineStatus } from "@duet3d/objectmodel";

@@ -1,3 +1,39 @@
+<!-- Unscoped: v-snackbar teleports its wrapper into a top-level v-overlay outside our component
+	 tree, so scoped CSS never lands on it -->
+<style>
+.v-snackbar--bottom > .v-snackbar__wrapper {
+	margin-bottom: 0.5rem;
+}
+.v-snackbar__content {
+	min-width: 0;
+}
+.notification-clickable {
+	cursor: pointer;
+}
+.dwc-snackbar-text {
+	white-space: pre-wrap;
+}
+.dwc-snackbar-timer {
+	position: absolute;
+	top: 0;
+	left: 0;
+	right: 0;
+	height: 4px;
+	background-color: rgba(255, 255, 255, 0.7);
+	transform-origin: left center;
+	animation-name: dwc-snackbar-timer-drain;
+	animation-timing-function: linear;
+	animation-fill-mode: forwards;
+}
+.v-snackbar__wrapper:hover .dwc-snackbar-timer {
+	animation-play-state: paused;
+}
+@keyframes dwc-snackbar-timer-drain {
+	from { transform: scaleX(1); }
+	to { transform: scaleX(0); }
+}
+</style>
+
 <template>
 	<!-- Single queue for every notification source: file transfers, general toasts, persistent
 		 toasts and the M117 persistent message all flow through here, ordered by priority so an
@@ -224,39 +260,3 @@ function onVisibilityChange() {
 onMounted(() => document.addEventListener("visibilitychange", onVisibilityChange));
 onBeforeUnmount(() => document.removeEventListener("visibilitychange", onVisibilityChange));
 </script>
-
-<!-- Unscoped: v-snackbar teleports its wrapper into a top-level v-overlay outside our component
-	 tree, so scoped CSS never lands on it -->
-<style>
-.v-snackbar--bottom > .v-snackbar__wrapper {
-	margin-bottom: 0.5rem;
-}
-.v-snackbar__content {
-	min-width: 0;
-}
-.notification-clickable {
-	cursor: pointer;
-}
-.dwc-snackbar-text {
-	white-space: pre-wrap;
-}
-.dwc-snackbar-timer {
-	position: absolute;
-	top: 0;
-	left: 0;
-	right: 0;
-	height: 4px;
-	background-color: rgba(255, 255, 255, 0.7);
-	transform-origin: left center;
-	animation-name: dwc-snackbar-timer-drain;
-	animation-timing-function: linear;
-	animation-fill-mode: forwards;
-}
-.v-snackbar__wrapper:hover .dwc-snackbar-timer {
-	animation-play-state: paused;
-}
-@keyframes dwc-snackbar-timer-drain {
-	from { transform: scaleX(1); }
-	to { transform: scaleX(0); }
-}
-</style>
