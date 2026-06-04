@@ -79,12 +79,17 @@ export interface ComponentSettingsOptions<T> {
  * `segments` accumulates the path from the page root, `childCounter` is the running counter used to give
  * sibling instances of the same component name distinct indices
  */
-interface SettingsScope {
+export interface SettingsScope {
 	segments: Array<string>;
 	childCounter: Record<string, number>;
 }
 
-const SETTINGS_SCOPE_KEY: InjectionKey<SettingsScope> = Symbol("dwc-component-settings-scope");
+/**
+ * Injection key for the settings scope. A custom-layout plugin can `provide` this to stamp a stable
+ * identity onto a placed widget subtree, so the components it renders derive their settings ids from
+ * the layout-assigned path instead of the route-based default
+ */
+export const SETTINGS_SCOPE_KEY: InjectionKey<SettingsScope> = Symbol("dwc-component-settings-scope");
 
 function deriveComponentName(): string {
 	const instance = getCurrentInstance();

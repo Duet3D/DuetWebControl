@@ -231,6 +231,9 @@ onBeforeUnmount(() => document.removeEventListener("visibilitychange", onVisibil
 .v-snackbar--bottom > .v-snackbar__wrapper {
 	margin-bottom: 0.5rem;
 }
+.v-snackbar__content {
+	min-width: 0;
+}
 .notification-clickable {
 	cursor: pointer;
 }
