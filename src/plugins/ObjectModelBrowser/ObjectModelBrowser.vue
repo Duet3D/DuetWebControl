@@ -154,11 +154,11 @@ const apiDocumentation = computed<Element | null>(() => {
 });
 
 const apiDocumentationSummary = computed<string | null>(() => {
-	return apiDocumentation.value !== null ? extractTag(apiDocumentation.value, "summary") : null;
+	return apiFile.value !== null && apiDocumentation.value !== null ? extractTag(apiFile.value, apiDocumentation.value, "summary") : null;
 });
 
 const apiDocumentationRemarks = computed<string | null>(() => {
-	return apiDocumentation.value !== null ? extractTag(apiDocumentation.value, "remarks") : null;
+	return apiFile.value !== null && apiDocumentation.value !== null ? extractTag(apiFile.value, apiDocumentation.value, "remarks") : null;
 });
 
 // #region Tree building

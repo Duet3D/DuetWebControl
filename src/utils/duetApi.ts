@@ -139,20 +139,53 @@ export function lookupApiMember(doc: Document, path: string): Element | null {
 	return null;
 }
 
+/** Locate the `<member>` element whose `name` attribute matches `name` exactly (the form `<see cref>`/`<inheritdoc cref>` use). */
+function getApiMemberByName(doc: Document, name: string): Element | null {
+	const members = doc.documentElement.getElementsByTagName("member");
+	for (let k = 0; k < members.length; k++) {
+		if (members[k].getAttribute("name") === name) {
+			return members[k];
+		}
+	}
+	return null;
+}
+
+/** Return the `cref` of a member's `<inheritdoc>`, or null if it has none or a bare `<inheritdoc/>`. */
+function getInheritDocCref(member: Element): string | null {
+	const nodes = member.getElementsByTagName("inheritdoc");
+	return nodes.length > 0 ? nodes[0].getAttribute("cref") : null;
+}
+
 /**
  * Pull a doc tag (`summary` / `remarks`) out of a `<member>` XML element and normalise it for
  * HTML rendering: strip whitespace, convert newlines to `<br>`, and flatten the C# doc compiler's
  * `<see cref="P:..."/>` refs to plain property paths.
+ *
+ * When the member carries no own copy of the tag but documents itself via `<inheritdoc cref="..."/>`
+ * (emitted when a type re-declares a member and reuses another member's docs), follow the cref chain
+ * and read the tag from the referenced member instead. Bare `<inheritdoc/>` without a cref can't be
+ * resolved - the XML doesn't encode the inheritance hierarchy needed to find the base member - so
+ * those still yield null.
  */
-export function extractTag(member: Element, tag: string): string | null {
-	const nodes = member.getElementsByTagName(tag);
-	if (nodes.length === 0) {
-		return null;
+export function extractTag(doc: Document, member: Element, tag: string): string | null {
+	let current: Element | null = member;
+	const visited = new Set<string>();
+	while (current !== null) {
+		const nodes = current.getElementsByTagName(tag);
+		if (nodes.length > 0) {
+			return nodes[0].innerHTML
+				.trim()
+				.replace(/\n/g, "<br>")
+				.replace(/<see cref="P:DuetAPI\.ObjectModel\.(.*)".*\/>/g, "$1");
+		}
+		const cref = getInheritDocCref(current);
+		if (cref === null || visited.has(cref)) {
+			return null;
+		}
+		visited.add(cref);
+		current = getApiMemberByName(doc, cref);
 	}
-	return nodes[0].innerHTML
-		.trim()
-		.replace(/\n/g, "<br>")
-		.replace(/<see cref="P:DuetAPI\.ObjectModel\.(.*)".*\/>/g, "$1");
+	return null;
 }
 
 /** HTML summary text for an OM path, or null if not documented / XML not loaded yet. */
@@ -161,7 +194,7 @@ export function getApiSummary(path: string): string | null {
 		return null;
 	}
 	const member = lookupApiMember(apiFile, path);
-	return member ? extractTag(member, "summary") : null;
+	return member ? extractTag(apiFile, member, "summary") : null;
 }
 
 /** HTML remarks text for an OM path, or null if not documented / XML not loaded yet. */
@@ -170,7 +203,7 @@ export function getApiRemarks(path: string): string | null {
 		return null;
 	}
 	const member = lookupApiMember(apiFile, path);
-	return member ? extractTag(member, "remarks") : null;
+	return member ? extractTag(apiFile, member, "remarks") : null;
 }
 
 /**
@@ -192,8 +225,8 @@ export async function getObjectModelDescription(path: string): Promise<string | 
 	if (!member) {
 		return null;
 	}
-	const summary = extractTag(member, "summary");
-	const remarks = extractTag(member, "remarks");
+	const summary = extractTag(apiFile, member, "summary");
+	const remarks = extractTag(apiFile, member, "remarks");
 	if (summary === null && remarks === null) {
 		return null;
 	}
