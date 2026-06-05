@@ -1272,9 +1272,9 @@
 			"search": "Search object model...",
 			"selectedNode": "Selected node:",
 			"none": "None",
-			"documentationNotAvailable": "Documentation is not available (/www/DuetAPI.xml not found)",
 			"summary": "Summary",
 			"remarks": "Remarks",
+			"values": "Values",
 			"value": "Value",
 			"deprecated": "Deprecated"
 		},

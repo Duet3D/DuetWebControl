@@ -1270,9 +1270,9 @@
 			"search": "Objektmodell durchsuchen...",
 			"selectedNode": "Ausgewählter Knoten:",
 			"none": "Keiner",
-			"documentationNotAvailable": "Dokumentation ist nicht verfügbar (/www/DuetAPI.xml nicht gefunden)",
 			"summary": "Zusammenfassung",
 			"remarks": "Anmerkungen",
+			"values": "Werte",
 			"value": "Wert",
 			"deprecated": "Veraltet"
 		},

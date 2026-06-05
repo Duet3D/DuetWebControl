@@ -79,11 +79,7 @@ input[readonly] {
 				<code class="text-body-medium">{{ activeValueDisplay }}</code>
 			</div>
 
-			<v-alert v-if="apiFileError !== null" type="warning" variant="outlined" class="mb-3">
-				{{ $t("plugins.objectModelBrowser.documentationNotAvailable") }}
-			</v-alert>
-
-			<v-card v-if="apiDocumentation !== null || deprecationNotice !== null"
+			<v-card v-if="hasDocumentation || deprecationNotice !== null"
 					variant="outlined" class="pa-3">
 				<template v-if="apiDocumentationSummary !== null">
 					<div class="text-title-medium mb-1">{{ $t("plugins.objectModelBrowser.summary") }}</div>
@@ -97,8 +93,19 @@ input[readonly] {
 					<div v-html="apiDocumentationRemarks" />
 				</template>
 
+				<template v-if="apiDocumentationValues !== null">
+					<div :class="['text-title-medium', 'mb-1', (apiDocumentationSummary !== null || apiDocumentationRemarks !== null) ? 'mt-3' : '']">
+						{{ $t("plugins.objectModelBrowser.values") }}
+					</div>
+					<ul class="ms-4">
+						<li v-for="(description, value) in apiDocumentationValues" :key="value">
+							<code>{{ value }}</code><template v-if="description"> - {{ description }}</template>
+						</li>
+					</ul>
+				</template>
+
 				<template v-if="deprecationNotice !== null">
-					<div :class="['text-title-medium text-warning mb-1', (apiDocumentationSummary !== null || apiDocumentationRemarks !== null) ? 'mt-3' : '']">
+					<div :class="['text-title-medium text-warning mb-1', hasDocumentation ? 'mt-3' : '']">
 						<v-icon icon="mdi-alert" size="small" class="me-1" />
 						{{ $t("plugins.objectModelBrowser.deprecated") }}
 					</div>
@@ -117,7 +124,7 @@ import { useDisplay } from "vuetify";
 import i18n from "@/i18n";
 import { useMachineStore } from "@/stores/machine";
 import { useSettingsStore } from "@/stores/settings";
-import { extractTag, getDuetApiDocument, getDuetApiError, loadDuetApi, lookupApiMember } from "@/utils/duetApi";
+import { getObjectModelDocumentation } from "@/utils/objectModelDoc";
 
 interface ModelTreeItem {
 	id: string;
@@ -141,25 +148,26 @@ const active = ref<Array<ModelTreeItem>>([]);
 const search = ref("");
 const modelTree = ref<Array<ModelTreeItem>>([]);
 
-const apiFile = ref<Document | null>(null);
-const apiFileError = ref<string | null>(null);
-
 const activeId = computed(() => active.value.length > 0 ? active.value[0].id : null);
 
-const apiDocumentation = computed<Element | null>(() => {
-	if (apiFile.value === null || activeId.value === null) {
-		return null;
+const activeDocPath = computed<string | null>(() => active.value.length > 0 ? buildDocPath(active.value[0].path) : null);
+
+// Documentation is fetched asynchronously (the sidecar is a lazily-loaded chunk), so mirror it into
+// refs keyed off the active path. The post-await guard drops a stale result if the selection moved on
+const apiDocumentationSummary = ref<string | null>(null);
+const apiDocumentationRemarks = ref<string | null>(null);
+const apiDocumentationValues = ref<Record<string, string | null> | null>(null);
+const hasDocumentation = computed<boolean>(() => apiDocumentationSummary.value !== null || apiDocumentationRemarks.value !== null || apiDocumentationValues.value !== null);
+
+watch(activeDocPath, async (path) => {
+	const doc = path !== null ? await getObjectModelDocumentation(path) : null;
+	if (activeDocPath.value !== path) {
+		return;
 	}
-	return lookupApiMember(apiFile.value, activeId.value);
-});
-
-const apiDocumentationSummary = computed<string | null>(() => {
-	return apiFile.value !== null && apiDocumentation.value !== null ? extractTag(apiFile.value, apiDocumentation.value, "summary") : null;
-});
-
-const apiDocumentationRemarks = computed<string | null>(() => {
-	return apiFile.value !== null && apiDocumentation.value !== null ? extractTag(apiFile.value, apiDocumentation.value, "remarks") : null;
-});
+	apiDocumentationSummary.value = doc?.summary ?? null;
+	apiDocumentationRemarks.value = doc?.remarks ?? null;
+	apiDocumentationValues.value = doc?.values ?? null;
+}, { immediate: true });
 
 // #region Tree building
 
@@ -223,6 +231,24 @@ function buildId(path: Array<PathStep>): string {
 	for (const step of path) {
 		if (step.kind === "index") {
 			id += `[${step.name}]`;
+		} else if (id.length === 0) {
+			id = step.name;
+		} else {
+			id += `.${step.name}`;
+		}
+	}
+	return id;
+}
+
+// Build the documentation-sidecar key for a node: array indices and dictionary keys both collapse
+// to `[]` (e.g. `move.extruders[2].pressureAdvance` -> `move.extruders[].pressureAdvance`,
+// `plugins.MyPlugin.version` -> `plugins[].version`). Done structurally from the path steps so it
+// stays correct regardless of the index/key contents
+function buildDocPath(path: Array<PathStep>): string {
+	let id = "";
+	for (const step of path) {
+		if (step.kind === "index" || step.kind === "mapKey") {
+			id += "[]";
 		} else if (id.length === 0) {
 			id = step.name;
 		} else {
@@ -428,14 +454,4 @@ watch(
 	},
 	{ immediate: true }
 );
-
-onMounted(async () => {
-	if (apiFile.value === null && apiFileError.value === null) {
-		apiFile.value = await loadDuetApi();
-		apiFileError.value = getDuetApiError();
-		if (apiFile.value === null && apiFileError.value === null) {
-			apiFile.value = getDuetApiDocument();
-		}
-	}
-});
 </script>

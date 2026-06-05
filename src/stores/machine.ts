@@ -21,8 +21,7 @@ import packageInfo from "../../package.json";
 
 /**
  * Item type for downloads. `rawPath` bypasses the SD-card prefix and pulls the file straight
- * from the DWC base path - used by tools that ship documentation alongside the web bundle (e.g.
- * DuetAPI.xml for the Object Model browser)
+ * from the DWC base path rather than from the mounted SD card
  */
 type DownloadItem = { filename: string, type?: XMLHttpRequestResponseType, rawPath?: boolean };
 

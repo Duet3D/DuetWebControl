@@ -6,7 +6,7 @@
 import type * as Monaco from "monaco-editor-core";
 import { watch } from "vue";
 
-import { getObjectModelDescription } from "@/utils/duetApi";
+import { getObjectModelDescription } from "@/utils/objectModelDoc";
 
 import type { useMachineStore } from "@/stores/machine";
 
