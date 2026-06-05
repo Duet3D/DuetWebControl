@@ -9,6 +9,17 @@
 	flex: 1 1 auto;
 	min-height: 0;
 	overflow-y: auto;
+	/* Stops Firefox Android's native pull-to-refresh from swallowing the gesture before
+	   VPullToRefresh sees it (honored since GeckoView/Firefox 88) */
+	overscroll-behavior-y: contain;
+}
+/* Applied only while pull-to-refresh is active (mobile breakpoint). VPullToRefresh caches its
+   scroll parent once on mount; with `auto` a still-empty async list has no scrollbar yet, so it
+   latches onto an outer container stuck at scrollTop 0 and refreshes on any downward drag mid-list.
+   `scroll` makes this element a scroll parent regardless of content. Desktop keeps `auto` (no
+   permanent scrollbar) and has pull-to-refresh disabled anyway */
+.macro-list-body.pull-scroll {
+	overflow-y: scroll;
 }
 </style>
 
@@ -19,34 +30,36 @@
 			<span v-show="machineStore.isConnected" class="text-title-small">{{ currentDirectory }}</span>
 		</template>
 
-		<v-card-text class="pa-0 macro-list-body">
+		<v-card-text class="pa-0 macro-list-body" :class="{ 'pull-scroll': mobile }">
 			<v-progress-linear v-show="loading" indeterminate class="my-0" />
 
-			<v-alert v-if="showEmptyAlert" :type="emptyAlertType" :text="$t(emptyAlertText)" tile density="compact" />
+			<v-pull-to-refresh :disabled="!mobile" @load="onPullRefresh">
+				<v-alert v-if="showEmptyAlert" :type="emptyAlertType" :text="$t(emptyAlertText)" tile density="compact" />
 
-			<v-list v-else :density="listDensity" class="pt-0">
-				<v-list-item v-if="!isRootDirectory && settings.showDirectories" @click="goUp">
-					<template #prepend>
-						<v-avatar size="32" color="grey-lighten-1">
-							<v-icon size="small" color="white">mdi-arrow-up</v-icon>
-						</v-avatar>
-					</template>
-					<v-list-item-title>{{ $t("list.baseFileList.goUp") }}</v-list-item-title>
-				</v-list-item>
+				<v-list v-else :density="listDensity" class="pt-0">
+					<v-list-item v-if="!isRootDirectory && settings.showDirectories" @click="goUp">
+						<template #prepend>
+							<v-avatar size="32" color="grey-lighten-1">
+								<v-icon size="small" color="white">mdi-arrow-up</v-icon>
+							</v-avatar>
+						</template>
+						<v-list-item-title>{{ $t("list.baseFileList.goUp") }}</v-list-item-title>
+					</v-list-item>
 
-				<v-list-item v-for="item in displayedFiles" :key="item.name" :disabled="uiStore.uiFrozen"
-							 @click="itemClick(item)" v-context-menu="(x: number, y: number) => openContextMenu(item, x, y)">
-					<template #prepend>
-						<v-avatar size="32" :color="item.isDirectory ? 'grey-lighten-1' : 'blue'">
-							<v-icon size="small" color="white">{{ item.isDirectory ? "mdi-folder" : "mdi-file" }}</v-icon>
-						</v-avatar>
-					</template>
-					<v-list-item-title>{{ item.displayName }}</v-list-item-title>
-					<template v-if="!item.isDirectory && item.executing" #append>
-						<v-progress-circular indeterminate size="20" width="2" color="blue" />
-					</template>
-				</v-list-item>
-			</v-list>
+					<v-list-item v-for="item in displayedFiles" :key="item.name" :disabled="uiStore.uiFrozen"
+								 @click="itemClick(item)" v-context-menu="(x: number, y: number) => openContextMenu(item, x, y)">
+						<template #prepend>
+							<v-avatar size="32" :color="item.isDirectory ? 'grey-lighten-1' : 'blue'">
+								<v-icon size="small" color="white">{{ item.isDirectory ? "mdi-folder" : "mdi-file" }}</v-icon>
+							</v-avatar>
+						</template>
+						<v-list-item-title>{{ item.displayName }}</v-list-item-title>
+						<template v-if="!item.isDirectory && item.executing" #append>
+							<v-progress-circular indeterminate size="20" width="2" color="blue" />
+						</template>
+					</v-list-item>
+				</v-list>
+			</v-pull-to-refresh>
 
 			<v-menu v-model="contextMenu.shown" :target="[contextMenu.x, contextMenu.y]">
 				<v-list :density="listDensity">
@@ -120,7 +133,7 @@ interface MacroItem extends FileListItem {
 const machineStore = useMachineStore();
 const uiStore = useUiStore();
 const router = useRouter();
-const { mdAndUp } = useDisplay();
+const { mdAndUp, mobile } = useDisplay();
 
 interface MacroListSettings {
 	showDirectories: boolean;
@@ -247,6 +260,15 @@ async function loadDirectory(target: string) {
 
 function refresh() {
 	return loadDirectory(directory.value);
+}
+
+// Touch-only pull-to-refresh, gated to the mobile breakpoint so mouse-drag doesn't trigger it
+async function onPullRefresh({ done }: { done: () => void }) {
+	try {
+		await refresh();
+	} finally {
+		done();
+	}
 }
 
 async function itemClick(item: MacroItem) {

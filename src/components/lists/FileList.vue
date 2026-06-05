@@ -39,6 +39,17 @@
 	flex: 1 1 auto;
 	min-height: 0;
 	overflow-y: auto;
+	/* Stops Firefox Android's native pull-to-refresh from swallowing the gesture before
+	   VPullToRefresh sees it (honored since GeckoView/Firefox 88) */
+	overscroll-behavior-y: contain;
+}
+/* Applied only while pull-to-refresh is active (mobile breakpoint). VPullToRefresh caches its
+   scroll parent once on mount; with `auto` a still-empty async list has no scrollbar yet, so it
+   latches onto an outer container stuck at scrollTop 0 and refreshes on any downward drag mid-list.
+   `scroll` makes this element a scroll parent regardless of content. Desktop keeps `auto` (no
+   permanent scrollbar) and has pull-to-refresh disabled anyway */
+.file-list-body.pull-scroll {
+	overflow-y: scroll;
 }
 
 :deep(.v-data-table-rows-no-data > td),
@@ -266,7 +277,7 @@
 
 		<slot name="progress" />
 
-		<div class="file-drop-target file-list-body" @drop.prevent="onDrop">
+		<div class="file-drop-target file-list-body" :class="{ 'pull-scroll': mobile }" @drop.prevent="onDrop">
 			<UploadBackdrop v-if="dragActive" />
 			<v-pull-to-refresh :disabled="!mobile" @load="onPullRefresh">
 			<div v-if="effectiveViewMode === 'tiles'" class="tile-grid pa-2">
@@ -455,7 +466,6 @@
 <script setup lang="ts">
 import { OperationCancelledError } from "@duet3d/connectors";
 import { useDisplay } from "vuetify";
-import { VPullToRefresh } from "vuetify/labs/VPullToRefresh";
 
 import type { FileBrowserItem, FileBrowserOptions } from "@/composables/useFileBrowser";
 import ConfigUpdatedDialog from "@/components/dialogs/ConfigUpdatedDialog.vue";

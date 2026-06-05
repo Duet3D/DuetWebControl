@@ -445,8 +445,8 @@ watch(activeTab, (toId, fromId) => {
 
 // Single shared thumbnail fetcher across all browser tabs. Switching tabs mid-fetch cancels
 // the previous one (acceptable: the cache holds whatever did complete and the next visit hits
-// it). The Path.isGCodePath filter inside the composable guarantees no-op for /sys, /macros,
-// ... so non-gcode directories never pay the per-row fetch cost
+// it). The composable only sweeps the gcodes tree and external volumes, so /sys, /macros and
+// other system areas never pay the per-row fetch cost
 const explorerThumbnails = useGcodeThumbnails();
 const { fileinfoProgress: thumbnailProgress, fileinfoTotal: thumbnailTotal } = explorerThumbnails;
 onDeactivated(explorerThumbnails.cancelInFlight);

@@ -83,10 +83,21 @@ export function useGcodeThumbnails() {
 			: null;
 	}
 
+	// Slicer fileinfo (thumbnails, print time, height, ...) only exists for sliced print jobs.
+	// Those live in the gcodes tree on the system volume or anywhere on an external volume; other
+	// system-volume areas (/sys, /macros, /filaments, ...) hold gcode macros that share the .g
+	// extension but carry no such metadata, so an M36 sweep there is pure waste
+	function isJobDirectory(directory: string): boolean {
+		const gCodes = machineStore.model.directories.gCodes;
+		return Path.startsWith(directory, gCodes) || Path.getVolume(directory) !== Path.getVolume(gCodes);
+	}
+
 	async function fetchAllInfos(items: Array<FileBrowserItem>, token: number, directorySnapshot: string) {
-		const gcodeFiles = (items as Array<GcodeThumbnailItem>).filter(
-			(item) => !item.isDirectory && Path.isGCodePath(item.name, machineStore.model.directories.gCodes)
-		);
+		const gcodeFiles = isJobDirectory(directorySnapshot)
+			? (items as Array<GcodeThumbnailItem>).filter(
+				(item) => !item.isDirectory && Path.isGCodePath(item.name, machineStore.model.directories.gCodes)
+			)
+			: [];
 		if (gcodeFiles.length === 0) {
 			fileinfoProgress.value = -1;
 			fileinfoTotal.value = 0;
