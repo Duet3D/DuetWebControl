@@ -517,7 +517,8 @@ function buildEditorOptions(prefs: ReturnType<typeof useSettingsStore>["editor"]
 			: false,
 		suggestOnTriggerCharacters: prefs.suggestOnTriggerCharacters,
 		parameterHints: { enabled: prefs.parameterHints },
-		hover: { enabled: prefs.hover },
+		// monaco-editor-core defaults hover.above to true; prefer below the line (room permitting)
+		hover: { enabled: prefs.hover, above: false },
 		inlineSuggest: { enabled: prefs.inlineSuggest },
 		bracketPairColorization: { enabled: prefs.bracketPairColorization },
 		formatOnPaste: prefs.formatOnPaste,
