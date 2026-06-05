@@ -39,17 +39,16 @@
 	flex: 1 1 auto;
 	min-height: 0;
 	overflow-y: auto;
-	/* Stops Firefox Android's native pull-to-refresh from swallowing the gesture before
-	   VPullToRefresh sees it (honored since GeckoView/Firefox 88) */
-	overscroll-behavior-y: contain;
 }
 /* Applied only while pull-to-refresh is active (mobile breakpoint). VPullToRefresh caches its
    scroll parent once on mount; with `auto` a still-empty async list has no scrollbar yet, so it
    latches onto an outer container stuck at scrollTop 0 and refreshes on any downward drag mid-list.
-   `scroll` makes this element a scroll parent regardless of content. Desktop keeps `auto` (no
-   permanent scrollbar) and has pull-to-refresh disabled anyway */
+   `scroll` makes this element a scroll parent regardless of content. overscroll-behavior-y stops
+   Firefox Android's native pull-to-refresh from swallowing the gesture (honored since Firefox 88).
+   Desktop keeps plain `auto`: no permanent scrollbar, normal scroll chaining, pull-to-refresh off */
 .file-list-body.pull-scroll {
 	overflow-y: scroll;
+	overscroll-behavior-y: contain;
 }
 
 :deep(.v-data-table-rows-no-data > td),
