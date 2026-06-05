@@ -1,9 +1,8 @@
 const AutoImportsPlugin = require("./webpack/lib/auto-imports-plugin.js");
 const CustomImportsPlugin = require("./webpack/lib/custom-imports-plugin.js");
 const { EsbuildPlugin } = require("esbuild-loader");
-const fs = require("fs"), path = require("path"), zlib = require("zlib");
+const path = require("path"), zlib = require("zlib");
 const { Compilation, EnvironmentPlugin } = require("webpack");
-const EventHooksPlugin = require("event-hooks-webpack-plugin");
 const ZipPlugin = require("zip-webpack-plugin");
 
 module.exports = {
@@ -47,25 +46,6 @@ module.exports = {
 			}),
 			...((process.env.NODE_ENV === "production") ? [
 				new CustomImportsPlugin(),
-				new EventHooksPlugin({
-					beforeCompile() {
-						const apiDocs = path.resolve(__dirname, "./DuetAPI.xml")
-						if (fs.existsSync(apiDocs)) {
-							fs.copyFileSync(apiDocs, path.resolve(__dirname, "./public/DuetAPI.xml"));
-						} else {
-							const dsfApiDocs = path.resolve(__dirname, "../DuetSoftwareFramework/src/DuetAPI/DuetAPI.xml");
-							if (fs.existsSync(dsfApiDocs)) {
-								fs.copyFileSync(dsfApiDocs, path.resolve(__dirname, "./public/DuetAPI.xml"));
-							}
-						}
-					},
-					afterEmit() {
-						const apiDocs = path.resolve(__dirname, "./public/DuetAPI.xml");
-						if(fs.existsSync(apiDocs)) {
-							fs.unlinkSync(apiDocs);
-						}
-					}
-				}),
 				// Add gzipped versions of every asset into compilation.assets so
 				// ZipPlugin (which runs at PROCESS_ASSETS_STAGE_OPTIMIZE_TRANSFER)
 				// can include them in DuetWebControl-SD.zip

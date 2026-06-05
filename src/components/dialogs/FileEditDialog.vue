@@ -99,7 +99,7 @@ import Vue from "vue";
 
 import store from "@/store";
 import { indent } from "@/utils/display";
-import { loadDuetApi, getObjectModelDescription } from "@/utils/duetApi";
+import { getObjectModelDescription } from "@/utils/objectModelDoc";
 import { log, LogType } from "@/utils/logging";
 import Path from "@/utils/path";
 
@@ -350,11 +350,6 @@ export default Vue.extend({
 			if (to) {
 				// Create Monaco editor if necessary
 				if (this.useMonacoEditor) {
-					// Kick off the DuetAPI.xml download in parallel with the (large) Monaco bundle import so the
-					// hover provider's description lookup usually has the parsed Document in hand by the time the
-					// user gets to hover something. The call is idempotent - a cached Document short-circuits
-					loadDuetApi();
-
 					this.monacoLoading = true;
 					const { monaco } = await import("@/utils/monaco");
 					this.monacoLoading = false;
@@ -403,8 +398,8 @@ export default Vue.extend({
 						// Thread the connected machine's object model into MonacoTokens so upcoming machine-aware
 						// completions (dynamic axis params for G0/G1, object-model traversal in expressions) see it
 						// The store holds the same object reference while connected so a single call is enough
-						// `getObjectModelDescription` defers to the shared DuetAPI.xml service also used by the
-						// object-model browser plugin; the file is fetched lazily below and returns null until ready
+						// `getObjectModelDescription` resolves against the bundled object model documentation, the
+						// same source the object-model browser plugin uses; its sidecar is lazily loaded on first use
 						setMachineContext({
 							model: store.state.machine.model,
 							getObjectModelDescription

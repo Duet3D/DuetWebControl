@@ -211,7 +211,8 @@
       "indentComments": "Kommentek igazíása",
       "searchGcodeTooltip": "G/M-kód keresése leírás alapján (F4)",
       "searchGcode": "Keresse meg a kódot",
-      "searchExpressionTooltip": "Objektummodell elérési út vagy kifejezés függvény keresése leírás alapján (F4)"
+      "searchExpressionTooltip": "Objektummodell elérési út vagy kifejezés függvény keresése leírás alapján (F4)",
+      "searchExpression": "Keresse meg a kifejezést"
     },
     "fileTransfer": {
       "uploadingTitle": "Fájl {0} / {1} feltöltése, {2}% kész",
@@ -1109,10 +1110,10 @@
       "menuCaption": "Objektum modell",
       "selectedNode": "Kiválasztott csomópont:",
       "none": "Nincs",
-      "documentationNotAvailable": "A dokumentáció nem elérhető (/www/DuetAPI.xml nem található)",
       "summary": "Összesítő",
       "remarks": "Megjegyzések",
-      "search": "Objektummodell keresése..."
+      "search": "Objektummodell keresése...",
+      "values": "Értékek"
     },
     "onScreenKeyboard": {
       "confirmTitle": "Képernyő-billentyűzet",

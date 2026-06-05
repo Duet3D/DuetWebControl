@@ -211,7 +211,8 @@
       "indentComments": "Відступ коментарів",
       "searchGcodeTooltip": "Пошук G/M-коду за описом (F4)",
       "searchGcode": "Знайти код",
-      "searchExpressionTooltip": "Пошук шляху об’єктної моделі або функції виразу за описом (F4)"
+      "searchExpressionTooltip": "Пошук шляху об’єктної моделі або функції виразу за описом (F4)",
+      "searchExpression": "Знайти вираз"
     },
     "fileTransfer": {
       "uploadingTitle": "Відвантаження файлу {0} з {1}, {2}% завершено",
@@ -1107,12 +1108,12 @@
     },
     "objectModelBrowser": {
       "menuCaption": "Об'єктна модель",
-      "documentationNotAvailable": "Документація недоступна (/www/DuetAPI.xml не знайдено)",
       "none": "Жодного",
       "remarks": "Зауваження",
       "selectedNode": "Вибраний вузол:",
       "summary": "Резюме",
-      "search": "Пошук об'єктної моделі..."
+      "search": "Пошук об'єктної моделі...",
+      "values": "Цінності"
     },
     "onScreenKeyboard": {
       "confirmTitle": "Екранна клавіатура",

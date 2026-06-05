@@ -43,11 +43,7 @@
 				</v-col>
 			</v-row>
 
-			<v-alert :value="apiFileError !== null" outlined type="warning">
-				{{ $t("plugins.objectModelBrowser.documentationNotAvailable") }}
-			</v-alert>
-
-			<v-card v-show="apiDocumentation !== null" outlined class="pa-3">
+			<v-card v-show="hasDocumentation" outlined class="pa-3">
 				<template v-if="apiDocumentationSummary !== null">
 					<h4>{{ $t("plugins.objectModelBrowser.summary") }}</h4>
 					<span v-html="apiDocumentationSummary"></span>
@@ -57,6 +53,16 @@
 					<br v-if="apiDocumentationSummary !== null">
 					<h4>{{ $t("plugins.objectModelBrowser.remarks") }}</h4>
 					<span v-html="apiDocumentationRemarks"></span>
+				</template>
+
+				<template v-if="apiDocumentationValues !== null">
+					<br v-if="apiDocumentationSummary !== null || apiDocumentationRemarks !== null">
+					<h4>{{ $t("plugins.objectModelBrowser.values") }}</h4>
+					<ul>
+						<li v-for="(description, value) in apiDocumentationValues" :key="value">
+							<code>{{ value }}</code><template v-if="description"> - {{ description }}</template>
+						</li>
+					</ul>
 				</template>
 			</v-card>
 		</v-col>
@@ -68,7 +74,7 @@ import ObjectModel, { DriverId, isDriverId } from "@duet3d/objectmodel";
 import Vue from "vue";
 
 import store from "@/store";
-import { loadDuetApi, getDuetApiDocument, getDuetApiError, lookupApiMember, extractTag } from "@/utils/duetApi";
+import { getObjectModelDocumentation } from "@/utils/objectModelDoc";
 
 interface ModelTreeItem {
 	id: string;
@@ -82,17 +88,8 @@ export default Vue.extend({
 		uiFrozen(): boolean { return store.getters["uiFrozen"]; },
 		model(): ObjectModel { return store.state.machine.model; },
 		darkTheme(): boolean { return store.state.settings.darkTheme; },
-		apiDocumentation(): Element | null {
-			if (this.apiFile !== null && this.active.length > 0) {
-				return lookupApiMember(this.apiFile, this.active[0]);
-			}
-			return null;
-		},
-		apiDocumentationSummary(): string | null {
-			return this.apiDocumentation !== null ? extractTag(this.apiDocumentation, "summary") : null;
-		},
-		apiDocumentationRemarks(): string | null {
-			return this.apiDocumentation !== null ? extractTag(this.apiDocumentation, "remarks") : null;
+		hasDocumentation(): boolean {
+			return this.apiDocumentationSummary !== null || this.apiDocumentationRemarks !== null || this.apiDocumentationValues !== null;
 		}
 	},
 	data() {
@@ -100,20 +97,13 @@ export default Vue.extend({
 			active: new Array<string>(),
 			search: "",
 			modelTree: new Array<ModelTreeItem>,
-			apiFile: null as Document | null,
-			apiFileError: null as string | null,
+			apiDocumentationSummary: null as string | null,
+			apiDocumentationRemarks: null as string | null,
+			apiDocumentationValues: null as Record<string, string | null> | null,
 			documentationFloating: false
 		}
 	},
-	async activated() {
-		if (this.apiFile === null && this.apiFileError === null) {
-			this.apiFile = await loadDuetApi();
-			this.apiFileError = getDuetApiError();
-			if (this.apiFile === null && this.apiFileError === null) {
-				// Loaded into cache by another caller between our null check and the await - re-read
-				this.apiFile = getDuetApiDocument();
-			}
-		}
+	activated() {
 		this.refresh();
 	},
 	methods: {
@@ -214,6 +204,17 @@ export default Vue.extend({
 		refresh() {
 			this.modelTree = this.makeModelTree(this.model, []);
 		},
+		async updateDocumentation() {
+			const path = this.active.length > 0 ? this.active[0] : null;
+			const doc = path !== null ? await getObjectModelDocumentation(path) : null;
+			// Drop a stale result if the selection moved on during the await
+			if ((this.active.length > 0 ? this.active[0] : null) !== path) {
+				return;
+			}
+			this.apiDocumentationSummary = doc?.summary ?? null;
+			this.apiDocumentationRemarks = doc?.remarks ?? null;
+			this.apiDocumentationValues = doc?.values ?? null;
+		},
 		onScroll() {
 			const rightContainer = this.$refs.rightContainer as HTMLDivElement;
 			const documentationTop = rightContainer.getBoundingClientRect().y;
@@ -226,6 +227,7 @@ export default Vue.extend({
 	},
 	watch: {
 		active(to) {
+			this.updateDocumentation();
 			if (to.length > 0) {
 				this.$nextTick(() => {
 					this.onScroll();

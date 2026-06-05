@@ -211,7 +211,8 @@
       "indentComments": "缩进注释",
       "searchGcodeTooltip": "按描述搜索 G/M 代码 (F4)",
       "searchGcode": "查找代码",
-      "searchExpressionTooltip": "按描述搜索对象模型路径或表达式函数 (F4)"
+      "searchExpressionTooltip": "按描述搜索对象模型路径或表达式函数 (F4)",
+      "searchExpression": "寻找表达"
     },
     "fileTransfer": {
       "uploadingTitle": "正在上传文件第{0}个，共{1}个，已完成{2}%",
@@ -1109,10 +1110,10 @@
       "menuCaption": "对象模型",
       "selectedNode": "选定的节点:",
       "none": "没有",
-      "documentationNotAvailable": "文档不可用（未找到/www/DuetAPI.xml）",
       "summary": "摘要",
       "remarks": "备注",
-      "search": "搜索对象模型..."
+      "search": "搜索对象模型...",
+      "values": "价值观"
     },
     "onScreenKeyboard": {
       "confirmTitle": "屏幕键盘",

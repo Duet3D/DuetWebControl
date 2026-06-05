@@ -1111,9 +1111,9 @@
       "search": "Search object model...",
       "selectedNode": "Selected node:",
       "none": "None",
-      "documentationNotAvailable": "Documentation is not available (/www/DuetAPI.xml not found)",
       "summary": "Summary",
-      "remarks": "Remarks"
+      "remarks": "Remarks",
+      "values": "Values"
     },
     "onScreenKeyboard": {
       "disable": "disable OSK",

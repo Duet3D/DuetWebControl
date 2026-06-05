@@ -211,7 +211,8 @@
       "indentComments": "Отступ комментариев",
       "searchGcodeTooltip": "Поиск G/M-кода по описанию (F4)",
       "searchGcode": "Найти код",
-      "searchExpressionTooltip": "Поиск пути к объектной модели или функции выражения по описанию (F4)"
+      "searchExpressionTooltip": "Поиск пути к объектной модели или функции выражения по описанию (F4)",
+      "searchExpression": "Найти выражение"
     },
     "meshEdit": {
       "title": "Set Mesh Parameters",
@@ -947,13 +948,13 @@
       "statistics": "Статистика"
     },
     "objectModelBrowser": {
-      "documentationNotAvailable": "Документация недоступна (/www/DuetAPI.xml не найден)",
       "none": "Никто",
       "remarks": "Примечания",
       "selectedNode": "Выбранный узел:",
       "summary": "Резюме",
       "menuCaption": "Объектная модель",
-      "search": "Поиск объектной модели..."
+      "search": "Поиск объектной модели...",
+      "values": "Ценности"
     },
     "accelerometer": {
       "accelerations": "Ускорения (в g)",

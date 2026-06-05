@@ -211,7 +211,8 @@
       "indentComments": "Comentarios de sangría",
       "searchGcodeTooltip": "Buscar código G/M por descripción (F4)",
       "searchGcode": "Buscar código",
-      "searchExpressionTooltip": "Buscar ruta del modelo de objeto o función de expresión por descripción (F4)"
+      "searchExpressionTooltip": "Buscar ruta del modelo de objeto o función de expresión por descripción (F4)",
+      "searchExpression": "encontrar expresión"
     },
     "fileTransfer": {
       "uploadingTitle": "Cargando archivo {0} de {1}, {2}% completado",
@@ -1108,12 +1109,12 @@
     },
     "objectModelBrowser": {
       "menuCaption": "Modelo de objetos",
-      "documentationNotAvailable": "La documentación no está disponible (/www/DuetAPI.xml no encontrado)",
       "none": "Ninguna",
       "remarks": "Observaciones",
       "selectedNode": "Nodo seleccionado:",
       "summary": "Resumen",
-      "search": "Buscar modelo de objetos..."
+      "search": "Buscar modelo de objetos...",
+      "values": "Valores"
     },
     "onScreenKeyboard": {
       "confirmTitle": "Teclado en pantalla",

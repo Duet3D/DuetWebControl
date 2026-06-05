@@ -211,7 +211,8 @@
       "indentComments": "Girinti Yorumları",
       "searchGcodeTooltip": "Açıklamaya göre G/M kodunu arayın (F4)",
       "searchGcode": "Kodu Bul",
-      "searchExpressionTooltip": "Açıklamaya göre nesne modeli yolunu veya ifade işlevini arayın (F4)"
+      "searchExpressionTooltip": "Açıklamaya göre nesne modeli yolunu veya ifade işlevini arayın (F4)",
+      "searchExpression": "İfade Bul"
     },
     "meshEdit": {
       "title": "Kafes Parametrelerini Ayarla",
@@ -947,13 +948,13 @@
       "statistics": "İstatistik"
     },
     "objectModelBrowser": {
-      "documentationNotAvailable": "Belgeler mevcut değil (/www/DuetAPI.xml bulunamadı)",
       "none": "Hiçbiri",
       "remarks": "Notlar",
       "selectedNode": "Seçilen düğüm:",
       "summary": "Özet",
       "menuCaption": "Nesne Modeli",
-      "search": "Nesne modelini ara..."
+      "search": "Nesne modelini ara...",
+      "values": "Değerler"
     },
     "accelerometer": {
       "accelerations": "Hızlanmalar (g cinsinden)",

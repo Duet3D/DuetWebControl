@@ -211,7 +211,8 @@
       "indentComments": "Komentarze wcięcia",
       "searchGcodeTooltip": "Wyszukaj kod G/M według opisu (F4)",
       "searchGcode": "Znajdź kod",
-      "searchExpressionTooltip": "Wyszukaj ścieżkę modelu obiektowego lub funkcję wyrażenia według opisu (F4)"
+      "searchExpressionTooltip": "Wyszukaj ścieżkę modelu obiektowego lub funkcję wyrażenia według opisu (F4)",
+      "searchExpression": "Znajdź wyrażenie"
     },
     "fileTransfer": {
       "uploadingTitle": "Wgrywanie pliku {0} z z{1}, {2}% ukończono",
@@ -1108,12 +1109,12 @@
     },
     "objectModelBrowser": {
       "menuCaption": "Model przedmiotu",
-      "documentationNotAvailable": "Dokumentacja jest niedostępna (nie znaleziono /www/DuetAPI.xml)",
       "none": "Nic",
       "remarks": "Uwagi",
       "selectedNode": "Wybrany węzeł:",
       "summary": "Streszczenie",
-      "search": "Wyszukaj model obiektowy..."
+      "search": "Wyszukaj model obiektowy...",
+      "values": "Wartości"
     },
     "onScreenKeyboard": {
       "confirmTitle": "Klawiatura ekranowa",

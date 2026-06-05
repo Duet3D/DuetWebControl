@@ -211,7 +211,8 @@
       "indentComments": "Kommentare einrücken",
       "searchGcodeTooltip": "G/M-Code nach Beschreibung suchen (F4)",
       "searchGcode": "Code finden",
-      "searchExpressionTooltip": "Objektmodellpfad oder Ausdrucksfunktion anhand der Beschreibung durchsuchen (F4)"
+      "searchExpressionTooltip": "Objektmodellpfad oder Ausdrucksfunktion anhand der Beschreibung durchsuchen (F4)",
+      "searchExpression": "Ausdruck finden"
     },
     "fileTransfer": {
       "uploadingTitle": "Lade Datei {0} von {1} hoch, {2}% abgeschlossen",
@@ -1109,10 +1110,10 @@
     "objectModelBrowser": {
       "menuCaption": "Objektmodell",
       "selectedNode": "Ausgewählter Knoten:",
-      "documentationNotAvailable": "Dokumentation ist nicht verfügbar (/www/DuetAPI.xml nicht gefunden)",
       "none": "Keiner",
       "remarks": "Anmerkungen",
       "summary": "Zusammenfassung",
+      "values": "Werte",
       "search": "Objektmodell suchen..."
     },
     "onScreenKeyboard": {

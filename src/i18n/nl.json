@@ -214,7 +214,8 @@
       "save": "Redden",
       "searchGcodeTooltip": "Zoek G/M-code op omschrijving (F4)",
       "searchGcode": "Vind code",
-      "searchExpressionTooltip": "Zoek objectmodelpad of expressiefunctie op beschrijving (F4)"
+      "searchExpressionTooltip": "Zoek objectmodelpad of expressiefunctie op beschrijving (F4)",
+      "searchExpression": "Zoek expressie"
     },
     "fileTransfer": {
       "cancelDownloads": "Downloads annuleren",
@@ -1106,13 +1107,13 @@
       "topView": "Bovenaanzicht"
     },
     "objectModelBrowser": {
-      "documentationNotAvailable": "Documentatie is niet beschikbaar (/www/DuetAPI.xml niet gevonden)",
       "menuCaption": "Objectmodel",
       "none": "Geen",
       "remarks": "Opmerkingen",
       "selectedNode": "Geselecteerd knooppunt:",
       "summary": "Samenvatting",
-      "search": "Objectmodel zoeken..."
+      "search": "Objectmodel zoeken...",
+      "values": "Waarden"
     },
     "onScreenKeyboard": {
       "confirmTitle": "Schermtoetsenbord",

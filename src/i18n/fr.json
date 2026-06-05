@@ -211,7 +211,8 @@
       "indentComments": "Indenter les commentaires",
       "searchGcodeTooltip": "Rechercher le code G/M par description (F4)",
       "searchGcode": "Trouver le code",
-      "searchExpressionTooltip": "Rechercher un chemin de modèle objet ou une fonction d'expression par description (F4)"
+      "searchExpressionTooltip": "Rechercher un chemin de modèle objet ou une fonction d'expression par description (F4)",
+      "searchExpression": "Trouver une expression"
     },
     "meshEdit": {
       "title": "Définir Paramètres de Maillage",
@@ -977,13 +978,13 @@
       "statistics": "Statistiques"
     },
     "objectModelBrowser": {
-      "documentationNotAvailable": "La documentation n'est pas disponible (/www/DuetAPI.xml introuvable)",
       "none": "Aucun",
       "remarks": "Remarques",
       "selectedNode": "Nœud sélectionné :",
       "summary": "Sommaire",
       "menuCaption": "Modèle d'objet",
-      "search": "Rechercher un modèle objet..."
+      "search": "Rechercher un modèle objet...",
+      "values": "Valeurs"
     },
     "accelerometer": {
       "accelerations": "Accélérations (en g)",
