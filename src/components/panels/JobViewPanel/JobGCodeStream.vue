@@ -109,6 +109,7 @@ onMounted(async () => {
 		readOnly: true,
 		automaticLayout: true,
 		scrollBeyondLastLine: false,
+		fixedOverflowWidgets: true,
 		occurrencesHighlight: "off",
 		matchBrackets: "never",
 		minimap: { enabled: false },

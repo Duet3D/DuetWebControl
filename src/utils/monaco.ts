@@ -6,6 +6,8 @@
 import type * as Monaco from "monaco-editor-core";
 import { watch } from "vue";
 
+import { getObjectModelDescription } from "@/utils/duetApi";
+
 import type { useMachineStore } from "@/stores/machine";
 
 let monacoSetup: Promise<typeof Monaco> | null = null;
@@ -36,7 +38,7 @@ export function ensureMonaco(machineStore?: ReturnType<typeof useMachineStore>):
 		machineContextBound = true;
 		void monacoSetup.then(async () => {
 			const tokens = await import("@duet3d/monacotokens");
-			watch(() => machineStore.model, (model) => tokens.setMachineContext({ model }), { immediate: true });
+			watch(() => machineStore.model, (model) => tokens.setMachineContext({ model, getObjectModelDescription }), { immediate: true });
 		});
 	}
 

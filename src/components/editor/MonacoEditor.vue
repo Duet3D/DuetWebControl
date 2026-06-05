@@ -296,6 +296,7 @@ async function bootstrap() {
 			theme: settingsStore.darkTheme ? "vs-dark" : "vs",
 			automaticLayout: true,
 			scrollBeyondLastLine: false,
+			fixedOverflowWidgets: true,
 			// Off by default so big job gcode files (tens of MB) still tokenize; Monaco otherwise
 			// drops highlighting above ~20 MB. Creation-time only, so it's not in buildEditorOptions
 			largeFileOptimizations: settingsStore.editor.largeFileOptimizations,

@@ -15,22 +15,75 @@ import { getErrorMessage } from "@/utils/errors";
 const propertyAdjustments: Array<{ pattern: RegExp | string, substitute: string }> = [
 	{ pattern: /(\[\d+\])+$/g, substitute: "" },
 	{ pattern: /s\[\d+\]/g, substitute: "" },
-	{ pattern: /.+\.mcutemp\./, substitute: "minmaxcurrent`1." },
-	{ pattern: /.+\.v12\./, substitute: "minmaxcurrent`1." },
-	{ pattern: /.+\.vin\./, substitute: "minmaxcurrent`1." },
-	{ pattern: "fan.thermostatic", substitute: "fanthermostaticcontrol" },
+	{ pattern: /.+\.mcutemp\./, substitute: "minmaxcurrent." },
+	{ pattern: /.+\.v12\./, substitute: "minmaxcurrent." },
+	{ pattern: /.+\.vin\./, substitute: "minmaxcurrent." },
+	{ pattern: "fan.thermostatic.", substitute: "fanthermostaticcontrol." },
 	{ pattern: /^input\./, substitute: "inputchannel." },
 	{ pattern: "heat.heater.model.pid.", substitute: "heatermodelpid." },
-	{ pattern: "job.file.", substitute: "parsedfileinfo." },
-	{ pattern: "parsedfileinfo.thumbnail.", substitute: "parsedthumbnail." },
+	{ pattern: "job.file.", substitute: "gcodefileinfo." },
+	{ pattern: "gcodefileinfo.thumbnail.", substitute: "thumbnailinfo." },
 	{ pattern: "move.axe.", substitute: "axis." },
 	{ pattern: /^move.calibration.(final|initial)./, substitute: "movedeviations." },
+	{ pattern: "move.compensation.meshdeviation.", substitute: "movedeviations." },
+	{ pattern: "move.compensation.livegrid.", substitute: "probegrid." },
 	{ pattern: "move.idle.", substitute: "motorsidlecontrol." },
+	{ pattern: "pressadv.", substitute: "extruderpressureadvance." },
+	{ pattern: "state.beep.", substitute: "beeprequest." },
 	{ pattern: /^move.queue\[\d+\]\./, substitute: "movequeueitem." },
 	{ pattern: /^sensors.analog\[\d+\]\./, substitute: "analogsensor." },
 	{ pattern: /^sensors.gpin\[\d+\]\./, substitute: "gpinputport." },
 	{ pattern: /^state.gpout\[\d+\]\./, substitute: "gpoutputport." }
 ];
+
+// Disabled until the object model ships a doc format that carries the actual encoded values. DuetAPI.xml
+// only documents the C# member names, so the displayed values have the wrong case and numeric enums have no
+// representation at all - they wouldn't match what the field serialises to. The map and builder below stay
+// in place for when that format is available
+const showEnumValues: boolean = false;
+
+// Object-model fields whose value is an enum, keyed by the `<type>.<property>` tail of the resolved
+// DuetAPI.xml member (lowercased, generic backtick stripped) and mapped to the enum type whose `F:` members
+// document the individual values. This association has to be maintained by hand: the runtime model
+// serialises enums as bare strings and the property's own XML doc carries no type reference, so neither
+// runtime source reveals which enum a field uses
+const enumFields: Record<string, string> = {
+	"analogsensor.state": "TemperatureError",
+	"analogsensor.type": "AnalogSensorType",
+	"board.state": "BoardState",
+	"directdisplayscreen.controller": "DirectDisplayController",
+	"driverconfig.mode": "DriverMode",
+	"dsf.communicationmethod": "CommunicationMethod",
+	"endstop.type": "EndstopType",
+	"filamentmonitor.enablemode": "FilamentMonitorEnableMode",
+	"filamentmonitor.status": "FilamentMonitorStatus",
+	"filamentmonitor.type": "FilamentMonitorType",
+	"heater.state": "HeaterState",
+	"heatermonitor.action": "HeaterMonitorAction",
+	"heatermonitor.condition": "HeaterMonitorCondition",
+	"httpendpoint.endpointtype": "HttpEndpointType",
+	"inputchannel.compatibility": "Compatibility",
+	"inputchannel.distanceunit": "DistanceUnit",
+	"inputchannel.state": "InputChannelState",
+	"inputshaping.type": "InputShapingType",
+	"kinematics.name": "KinematicsName",
+	"ledstrip.colororder": "LedStripColorOrder",
+	"ledstrip.type": "LedStripType",
+	"message.type": "MessageType",
+	"messagebox.mode": "MessageBoxMode",
+	"movecompensation.type": "MoveCompensationType",
+	"networkinterface.activeprotocols": "NetworkProtocol",
+	"networkinterface.type": "NetworkInterfaceType",
+	"probe.type": "ProbeType",
+	"spindle.state": "SpindleState",
+	"spindle.type": "SpindleType",
+	"state.loglevel": "EventLogLevel",
+	"state.machinemode": "MachineMode",
+	"state.status": "MachineStatus",
+	"tool.state": "ToolState",
+	"usersession.accesslevel": "AccessLevel",
+	"usersession.sessiontype": "SessionType"
+};
 
 let apiFile: Document | null = null;
 let apiFileError: string | null = null;
@@ -127,11 +180,15 @@ export function lookupApiMember(doc: Document, path: string): Element | null {
 		}
 	}
 
+	// Restrict matching to the ObjectModel namespace. Several command DTOs (e.g.
+	// `DuetAPI.Commands.WriteMessage`, `AddHttpEndpoint`, `AddUserSession`) share property names with
+	// their object-model counterparts and would otherwise win the suffix match for paths like
+	// `messages[].content` or `sbc.dsf.httpEndpoints[].path`
 	for (const propertyName of propertyNames) {
 		for (let k = 0; k < members.length; k++) {
 			const node = members[k];
-			const tagName = node.getAttribute("name");
-			if (tagName && tagName.startsWith("P:") && tagName.toLowerCase().endsWith(propertyName)) {
+			const tagName = node.getAttribute("name")?.toLowerCase();
+			if (tagName && tagName.startsWith("p:duetapi.objectmodel.") && tagName.endsWith(propertyName)) {
 				return node;
 			}
 		}
@@ -227,7 +284,10 @@ export async function getObjectModelDescription(path: string): Promise<string | 
 	}
 	const summary = extractTag(apiFile, member, "summary");
 	const remarks = extractTag(apiFile, member, "remarks");
-	if (summary === null && remarks === null) {
+	const memberName = member.getAttribute("name")?.toLowerCase().replace(/^p:duetapi\.objectmodel\./, "").replace(/`\d+/g, "") ?? "";
+	const enumType = showEnumValues ? enumFields[memberName] : undefined;
+	const values = enumType ? getEnumValueDoc(apiFile, enumType) : null;
+	if (summary === null && remarks === null && values === null) {
 		return null;
 	}
 	let out = "";
@@ -237,5 +297,30 @@ export async function getObjectModelDescription(path: string): Promise<string | 
 	if (remarks !== null) {
 		out += (out.length > 0 ? "<br><br>" : "") + `<i>${remarks}</i>`;
 	}
+	if (values !== null) {
+		out += (out.length > 0 ? "\n\n" : "") + values;
+	}
 	return out;
+}
+
+/**
+ * Build a Markdown value list for an enum type, matching the parameter hover's `**Values:**` layout.
+ * Each entry is the documented enum member name plus its `F:` summary. Returns null if the type has no
+ * documented values.
+ */
+function getEnumValueDoc(doc: Document, enumType: string): string | null {
+	const prefix = `f:duetapi.objectmodel.${enumType.toLowerCase()}.`;
+	const members = doc.documentElement.getElementsByTagName("member");
+	let out = "";
+	for (let k = 0; k < members.length; k++) {
+		const node = members[k];
+		const name = node.getAttribute("name");
+		if (!name || !name.toLowerCase().startsWith(prefix)) {
+			continue;
+		}
+		const value = name.substring(name.lastIndexOf(".") + 1);
+		const summary = extractTag(doc, node, "summary");
+		out += `\n- \`${value}\`${summary !== null ? ` - ${summary}` : ""}`;
+	}
+	return out.length > 0 ? `**Values:**${out}` : null;
 }
