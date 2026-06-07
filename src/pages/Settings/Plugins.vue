@@ -226,7 +226,7 @@ function isStarted(id: string): boolean {
 	return settingsStore.enabledPlugins.some(p => samePluginId(p, id));
 }
 
-type PluginStatus = "started" | "partial" | "installed" | "pending" | "stopped";
+type PluginStatus = "started" | "starting" | "stopping" | "partial" | "installed" | "pending" | "stopped";
 
 function pluginStatus(id: string): PluginStatus {
 	pluginLoadTick.value;
@@ -234,17 +234,31 @@ function pluginStatus(id: string): PluginStatus {
 	const hasDwc = (plugin?.dwcFiles?.length ?? 0) > 0;
 	const hasSbc = !!plugin?.sbcExecutable;
 	const dwcRunning = isPluginLoaded(id);
-	const sbcRunning = (plugin?.pid ?? -1) > 0;
 
-	if (hasDwc && hasSbc) {
-		if (dwcRunning && sbcRunning) {
-			return "started";
+	// DSF sets pid to 0 while the plugin process is shutting down, and keeps started false between
+	// launch and the plugin's own readiness signal (sbcNotifyStarted plugins) - so pid alone can't
+	// tell "coming up" from "fully up"
+	const sbcPid = plugin?.pid ?? -1;
+	const sbcStopping = sbcPid === 0;
+	const sbcStarting = sbcPid > 0 && !(plugin?.started ?? false);
+	const sbcStarted = sbcPid > 0 && (plugin?.started ?? false);
+
+	if (hasSbc) {
+		// SBC process transitions describe the live lifecycle and take precedence
+		if (sbcStopping) {
+			return "stopping";
 		}
-		if (dwcRunning || sbcRunning) {
-			return "partial";
+		if (sbcStarting) {
+			return "starting";
 		}
-	} else if (hasSbc) {
-		if (sbcRunning) {
+		if (hasDwc) {
+			if (dwcRunning && sbcStarted) {
+				return "started";
+			}
+			if (dwcRunning || sbcStarted) {
+				return "partial";
+			}
+		} else if (sbcStarted) {
 			return "started";
 		}
 	} else if (hasDwc) {
@@ -272,9 +286,11 @@ function pluginStatus(id: string): PluginStatus {
 
 const pluginStatusColor: Record<PluginStatus, string> = {
 	started: "success",
-	partial: "info",
+	starting: "info",
+	stopping: "warning",
+	partial: "warning",
+	pending: "secondary",
 	installed: "primary",
-	pending: "warning",
 	stopped: "error",
 };
 
