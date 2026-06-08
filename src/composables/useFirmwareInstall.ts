@@ -115,7 +115,7 @@ export function useFirmwareInstall() {
 		return name === null ? null : { name, canAddresses };
 	}
 
-	function findBoardBinary(ctx: ClassifyContext, key: "bootloaderFileName" | "iapFileNameSBC" | "iapFileNameSD",
+	function findBoardBinary(ctx: ClassifyContext, key: "iapFileNameSBC" | "iapFileNameSD",
 		fileName: string): string | null
 	{
 		for (const board of ctx.boards) {
@@ -204,11 +204,6 @@ export function useFirmwareInstall() {
 				}
 			}
 			return Path.combine(ctx.directories.firmware, firmware.name);
-		}
-
-		const bootloader = findBoardBinary(ctx, "bootloaderFileName", name);
-		if (bootloader) {
-			return Path.combine(ctx.directories.firmware, bootloader);
 		}
 
 		if (ctx.hasSbc) {

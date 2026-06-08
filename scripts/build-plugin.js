@@ -49,14 +49,27 @@ const PLUGIN_GLOBALS = {
 	"DuetWebControl": "DWC",
 	"DuetWebControl/components": "DWC.Components",
 	"vuetify/components": "DWC.VuetifyComponents",
-	"@/i18n": "DWC.i18n",
-	"@/utils/events": "DWC.Events",
 	"vue": "DWC.Vue",
 	"vue-router": "DWC.VueRouter",
 	"pinia": "DWC.Pinia",
 	"vue-i18n": "DWC.VueI18n",
 	"@duet3d/objectmodel": "DWC.ObjectModel",
 	"@duet3d/connectors": "DWC.Connectors",
+	"@/i18n": "DWC.i18n",
+	"@/utils/beep": "DWC.Beep",
+	"@/utils/colors": "DWC.Colors",
+	"@/utils/csv": "DWC.Csv",
+	"@/utils/display": "DWC.Display",
+	"@/utils/download": "DWC.Download",
+	"@/utils/enums": "DWC.Enums",
+	"@/utils/errors": "DWC.Errors",
+	"@/utils/events": "DWC.Events",
+	"@/utils/expression": "DWC.Expression",
+	"@/utils/gcode": "DWC.Gcode",
+	"@/utils/numbers": "DWC.Numbers",
+	"@/utils/path": "DWC.Path",
+	"@/utils/time": "DWC.Time",
+	"@/utils/version": "DWC.Version",
 };
 
 // #region Shared helpers (also used by build-plugin-pkg.js)
@@ -161,21 +174,14 @@ export async function buildPlugin(pluginDir, manifest, entryFile) {
 				formats: ["iife"],
 			},
 			rollupOptions: {
-				// `DuetWebControl` is the canonical alias plugins should use, but accept
-				// `@/plugins`, `@/stores*`, `@/i18n` too so a plugin developed in-tree
-				// (under DWC's src/plugins/) can be shipped as external without changing
-				// its imports. The regex matches both bare segments and sub-paths
-				// (`@/stores`, `@/stores/machine`, etc.) - everything resolves to the
-				// same `window.DWC.*` surface
-				external: (id) => {
-					return id === "DuetWebControl"
-						|| id === "DuetWebControl/components"
-						|| /^@\/(plugins|stores|i18n)(\/.*)?$/.test(id)
-						|| id === "@/utils/events"
-						|| id === "vuetify/components"
-						|| ["vue", "vue-router", "pinia", "vue-i18n",
-							"@duet3d/objectmodel", "@duet3d/connectors"].includes(id);
-				},
+				// The `@/composables*`, `@/i18n`, `@/plugins`, `@/stores*` paths flatten to one
+				// `window.DWC` surface, matched by the regex (both bare segments and sub-paths like
+				// `@/stores/machine`). Everything else with a fixed handle - `DuetWebControl`, the
+				// framework libraries and the public `@/utils/*` modules - is keyed in PLUGIN_GLOBALS,
+				// so a plugin developed in-tree can be shipped as external without changing its imports
+				external: (id) =>
+					/^@\/(composables|i18n|plugins|stores)(\/.*)?$/.test(id)
+					|| Object.prototype.hasOwnProperty.call(PLUGIN_GLOBALS, id),
 				output: {
 					// Content-hashed filenames for cache-busting, matching DWC's own build. A plugin
 					// dir has no package.json, so the [name] token has nothing to derive from in lib
@@ -184,9 +190,9 @@ export async function buildPlugin(pluginDir, manifest, entryFile) {
 					chunkFileNames: `${manifest.id}-[hash].js`,
 					assetFileNames: `${manifest.id}-[hash][extname]`,
 					globals: (id) => {
-						// Named imports like `{ useMachineStore }` from @/plugins or @/stores paths
-						// resolve to `DWC.useMachineStore` at runtime
-						if (/^@\/(plugins|stores)(\/.*)?$/.test(id)) {
+						// Named imports like `{ useMachineStore }` from @/composables, @/plugins or
+						// @/stores paths resolve to `DWC.useMachineStore` at runtime
+						if (/^@\/(composables|plugins|stores)(\/.*)?$/.test(id)) {
 							return "DWC";
 						}
 						return PLUGIN_GLOBALS[id];

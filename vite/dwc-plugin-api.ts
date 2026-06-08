@@ -5,13 +5,13 @@
  *
  *   virtual:dwc-plugin-api  -  default-exports a builder function returning a
  *                              flat object with every runtime export of
- *                              `@/plugins` and every `@/stores/*` module, keyed
- *                              by export name.
+ *                              `@/plugins`, every `@/composables/*` and every
+ *                              `@/stores/*` module, keyed by export name.
  *
- * scripts/build-plugin.js externalises a plugin's `@/plugins` and `@/stores/*`
- * imports to one flat `window.DWC` global, so DWC must expose every such export
- * on `window.DWC`. Hand-mirroring that list silently drifts the moment a store
- * gains an export; spreading the module namespaces at runtime is worse, because
+ * scripts/build-plugin.js externalises a plugin's `@/plugins`, `@/composables/*`
+ * and `@/stores/*` imports to one flat `window.DWC` global, so DWC must expose
+ * every such export on `window.DWC`. Hand-mirroring that list silently drifts the
+ * moment a module gains an export; spreading the module namespaces at runtime is worse, because
  * rolldown strips a namespace member that is only read through a spread when it
  * is also named-imported elsewhere (it never sees a concrete use).
  *
@@ -112,22 +112,28 @@ function resolveLocalModule(fromFile: string, specifier: string): string | null 
 export default function dwcPluginApi(): VitePlugin {
 	const srcDir = resolve(__dirname, "../src");
 
-	function discover(): Array<{ importPath: string; names: Array<string> }> {
-		const modules: Array<{ importPath: string; names: Array<string> }> = [];
-
-		// @/plugins barrel (its re-exports from ./layout and ./theme are captured by the scan)
-		modules.push({ importPath: "@/plugins", names: collectValueExports(join(srcDir, "plugins/index.ts")) });
-
-		// Every @/stores/* module - the build externalises all of them to the flat DWC global
-		const storesDir = join(srcDir, "stores");
-		for (const entry of readdirSync(storesDir, { withFileTypes: true })) {
+	// Scan a flat src subdirectory (composables, stores) and return one module entry per .ts file,
+	// keyed by the `@/<subdir>/<base>` import path the build externalises to the flat DWC global
+	function scanDir(subdir: string): Array<{ importPath: string; names: Array<string> }> {
+		const dir = join(srcDir, subdir);
+		const result: Array<{ importPath: string; names: Array<string> }> = [];
+		for (const entry of readdirSync(dir, { withFileTypes: true })) {
 			if (entry.isFile() && entry.name.endsWith(".ts") && !entry.name.endsWith(".d.ts")) {
 				const base = entry.name.replace(/\.ts$/, "");
-				modules.push({ importPath: `@/stores/${base}`, names: collectValueExports(join(storesDir, entry.name)) });
+				result.push({ importPath: `@/${subdir}/${base}`, names: collectValueExports(join(dir, entry.name)) });
 			}
 		}
+		return result;
+	}
 
-		return modules;
+	function discover(): Array<{ importPath: string; names: Array<string> }> {
+		return [
+			// @/plugins barrel (its re-exports from ./layout and ./theme are captured by the scan)
+			{ importPath: "@/plugins", names: collectValueExports(join(srcDir, "plugins/index.ts")) },
+			// Every @/composables/* and @/stores/* module - the build externalises all of them to the flat DWC global
+			...scanDir("composables"),
+			...scanDir("stores"),
+		];
 	}
 
 	return {

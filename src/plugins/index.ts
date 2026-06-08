@@ -41,9 +41,6 @@ export { getPageComponent } from "@/router/pages";
 export { registerTheme, unregisterTheme } from "./theme";
 export type { RegisterThemeDefinition, RegisteredTheme } from "./theme";
 
-export { SETTINGS_SCOPE_KEY } from "@/composables/useComponentSettings";
-export type { SettingsScope } from "@/composables/useComponentSettings";
-
 import { exposeGlobalAPI } from "./global-api";
 
 import * as Vue from "vue";

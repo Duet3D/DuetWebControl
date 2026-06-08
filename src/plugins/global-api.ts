@@ -1,14 +1,16 @@
 // Builds the `window.DWC` runtime surface that external plugin bundles resolve their imports
-// against. scripts/build-plugin.js externalises a plugin's `@/plugins` and every `@/stores/*`
-// import to a single flat `DWC` global (so `{ useMachineStore }` becomes `DWC.useMachineStore`),
-// and the framework libraries to nested handles (`DWC.Vue`, `DWC.VueRouter`, ...).
+// against. scripts/build-plugin.js externalises a plugin's `@/plugins`, every `@/composables/*` and
+// every `@/stores/*` import to a single flat `DWC` global (so `{ useMachineStore }` becomes
+// `DWC.useMachineStore`), and the framework libraries plus the public `@/utils/*` modules to nested
+// handles (`DWC.Vue`, `DWC.VueRouter`, `DWC.Path`, `DWC.Display`, ...).
 //
 // The flat half is generated at build time by vite/dwc-plugin-api.ts (virtual:dwc-plugin-api): it
-// scans @/plugins and @/stores/* and emits a concrete object of every runtime export, so it can
+// scans @/plugins, @/composables/* and @/stores/* and emits a concrete object of every runtime export, so it can
 // never drift from the source and the bundler can't tree-shake a member away. Spreading the module
 // namespaces here instead does NOT work - rolldown drops a namespace member that is only read via a
-// runtime spread when it is also named-imported elsewhere. This module only adds the nested
-// framework handles on top.
+// runtime spread when it is also named-imported elsewhere; assigning a whole `import * as X` namespace
+// as a nested handle (below) is safe because it escapes to window, forcing rolldown to keep every
+// member. This module only adds the nested framework and utility handles on top.
 
 import * as Connectors from "@duet3d/connectors";
 import * as ObjectModel from "@duet3d/objectmodel";
@@ -18,7 +20,20 @@ import * as VueI18n from "vue-i18n";
 import * as VueRouter from "vue-router";
 
 import i18n from "@/i18n";
+import beep from "@/utils/beep";
+import * as Colors from "@/utils/colors";
+import CSV from "@/utils/csv";
+import * as Display from "@/utils/display";
+import * as Download from "@/utils/download";
+import * as Enums from "@/utils/enums";
+import * as Errors from "@/utils/errors";
 import Events from "@/utils/events";
+import * as Expression from "@/utils/expression";
+import * as Gcode from "@/utils/gcode";
+import * as Numbers from "@/utils/numbers";
+import Path from "@/utils/path";
+import * as Time from "@/utils/time";
+import * as Version from "@/utils/version";
 import buildPluginApiSurface from "virtual:dwc-plugin-api";
 import vuetifyCoreComponents from "virtual:dwc-vuetify-core";
 
@@ -33,7 +48,20 @@ type DwcGlobal = Record<string, unknown> & {
 	ObjectModel: typeof ObjectModel;
 	Connectors: typeof Connectors;
 	i18n: typeof i18n;
+	Beep: typeof beep;
+	Colors: typeof Colors;
+	Csv: typeof CSV;
+	Display: typeof Display;
+	Download: typeof Download;
+	Enums: typeof Enums;
+	Errors: typeof Errors;
 	Events: typeof Events;
+	Expression: typeof Expression;
+	Gcode: typeof Gcode;
+	Numbers: typeof Numbers;
+	Path: typeof Path;
+	Time: typeof Time;
+	Version: typeof Version;
 	Components: Record<string, unknown>;
 	VuetifyComponents: Record<string, unknown>;
 };
@@ -55,7 +83,8 @@ export function exposeGlobalAPI() {
 		{
 			Vue, VueRouter, Pinia, VueI18n, ObjectModel, Connectors,
 			i18n,
-			Events,
+			Beep: beep, Colors, Csv: CSV, Display, Download, Enums, Errors, Events,
+			Expression, Gcode, Numbers, Path, Time, Version,
 			Components: {},
 			VuetifyComponents: { ...vuetifyCoreComponents },
 		},
