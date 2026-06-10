@@ -33,7 +33,16 @@ const vuetify = createVuetify({
 	theme: {
 		// Boot default - overridden synchronously by bindVuetifyTheme() the moment the store
 		// has resolved its initial value (either browser default or persisted preference)
-		defaultTheme: prefersDarkScheme() ? "dark" : "light"
+		defaultTheme: prefersDarkScheme() ? "dark" : "light",
+		themes: {
+			// `dialog-action` is the shared accent for dialog action buttons (Cancel/OK/Apply, ...).
+			// Defining it as a theme token rather than a fixed palette name lets plugin themes recolor
+			// it through registerTheme's `colors` map; plugin themes seed from these base colors, so
+			// they inherit it and Vuetify derives the `on-dialog-action` contrast automatically.
+			// The default matches Material blue-darken-1, the colour these buttons carried before
+			light: { colors: { "dialog-action": "#1E88E5" } },
+			dark: { colors: { "dialog-action": "#1E88E5" } }
+		}
 	},
 	defaults: {
 		// Vuetify 4 renders v-card-title at font-weight 400 (regular). Dialog titles ("Incompatible

@@ -10,7 +10,7 @@ import { setupLayouts } from "virtual:generated-layouts";
 import { routes, handleHotUpdate } from "vue-router/auto-routes";
 
 import { useSettingsStore } from "@/stores/settings";
-import { registeredLayoutOptions } from "@/plugins/layout";
+import { activeLayoutOptions } from "@/plugins/layout";
 import vuetify from "@/vue-plugins/vuetify";
 
 // unplugin-vue-router translates `[[...path]]` segments to `:path(.*)?`, a single optional
@@ -55,10 +55,11 @@ compiledRoutes.push({
 	component: { render: () => null },
 	beforeEnter: () => {
 		const settings = useSettingsStore();
-		if (registeredLayoutOptions.value?.locked && settings.useCustomLayout) {
+		if (activeLayoutOptions.value?.locked) {
 			return { path: "/" };
 		}
 		settings.useCustomLayout = false;
+		settings.activeLayoutId = null;
 		settings.layoutUserSet = true;
 		return { path: "/" };
 	},

@@ -10,13 +10,13 @@
 
 			<v-card-actions>
 				<v-spacer />
-				<v-btn color="blue-darken-1" variant="text" @click="cancel">
+				<v-btn color="dialog-action" variant="text" @click="cancel">
 					{{ $t("generic.cancel") }}
 				</v-btn>
-				<v-btn color="blue-darken-1" variant="text" @click="reset">
+				<v-btn color="dialog-action" variant="text" @click="reset">
 					{{ $t("dialog.configUpdated.reset") }}
 				</v-btn>
-				<v-btn color="blue-darken-1" variant="text" autofocus @click="runConfig">
+				<v-btn color="dialog-action" variant="text" autofocus @click="runConfig">
 					{{ $t("dialog.configUpdated.runConfig") }}
 				</v-btn>
 			</v-card-actions>

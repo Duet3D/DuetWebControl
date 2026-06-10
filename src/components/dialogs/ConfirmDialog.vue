@@ -11,10 +11,10 @@
 				<v-card-actions>
 					<slot name="extra-actions" />
 					<v-spacer />
-					<v-btn color="blue-darken-1" variant="text" type="button" @click="cancel">
+					<v-btn color="dialog-action" variant="text" type="button" @click="cancel">
 						{{ $t("generic.no") }}
 					</v-btn>
-					<v-btn color="blue-darken-1" variant="text" type="submit" autofocus>
+					<v-btn color="dialog-action" variant="text" type="submit" autofocus>
 						{{ $t("generic.yes") }}
 					</v-btn>
 				</v-card-actions>

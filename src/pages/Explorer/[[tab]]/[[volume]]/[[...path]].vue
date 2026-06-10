@@ -61,6 +61,7 @@
 						<span class="explorer-tab-label text-truncate">{{ tabLabel(tab) }}{{ isTabDirty(tab) ? " *" : "" }}</span>
 						<v-btn v-if="tabs.length > 1" variant="text" size="small" density="comfortable"
 							   icon class="ml-2" :title="$t('list.explorer.closeTab')"
+							   :disabled="isLastBrowserTab(tab)"
 							   @click.stop="requestCloseTab(tab.id)">
 							<v-icon size="20">mdi-close</v-icon>
 						</v-btn>
@@ -130,7 +131,7 @@
 					   :prompt="$t('dialog.runMacro.prompt', [runMacroDialog.filename])" icon="mdi-play"
 					   @confirmed="confirmRunMacro">
 			<template #extra-actions>
-				<v-btn color="blue-darken-1" variant="text" type="button" @click="editMacroFromDialog">
+				<v-btn color="dialog-action" variant="text" type="button" @click="editMacroFromDialog">
 					<v-icon class="mr-1">mdi-file-document-edit</v-icon>
 					{{ $t("list.fileList.edit") }}
 				</v-btn>
@@ -142,7 +143,7 @@
 					   :prompt="$t('dialog.startJob.prompt', [startJobDialog.filename])" icon="mdi-play"
 					   @confirmed="confirmStartJob">
 			<template #extra-actions>
-				<v-btn color="blue-darken-1" variant="text" type="button" @click="editJobFromDialog">
+				<v-btn color="dialog-action" variant="text" type="button" @click="editJobFromDialog">
 					<v-icon class="mr-1">mdi-file-document-edit</v-icon>
 					{{ $t("list.fileList.edit") }}
 				</v-btn>
@@ -159,13 +160,13 @@
 					<v-card-text>{{ $t("dialog.fileEdit.unsaved.prompt", [discardDialog.filename]) }}</v-card-text>
 					<v-card-actions>
 						<v-spacer />
-						<v-btn color="blue-darken-1" variant="text" type="button" @click="cancelClose">
+						<v-btn color="dialog-action" variant="text" type="button" @click="cancelClose">
 							{{ $t("generic.cancel") }}
 						</v-btn>
-						<v-btn color="blue-darken-1" variant="text" type="button" @click="discardAndClose">
+						<v-btn color="dialog-action" variant="text" type="button" @click="discardAndClose">
 							{{ $t("dialog.fileEdit.unsaved.dontSave") }}
 						</v-btn>
-						<v-btn color="blue-darken-1" variant="text" type="submit" autofocus>
+						<v-btn color="dialog-action" variant="text" type="submit" autofocus>
 							{{ $t("dialog.fileEdit.unsaved.save") }}
 						</v-btn>
 					</v-card-actions>
@@ -526,6 +527,16 @@ function tabIcon(tab: ExplorerTab): string {
 
 function isTabDirty(tab: ExplorerTab): boolean {
 	return tab.kind === "editor" && tab.dirty === true;
+}
+
+// The `+` new-tab button only renders inside a browser tab (its FileList #actions slot when a
+// single tab is open, or the multi-tab toolbar otherwise). Closing the final browser tab while an
+// editor tab remains would therefore strand the user with no way to open another tab, so keep the
+// last browser tab uncloseable
+const browserTabCount = computed<number>(() => tabs.value.filter((t) => t.kind === "browser").length);
+
+function isLastBrowserTab(tab: ExplorerTab): boolean {
+	return tab.kind === "browser" && browserTabCount.value === 1;
 }
 
 // Browser tab label = leaf directory name (or volume caption at the root) so users can tell

@@ -1036,7 +1036,10 @@
 			"resetComponentsPrompt": "Damit werden die gespeicherten Anzeigeeinstellungen aller Dashboard-Bedienfelder in diesem Browser und auf dem verbundenen Board verworfen. DWC wird anschliessend neu geladen. Die übrigen Einstellungen bleiben erhalten."
 		},
 		"display": {
+			"builtInLayout": "Standardoberfläche",
+			"layout": "Aktives Layout",
 			"layoutCaption": "Layout",
+			"layoutHint": "Auswählen, welches Layout für die Oberfläche verwendet werden soll",
 			"switchToCustomLayout": "Zu {layout} wechseln",
 			"switchToCustomLayoutTitle": "Zu benutzerdefiniertem Layout wechseln?",
 			"switchToCustomLayoutPrompt": "Damit wird die gesamte DWC-Oberfläche durch das Layout {layout} ersetzt. Um zur eingebauten Standardoberfläche zurückzukehren, rufen Sie die URL <span class=\"text-no-wrap\">/BuiltInLayout</span> im Browser auf.",

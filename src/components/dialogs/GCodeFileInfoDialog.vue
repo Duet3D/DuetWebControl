@@ -32,7 +32,7 @@
 			</v-card-text>
 			<v-card-actions>
 				<v-spacer />
-				<v-btn color="blue-darken-1" variant="text" @click="shown = false">
+				<v-btn color="dialog-action" variant="text" @click="shown = false">
 					{{ $t("generic.close") }}
 				</v-btn>
 			</v-card-actions>

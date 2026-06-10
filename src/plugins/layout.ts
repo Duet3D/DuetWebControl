@@ -1,35 +1,35 @@
-import { ref, shallowRef, markRaw, defineComponent, h, type Component, type Ref, type ShallowRef } from "vue";
+import { ref, computed, markRaw, defineComponent, h, type Component, type Ref, type ComputedRef } from "vue";
 
 import router from "@/router";
 import { asRenderableComponent, findPageRecord } from "@/router/pages";
 import { useSettingsStore } from "@/stores/settings";
 
 /**
- * Options accepted by {@link registerLayout}. Single-slot semantics are enforced at the API -
- * a second registration without a prior {@link unregisterLayout} is refused. The `id` is used
- * solely as a stable handle for unregistration; it is not persisted in settings and not part
- * of the layout-selection resolution
+ * Options accepted by {@link registerLayout}. Several layouts may be registered at once; the user
+ * picks the active one from the Settings combobox. The `id` is the stable handle for selection,
+ * persistence (`settings.activeLayoutId`) and unregistration
  */
 export interface RegisterLayoutOptions {
-	/** Stable identifier - required for unregisterLayout(). Not persisted */
+	/** Stable identifier - persisted in settings as the active selection and required for unregisterLayout() */
 	id: string;
 
 	/**
 	 * Hide DWC's layout switch in Settings and cut off URL escape via a router guard that
-	 * redirects non-overridden paths to `/`. Honoured only when `registerLayout()` is called
-	 * before `app.mount()`; later calls are downgraded to unlocked with a warning. The registering
-	 * code is expected to provide its own escape mechanism (writing `useCustomLayout = false`)
+	 * redirects non-overridden paths to `/`. At most one registered layout may be locked, and only
+	 * when `registerLayout()` is called before `app.mount()`; later calls (or a second locked layout)
+	 * are downgraded to unlocked with a warning. A locked layout must provide its own way back to the
+	 * built-in shell (writing `useCustomLayout = false`)
 	 */
 	locked?: boolean;
 
 	/**
-	 * On first registration ever (settings.layoutUserSet === false), set settings.useCustomLayout
-	 * to true so the registered shell takes over without the user opting in. No-op once the user
-	 * has clicked the Settings button
+	 * On first registration ever (settings.layoutUserSet === false) with no custom layout yet active,
+	 * select this layout so the registered shell takes over without the user opting in. No-op once the
+	 * user has made an explicit choice or another custom layout is already active
 	 */
 	takeoverOnFirstLoad?: boolean;
 
-	/** Label shown in the Settings button ("Switch to <caption>"). Defaults to the id */
+	/** Label shown in the Settings combobox / switch button. Defaults to the id */
 	caption?: string;
 
 	/**
@@ -37,9 +37,9 @@ export interface RegisterLayoutOptions {
 	 * form (e.g. `/Settings/:tab?`, not the file-syntax `/Settings/[[tab]]`); each value is the
 	 * component to render at that path while THIS layout is the active custom layout.
 	 *
-	 * When `useCustomLayout` is true and this layout is registered, the URL renders the supplied
-	 * component; when `useCustomLayout` is false (or another layout is registered), the URL renders
-	 * DWC's built-in component. `unregisterLayout()` restores all originals.
+	 * When this layout is the active one, the URL renders the supplied component; otherwise (the
+	 * built-in shell or a different custom layout is active) the URL renders DWC's built-in
+	 * component. Releasing the last override on a path restores its built-in component.
 	 *
 	 * Paths that don't match any registered route are skipped with a console.warn listing the
 	 * available paths so the caller gets an actionable hint
@@ -47,24 +47,60 @@ export interface RegisterLayoutOptions {
 	routes?: Record<string, Component>;
 }
 
-/**
- * The currently registered custom layout component, or null when no layout is registered.
- * Read by the switcher in `src/layouts/default.vue` to decide which shell to render
- */
-export const registeredLayout: ShallowRef<Component | null> = shallowRef(null);
+/** A registered layout: its shell component (stored via markRaw) plus the options it registered with */
+export interface RegisteredLayout {
+	component: Component;
+	options: RegisterLayoutOptions;
+}
 
 /**
- * Options carried by the currently registered layout. Mirror of the second argument to
- * {@link registerLayout}; null when no layout is registered. Read by the switcher and the
- * Settings page to drive button label + lock-gating
+ * All currently registered custom layouts, in registration order. Read by the Settings page to
+ * populate the layout combobox; the built-in shell is offered as a separate entry there and is
+ * not part of this list
  */
-export const registeredLayoutOptions: Ref<RegisterLayoutOptions | null> = ref(null);
+export const registeredLayouts: Ref<Array<RegisteredLayout>> = ref([]);
 
 /**
- * Snapshot of original route components, keyed by path. Populated when a layout with `routes`
- * registers; consumed when it unregisters so the routes go back to their built-in components
+ * The custom layout that should currently render, or null when the built-in shell is active. Derived
+ * from `settings.useCustomLayout` + `settings.activeLayoutId` against the registry. A null
+ * `activeLayoutId` (settings persisted before multiple layouts were supported) falls back to the
+ * first registered layout so a lone OEM shell still wins. An `activeLayoutId` that names no
+ * registered layout resolves to null so the missing-layout recovery in `src/layouts/default.vue`
+ * reverts to the built-in shell instead of silently rendering a different one. Read by that switcher
+ * and by `useComponentSettings`
  */
-const _routeOverrideSnapshots = new Map<string, Component>();
+export const activeLayout: ComputedRef<RegisteredLayout | null> = computed(() => {
+	const settings = useSettingsStore();
+	if (!settings.useCustomLayout || registeredLayouts.value.length === 0) {
+		return null;
+	}
+	if (settings.activeLayoutId) {
+		return registeredLayouts.value.find((layout) => layout.options.id === settings.activeLayoutId) ?? null;
+	}
+	return registeredLayouts.value[0];
+});
+
+/**
+ * Options of the active layout, or null when the built-in shell is active. Read by the Settings page
+ * (lock-gating of the switcher) and the /BuiltInLayout escape guard
+ */
+export const activeLayoutOptions: ComputedRef<RegisterLayoutOptions | null> = computed(() => activeLayout.value?.options ?? null);
+
+/**
+ * Layout-aware route overrides keyed by route record path. Each entry keeps the built-in component
+ * plus the per-layout overrides; a single dispatcher component installed at the record renders the
+ * active layout's override (or the built-in component when no active layout overrides the path).
+ * Populated as layouts with `routes` register, torn down as they unregister
+ */
+interface RouteOverrideEntry {
+	/** Pristine component the record held before any override; restored verbatim on teardown */
+	original: Component;
+	/** Render-ready built-in (lazy imports wrapped via asRenderableComponent) - the dispatcher fallback */
+	builtin: Component;
+	/** layoutId -> render-ready override component */
+	byLayout: Map<string, Component>;
+}
+const _routeOverrides = new Map<string, RouteOverrideEntry>();
 
 /**
  * Tracks whether the app has finished mounting. Flipped by App.vue's onMounted hook. Read by
@@ -79,21 +115,18 @@ export function _markAppMounted(): void {
 	_appMounted = true;
 }
 
-/**
- * The router.beforeEach cleanup function returned at lock-guard install time. Called by
- * {@link uninstallLockedRouteGuard} when the locked layout unregisters
- */
-let _lockedGuardRemove: (() => void) | null = null;
-
-/** Set of route record paths the active layout has overridden. Used by the lock guard for matching */
-const _overriddenRoutePaths = new Set<string>();
+/** Whether the session-long locked-route guard has been installed yet (at most one locked layout) */
+let _lockedGuardInstalled = false;
 
 /**
- * Install the layout-aware wrapper at each override target. Records that don't match an existing
- * route path are skipped with a hint. Triggers a router.replace so the currently-rendered page
- * picks up the new component without waiting for the next navigation
+ * Install the dispatcher at each override target. The first layout to override a given path snapshots
+ * the built-in component and installs the dispatcher; later layers just add their component to that
+ * path's per-layout map. Records that don't match an existing route path are skipped with a hint.
+ * Triggers a router.replace so the currently-rendered page picks up a freshly added override without
+ * waiting for the next navigation
  */
 function installRouteOverrides(routes: Record<string, Component>, ownerId: string): void {
+	let changed = false;
 	for (const [path, customComp] of Object.entries(routes)) {
 		const target = findPageRecord(path);
 		if (!target) {
@@ -111,119 +144,127 @@ function installRouteOverrides(routes: Record<string, Component>, ownerId: strin
 			continue;
 		}
 
-		_routeOverrideSnapshots.set(path, originalComp);
-		_overriddenRoutePaths.add(target.path);
+		const recordPath = target.path;
+		let entry = _routeOverrides.get(recordPath);
+		if (!entry) {
+			entry = { original: originalComp, builtin: markRaw(asRenderableComponent(originalComp)), byLayout: new Map() };
+			_routeOverrides.set(recordPath, entry);
 
-		const rawCustom = markRaw(asRenderableComponent(customComp));
-		const rawBuiltin = markRaw(asRenderableComponent(originalComp));
+			// Dispatcher: renders the active layout's override for this path, falling back to the
+			// built-in component when the active layout (if any) does not override it. Reads the
+			// reactive `activeLayout`, so a layout switch re-renders without a remount
+			const Dispatcher = defineComponent({
+				name: "RouteOverrideDispatcher",
+				setup() {
+					return () => {
+						const current = _routeOverrides.get(recordPath);
+						if (!current) {
+							return null;
+						}
+						const activeId = activeLayout.value?.options.id;
+						const override = activeId ? current.byLayout.get(activeId) : undefined;
+						return h(override ?? current.builtin);
+					};
+				},
+			});
+			target.components!.default = markRaw(Dispatcher);
+		}
 
-		// Layout-aware wrapper: renders the custom component only while THIS layout is the
-		// registered one AND the user has the custom layout active. The owner check guards
-		// against a second layout somehow taking ownership of the slot (single-slot enforcement
-		// at the API makes that path unreachable today, but the predicate keeps the wrapper honest)
-		const Wrapper = defineComponent({
-			name: "RouteOverrideWrapper",
-			setup() {
-				const settings = useSettingsStore();
-				return () => h(
-					settings.useCustomLayout && registeredLayoutOptions.value?.id === ownerId
-						? rawCustom
-						: rawBuiltin
-				);
-			},
-		});
-
-		target.components!.default = markRaw(Wrapper);
+		entry.byLayout.set(ownerId, markRaw(asRenderableComponent(customComp)));
+		changed = true;
 	}
 
-	// Force the active route to re-resolve so the swap is visible immediately
-	router.replace(router.currentRoute.value.fullPath).catch(() => { /* navigation aborts are fine */ });
+	if (changed) {
+		router.replace(router.currentRoute.value.fullPath).catch(() => { /* navigation aborts are fine */ });
+	}
 }
 
 /**
- * Restore the original component at each previously-overridden route. Triggers a router.replace
- * so the active page remounts under the built-in component
+ * Drop one layout's overrides. When a path loses its last override, the built-in component is
+ * restored and the dispatcher removed. Triggers a router.replace so the active page reflects the
+ * change immediately
  */
-function uninstallRouteOverrides(): void {
-	if (_routeOverrideSnapshots.size === 0) {
-		return;
-	}
-
-	for (const [path, original] of _routeOverrideSnapshots) {
-		const target = findPageRecord(path);
-		if (target && target.components) {
-			target.components.default = original;
+function uninstallRouteOverridesFor(ownerId: string): void {
+	let changed = false;
+	for (const [path, entry] of _routeOverrides) {
+		if (!entry.byLayout.delete(ownerId)) {
+			continue;
+		}
+		changed = true;
+		if (entry.byLayout.size === 0) {
+			const target = findPageRecord(path);
+			if (target && target.components) {
+				target.components.default = entry.original;
+			}
+			_routeOverrides.delete(path);
 		}
 	}
-	_routeOverrideSnapshots.clear();
-	_overriddenRoutePaths.clear();
 
-	router.replace(router.currentRoute.value.fullPath).catch(() => { /* navigation aborts are fine */ });
+	if (changed) {
+		router.replace(router.currentRoute.value.fullPath).catch(() => { /* navigation aborts are fine */ });
+	}
 }
 
 /**
- * When a locked layout is active (useCustomLayout=true), any URL the layout has not explicitly
- * overridden redirects to "/". This prevents URL-escape to DWC's built-in pages while the locked
- * layout is meant to own the UI. The guard self-disables when:
- *
- *  - the layout unregisters (cleanup function torn down by {@link uninstallLockedRouteGuard})
- *  - the registering code clears the lock by setting `useCustomLayout = false` - non-overridden
- *    routes are reachable again, restoring full DWC behaviour
- *  - the user is navigating to "/", which is always allowed so the redirect target itself never
- *    bounces. The override map should include "/" if DWC's Dashboard shouldn't render there
+ * While a locked layout is active, any URL it has not explicitly overridden redirects to "/". This
+ * prevents URL-escape to DWC's built-in pages while the locked layout owns the UI. The guard is
+ * inert (returns true) whenever the active layout is not locked - i.e. when the built-in shell or an
+ * unlocked custom layout is active - so it never needs tearing down. "/" is always allowed so the
+ * redirect target itself never bounces; the override map should include "/" if DWC's Dashboard
+ * shouldn't render there. Installed at most once, for the single permitted locked layout
  */
 function installLockedRouteGuard(): void {
-	_lockedGuardRemove = router.beforeEach((to) => {
-		if (!registeredLayoutOptions.value?.locked) {
-			return true;
-		}
-		if (!useSettingsStore().useCustomLayout) {
+	if (_lockedGuardInstalled) {
+		return;
+	}
+	_lockedGuardInstalled = true;
+	router.beforeEach((to) => {
+		if (!activeLayoutOptions.value?.locked) {
 			return true;
 		}
 		if (to.path === "/") {
 			return true;
 		}
-		if (to.matched.some((record) => _overriddenRoutePaths.has(record.path))) {
+		const activeId = activeLayout.value?.options.id;
+		if (activeId && to.matched.some((record) => _routeOverrides.get(record.path)?.byLayout.has(activeId))) {
 			return true;
 		}
 		return { path: "/" };
 	});
 }
 
-function uninstallLockedRouteGuard(): void {
-	if (_lockedGuardRemove) {
-		_lockedGuardRemove();
-		_lockedGuardRemove = null;
-	}
-}
-
 /**
- * Register a complete replacement shell. Single-slot: throws when another layout is already
- * registered; callers must {@link unregisterLayout} first if they need to swap. Call from a
- * plugin's init code; calls placed in `src/main.ts` between `registerPlugins(app)` and
- * `app.mount(...)` register before first paint and additionally unlock the pre-mount-only options
+ * Register a complete replacement shell. Several layouts may be registered simultaneously; the user
+ * selects the active one from Settings. Throws only on a duplicate id - call {@link unregisterLayout}
+ * first to replace an existing registration. Calls placed in `src/main.ts` between
+ * `registerPlugins(app)` and `app.mount(...)` register before first paint and may additionally use
+ * the pre-mount-only `locked` option
  *
  * @param component Full-shell component containing its own `<router-view>`. Stored via markRaw -
  *                  do not pass a reactive proxy
  * @param options   Registration options; see {@link RegisterLayoutOptions}
- * @throws Error when a custom layout is already registered
+ * @throws Error when a layout with the same id is already registered
  */
 export function registerLayout(component: Component, options: RegisterLayoutOptions): void {
-	if (registeredLayoutOptions.value) {
-		throw new Error(`Cannot register layout "${options.id}": layout "${registeredLayoutOptions.value.id}" is already registered. Call unregisterLayout("${registeredLayoutOptions.value.id}") first.`);
+	if (registeredLayouts.value.some((layout) => layout.options.id === options.id)) {
+		throw new Error(`Cannot register layout "${options.id}": a layout with this id is already registered. Call unregisterLayout("${options.id}") first.`);
 	}
 
-	// Locked layouts cut off URL escape via the route guard. Honoured only when registerLayout is
-	// called before app.mount() (i.e. from src/main.ts pre-mount); post-mount calls are downgraded
-	// to unlocked with a warning, while the layout itself still registers
+	// The lock cuts off URL escape via the route guard and is reserved for OEM shells wired into
+	// src/main.ts pre-mount. Honour it only before app.mount() and only for the first locked layout;
+	// otherwise downgrade to unlocked with a warning while the layout itself still registers
 	const effectiveOptions: RegisterLayoutOptions = { ...options };
-	if (effectiveOptions.locked && _appMounted) {
-		console.warn(`[DWC] Layout "${options.id}" requested locked: true but the app has already mounted; downgrading to unlocked. Locked layouts must register before app.mount()`);
-		effectiveOptions.locked = false;
+	if (effectiveOptions.locked) {
+		if (_appMounted) {
+			console.warn(`[DWC] Layout "${options.id}" requested locked: true but the app has already mounted; downgrading to unlocked. Locked layouts must register before app.mount()`);
+			effectiveOptions.locked = false;
+		} else if (registeredLayouts.value.some((layout) => layout.options.locked)) {
+			console.warn(`[DWC] Layout "${options.id}" requested locked: true but another locked layout is already registered; only one locked layout is allowed. Downgrading to unlocked`);
+			effectiveOptions.locked = false;
+		}
 	}
 
-	registeredLayout.value = markRaw(component);
-	registeredLayoutOptions.value = effectiveOptions;
+	registeredLayouts.value.push({ component: markRaw(component), options: effectiveOptions });
 
 	if (effectiveOptions.routes) {
 		installRouteOverrides(effectiveOptions.routes, effectiveOptions.id);
@@ -235,31 +276,39 @@ export function registerLayout(component: Component, options: RegisterLayoutOpti
 
 	if (effectiveOptions.takeoverOnFirstLoad) {
 		const settings = useSettingsStore();
-		if (!settings.layoutUserSet) {
+		if (!settings.layoutUserSet && !settings.useCustomLayout) {
 			settings.useCustomLayout = true;
+			settings.activeLayoutId = effectiveOptions.id;
 		}
 	}
 }
 
 /**
- * Release the registered layout. No-op when the passed id does not match the current registration -
- * a plugin cannot unregister another plugin's layout. The switcher swaps back to the built-in shell
- * on the next render; any installed route overrides are restored to their built-in components.
+ * Release a registered layout. No-op when no layout with the passed id is registered - a plugin
+ * cannot unregister another plugin's layout. Any route overrides it installed are dropped (the
+ * built-in component is restored where this was the last override). When the released layout was the
+ * active selection, the selection is cleared so the switcher falls back to the first remaining layout
+ * or the built-in shell.
  *
- * Locked layouts cannot be unregistered: the lock is intended to keep the user in the registered
- * shell for the lifetime of the session, and allowing unregister would undo that contract
+ * Locked layouts cannot be unregistered: the lock keeps the user in the registered shell for the
+ * lifetime of the session, and allowing unregister would undo that contract
  *
- * @throws Error when the registered layout is locked
+ * @throws Error when the named layout is locked
  */
 export function unregisterLayout(id: string): void {
-	if (registeredLayoutOptions.value?.id !== id) {
+	const idx = registeredLayouts.value.findIndex((layout) => layout.options.id === id);
+	if (idx === -1) {
 		return;
 	}
-	if (registeredLayoutOptions.value.locked) {
+	if (registeredLayouts.value[idx].options.locked) {
 		throw new Error(`Cannot unregister layout "${id}": the layout is locked and must remain active for the session`);
 	}
-	uninstallLockedRouteGuard();
-	uninstallRouteOverrides();
-	registeredLayout.value = null;
-	registeredLayoutOptions.value = null;
+
+	uninstallRouteOverridesFor(id);
+	registeredLayouts.value.splice(idx, 1);
+
+	const settings = useSettingsStore();
+	if (settings.activeLayoutId === id) {
+		settings.activeLayoutId = null;
+	}
 }

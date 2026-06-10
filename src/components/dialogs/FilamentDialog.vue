@@ -18,7 +18,7 @@
 
 			<v-card-actions>
 				<v-spacer />
-				<v-btn color="blue-darken-1" variant="text" @click="hide">
+				<v-btn color="dialog-action" variant="text" @click="hide">
 					{{ $t("generic.cancel") }}
 				</v-btn>
 				<v-spacer />

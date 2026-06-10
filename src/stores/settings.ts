@@ -288,16 +288,23 @@ export const useSettingsStore = defineStore("settings", {
 		dashboardMode: DashboardMode.default,
 
 		/**
-		 * When true and a custom layout has been registered via `registerLayout()` in `@/plugins/layout`,
-		 * the switcher in `src/layouts/default.vue` renders that layout instead of the built-in
-		 * shell. Toggled from the Settings -> Display switch button; a registration with
-		 * `takeoverOnFirstLoad: true` also flips this on its first registration so the user does not
-		 * need to opt in
+		 * When true and at least one custom layout has been registered via `registerLayout()` in
+		 * `@/plugins/layout`, the switcher in `src/layouts/default.vue` renders the active custom
+		 * layout (see `activeLayoutId`) instead of the built-in shell. Set from the Settings -> Display
+		 * switcher; a registration with `takeoverOnFirstLoad: true` also flips this on its first
+		 * registration so the user does not need to opt in
 		 */
 		useCustomLayout: false,
 
 		/**
-		 * True once the user has explicitly clicked the layout-switch button in Settings. Read by
+		 * Id of the selected custom layout (the active one when `useCustomLayout` is true). Null means
+		 * "the first registered layout" - the back-compat default for settings persisted before
+		 * multiple layouts were supported, and the fallback when the selected layout unregisters
+		 */
+		activeLayoutId: null as string | null,
+
+		/**
+		 * True once the user has explicitly chosen a layout from the Settings switcher. Read by
 		 * `registerLayout({ takeoverOnFirstLoad: true })` to suppress auto-takeover after the user has
 		 * already made a choice. Cleared by the missing-layout recovery path in the switcher so the
 		 * next plugin load can take over again

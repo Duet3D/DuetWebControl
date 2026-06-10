@@ -236,7 +236,7 @@
 				<br />
 				<v-btn v-if="loading" :title="$t('plugins.gcodeViewer.cancelLoad')"
 					   color="warning" size="small" @click="cancelLoad">
-					<v-icon color="red">mdi-cancel</v-icon>
+					<v-icon color="error">mdi-cancel</v-icon>
 				</v-btn>
 			</div>
 

@@ -6,7 +6,7 @@
 				<v-chip v-if="current === value" size="x-small" color="success">
 					{{ $t("plugins.accelerometer.configured") }}
 				</v-chip>
-				<v-chip v-if="showApply" size="x-small" color="grey" class="ml-1" @click="apply">
+				<v-chip v-if="showApply" size="x-small" color="surface-variant" class="ml-1" @click="apply">
 					{{ $t("plugins.accelerometer.apply") }}
 				</v-chip>
 			</slot>

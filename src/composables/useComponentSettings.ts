@@ -1,6 +1,6 @@
 import type { InjectionKey, WritableComputedRef } from "vue";
 
-import { registeredLayout } from "@/plugins/layout";
+import { activeLayout } from "@/plugins/layout";
 import { useSettingsStore } from "@/stores/settings";
 
 /**
@@ -103,14 +103,13 @@ function deriveComponentName(): string {
 function derivePositionalId(): string {
 	const route = useRoute();
 	const componentName = deriveComponentName();
-	const settingsStore = useSettingsStore();
 
 	// Built-in layout: the page/route is the layout, so identity is route + component name. Two
 	// instances of the same component on the same route share settings; pin `options.id` to
 	// avoid that. No scope is provided to descendants because there is no layout chain to extend.
 	// Reads the *effective* state - useCustomLayout may be true while the plugin is still loading,
 	// during which window the built-in shell renders and route-based ids are the right derivation
-	if (!settingsStore.useCustomLayout || !registeredLayout.value) {
+	if (!activeLayout.value) {
 		return `${route.path}::${componentName}`;
 	}
 

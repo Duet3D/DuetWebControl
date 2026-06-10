@@ -1038,7 +1038,10 @@
 			"resetComponentsPrompt": "This discards the saved display settings of all dashboard panels on this browser and on the connected board. DWC will reload afterwards. Your other settings are kept."
 		},
 		"display": {
+			"builtInLayout": "Built-in layout",
+			"layout": "Active layout",
 			"layoutCaption": "Layout",
+			"layoutHint": "Choose which interface layout to use",
 			"switchToCustomLayout": "Switch to {layout}",
 			"switchToCustomLayoutTitle": "Switch to custom layout?",
 			"switchToCustomLayoutPrompt": "This replaces DWC's entire interface with the {layout} layout. To return to the built-in layout, open the URL <span class=\"text-no-wrap\">/BuiltInLayout</span> in your browser.",

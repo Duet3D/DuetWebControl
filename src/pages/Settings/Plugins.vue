@@ -141,7 +141,7 @@
 				</v-card-text>
 				<v-card-actions>
 					<v-spacer />
-					<v-btn color="blue-darken-1" variant="text" @click="uninstallDialog.shown = false">
+					<v-btn color="dialog-action" variant="text" @click="uninstallDialog.shown = false">
 						{{ $t("generic.cancel") }}
 					</v-btn>
 					<v-btn color="error" variant="text" @click="confirmUninstall">

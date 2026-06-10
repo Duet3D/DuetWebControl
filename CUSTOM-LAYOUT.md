@@ -4,7 +4,7 @@ DWC plugins can replace the entire built-in shell (app bar, navigation drawer, s
 
 ## Overview
 
-A *custom layout* is a Vue component that renders the application's chrome - whatever wraps each page. The built-in shell DWC ships with is one such layout; a plugin can register another. At most one custom layout can be registered at a time. The user toggles between the built-in layout and the registered custom layout from Settings, or by navigating to a magic URL (see below).
+A *custom layout* is a Vue component that renders the application's chrome - whatever wraps each page. The built-in shell DWC ships with is one such layout; plugins can register others. Several custom layouts can be registered at once; the user picks which one is active (or returns to the built-in shell) from Settings, or by navigating to a magic URL (see below).
 
 Pages themselves are unaffected. The same vue-router route table is in effect under either layout, the active layout simply provides the surrounding chrome and the `<router-view />` mount point.
 
@@ -40,30 +40,30 @@ The component is stored via `markRaw` internally, so it does not need to be wrap
 
 | Field | Type | Required | Description |
 |---|---|---|---|
-| `id` | `string` | yes | Stable identifier. Used by `unregisterLayout()` to release this exact registration. |
-| `caption` | `string` | no | Label shown in the Settings switch ("Switch to ..."). Defaults to the `id`. |
-| `takeoverOnFirstLoad` | `boolean` | no | When `true` and the user has not yet made an explicit layout choice, automatically activate this layout on registration. After the user clicks the Settings switch once, this option has no further effect. |
+| `id` | `string` | yes | Stable identifier. Persisted as the active-layout selection and used by `unregisterLayout()` to release this exact registration. |
+| `caption` | `string` | no | Label shown in the Settings layout picker. Defaults to the `id`. |
+| `takeoverOnFirstLoad` | `boolean` | no | When `true` and the user has not yet made an explicit layout choice and no custom layout is active yet, automatically activate this layout on registration. After the user picks a layout in Settings once, this option has no further effect. |
 | `routes` | `Record<string, Component>` | no | Per-path component overrides; see [Overriding built-in routes](#overriding-built-in-routes). |
 
-### Single-slot semantics
+### Registering more than one layout
 
-Only one custom layout can be registered at a time. A second `registerLayout()` call while another layout is active throws an `Error`. Call `unregisterLayout(id)` first if you need to swap.
+Several layouts can be registered at the same time, each with a distinct `id`. A second `registerLayout()` call with an `id` that is already registered throws an `Error`; call `unregisterLayout(id)` first to replace that specific registration.
 
 ```ts
 unregisterLayout("my-plugin-shell");
 ```
 
-Passing an id that does not match the current registration is a no-op, so a plugin cannot unregister another plugin's layout.
+Passing an id that is not registered is a no-op, so a plugin cannot unregister another plugin's layout.
 
 ## How the user activates a custom layout
 
-When a plugin has a custom layout registered, the Settings page (Display section) shows a "Switch to ..." button. Clicking it flips between the built-in layout and the registered custom layout. The user's choice persists across reloads.
+When custom layouts are registered, the Settings page (Display section) lets the user choose the active layout. With a single registered layout, a "Switch to ..." button toggles between it and the built-in shell; with more than one, a dropdown lists the built-in shell alongside every registered layout. The user's choice persists across reloads.
 
-A plugin can also opt to take over automatically on first registration by passing `takeoverOnFirstLoad: true`. This only applies when the user has never made an explicit choice; once the Settings button is clicked, the user's preference wins.
+A plugin can also opt to take over automatically on first registration by passing `takeoverOnFirstLoad: true`. This only applies when the user has never made an explicit choice and no custom layout is active yet; once the user picks a layout in Settings, their preference wins.
 
 ### The /BuiltInLayout magic URL
 
-If a custom layout's chrome breaks or the user wants a quick way back to the stock shell, navigating to `/BuiltInLayout` resets the layout to built-in and redirects to `/`. The switch runs in a navigation guard, so it works even when your custom shell does not route to this path itself, and regardless of which page the user came from. A locked layout owns the UI for the session, so `/BuiltInLayout` is refused while one is active - a locked layout must provide its own escape (see below).
+If a custom layout's chrome breaks or the user wants a quick way back to the stock shell, navigating to `/BuiltInLayout` resets the layout to built-in and redirects to `/`. The switch runs in a navigation guard, so it works even when your custom shell does not route to this path itself, and regardless of which page the user came from.
 
 ## Routing under a custom layout
 
@@ -126,7 +126,7 @@ unregisterRoute("/Plugins/MyPlugin/Grid-42");
 
 ## Overriding built-in routes
 
-The `routes` option on `registerLayout()` lets the custom layout supply its own component for an existing path. While this layout is active, the URL renders the plugin's component; while it is not (the user switched back to built-in, or another layout took over), the URL renders DWC's original component. `unregisterLayout()` restores all originals.
+The `routes` option on `registerLayout()` lets the custom layout supply its own component for an existing path. While this layout is active, the URL renders the plugin's component; while it is not (the user switched back to built-in, or to another layout), the URL renders DWC's original component. If two layouts override the same path, whichever is active wins. `unregisterLayout()` drops that layout's overrides; a path returns to DWC's component once no registered layout overrides it any longer.
 
 ```ts
 registerLayout(MyShell, {

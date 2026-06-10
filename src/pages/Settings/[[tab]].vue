@@ -283,10 +283,16 @@
 												  :label="$t('settings.display.theme')"
 												  v-hint="$t('settings.display.themeHint')"
 												  variant="outlined" density="comfortable" hide-details class="mt-4" />
-										<v-btn v-if="registeredLayout && !registeredLayoutOptions?.locked"
-											   variant="tonal" class="mt-4" @click="onSwitchLayoutClick">
-											{{ switchLayoutLabel }}
-										</v-btn>
+										<template v-if="registeredLayouts.length > 0 && !activeLayoutOptions?.locked">
+											<v-select v-if="registeredLayouts.length > 1" v-model="selectedLayoutId"
+													  :items="layoutItems" item-title="title" item-value="value"
+													  :label="$t('settings.display.layout')"
+													  v-hint="$t('settings.display.layoutHint')"
+													  variant="outlined" density="comfortable" hide-details class="mt-4" />
+											<v-btn v-else variant="tonal" class="mt-4" @click="onSwitchLayoutClick">
+												{{ switchLayoutLabel }}
+											</v-btn>
+										</template>
 									</v-card-text>
 								</v-card>
 							</v-col>
@@ -838,7 +844,7 @@ import ListEditor from "@/components/inputs/ListEditor.vue";
 import { useFirmwareInstallController } from "@/composables/useFirmwareInstallController";
 import i18n, { type Locale } from "@/i18n";
 import { getPluginSettingTabs } from "@/plugins";
-import { registeredLayout, registeredLayoutOptions } from "@/plugins/layout";
+import { registeredLayouts, activeLayout, activeLayoutOptions } from "@/plugins/layout";
 import { registeredThemes } from "@/plugins/theme";
 import { localStorageSupported, removeLocalSetting } from "@/utils/localStorage";
 import { useCacheStore } from "@/stores/cache";
@@ -995,24 +1001,47 @@ const themeItems = computed(() => [
 	...registeredThemes.value.map(t => ({ title: t.caption, value: t.name })),
 ]);
 
+// Single-layout case keeps the toggle button (built-in <-> the one registered layout); the combobox
+// below takes over once more than one layout is available
 const switchLayoutLabel = computed(() => {
 	if (settingsStore.useCustomLayout) {
 		return i18n.global.t("settings.display.switchToDefaultLayout");
 	}
-	const caption = registeredLayoutOptions.value?.caption ?? registeredLayoutOptions.value?.id ?? "";
+	const layout = registeredLayouts.value[0];
+	const caption = layout?.options.caption ?? layout?.options.id ?? "";
 	return i18n.global.t("settings.display.switchToCustomLayout", { layout: caption });
 });
 
 async function onSwitchLayoutClick() {
+	const layout = registeredLayouts.value[0];
 	if (!settingsStore.useCustomLayout) {
-		const caption = registeredLayoutOptions.value?.caption ?? registeredLayoutOptions.value?.id ?? "";
+		const caption = layout?.options.caption ?? layout?.options.id ?? "";
 		if (!(await showConfirmDialog(i18n.global.t("settings.display.switchToCustomLayoutTitle"), i18n.global.t("settings.display.switchToCustomLayoutPrompt", { layout: caption }), "mdi-view-dashboard-variant", true))) {
 			return;
 		}
+		settingsStore.useCustomLayout = true;
+		settingsStore.activeLayoutId = layout?.options.id ?? null;
+	} else {
+		settingsStore.useCustomLayout = false;
+		settingsStore.activeLayoutId = null;
 	}
-	settingsStore.useCustomLayout = !settingsStore.useCustomLayout;
 	settingsStore.layoutUserSet = true;
 }
+
+// Combobox model: null selects the built-in shell, a layout id selects that custom layout
+const selectedLayoutId = computed<string | null>({
+	get: () => settingsStore.useCustomLayout ? (activeLayout.value?.options.id ?? null) : null,
+	set(value) {
+		settingsStore.useCustomLayout = value !== null;
+		settingsStore.activeLayoutId = value;
+		settingsStore.layoutUserSet = true;
+	},
+});
+
+const layoutItems = computed(() => [
+	{ title: i18n.global.t("settings.display.builtInLayout"), value: null as string | null },
+	...registeredLayouts.value.map((layout) => ({ title: layout.options.caption ?? layout.options.id, value: layout.options.id as string | null })),
+]);
 
 const displayUnitOptions = computed(() => [
 	{ label: i18n.global.t("settings.units.displayUnitsOptions.metric"), value: UnitOfMeasure.metric },
