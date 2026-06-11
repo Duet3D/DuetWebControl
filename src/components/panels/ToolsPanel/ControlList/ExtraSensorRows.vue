@@ -7,9 +7,9 @@
 				</td>
 			</tr>
 			<tr>
-				<th class="pl-2 py-2" colspan="2" :class="getExtraColor(item.index)">
+				<td class="pl-2 py-2 font-weight-bold" colspan="2" :class="getExtraColor(item.index)">
 					{{ formatExtraSensorName(item.sensor, item.index) }}
-				</th>
+				</td>
 				<td class="py-2">
 					{{ displaySensorValue(item.sensor) }}
 				</td>

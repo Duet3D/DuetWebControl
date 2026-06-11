@@ -3,6 +3,8 @@ import { MachineMode } from "@duet3d/objectmodel";
 import { defineStore } from "pinia";
 
 import i18n from "@/i18n";
+import type { EmbeddableComponent } from "@/plugins";
+import type { RegisteredLayout, RegisterLayoutOptions } from "@/plugins/layout";
 import { getErrorMessage } from "@/utils/errors";
 import { extractFileName } from "@/utils/path";
 
@@ -209,7 +211,27 @@ export const useUiStore = defineStore("ui", {
 		 * remain visible. {@link NotificationQueue} updates this via the queue's onDismiss
 		 * hook so getters like {@link consoleRoutedNotifications} reflect the actual visible set
 		 */
-		activeNotifications: new Map<string, GeneralNotification>()
+		activeNotifications: new Map<string, GeneralNotification>(),
+
+		/**
+		 * All currently registered custom layouts, in registration order. Mutated by
+		 * registerLayout()/unregisterLayout() in @/plugins/layout; the Settings page reads it to
+		 * populate the layout combobox. Kept on the store (rather than a module-level ref in the
+		 * layout module) so external plugins can read it through window.DWC. The built-in shell is
+		 * offered as a separate entry in Settings and is not part of this list. Component references
+		 * inside each entry are markRaw'd at registration time, so deep store reactivity won't proxy them
+		 */
+		registeredLayouts: new Array<RegisteredLayout>(),
+
+		/**
+		 * Components plugins expose for embedding in third-party flexible layouts, keyed by their
+		 * namespaced id. Mutated by registerEmbeddableComponent()/unregisterEmbeddableComponent() in
+		 * @/plugins; a layout reads this reactively to build its widget palette and to resolve a stored
+		 * widget id to a component. Held on the store (externalised to window.DWC) so a layout shell can
+		 * consume it without importing DWC internals. Each entry's component is markRaw'd at registration,
+		 * so deep store reactivity won't proxy it
+		 */
+		embeddableComponents: new Array<EmbeddableComponent>()
 	}),
 	getters: {
 		/**
@@ -279,6 +301,34 @@ export const useUiStore = defineStore("ui", {
 		uiFrozen: () => {
 			const machineStore = useMachineStore()
 			return machineStore.isConnecting || machineStore.isDisconnecting || !machineStore.isConnected;
+		},
+
+		/**
+		 * The custom layout that should currently render, or null when the built-in shell is active.
+		 * Derived from settings.useCustomLayout + settings.activeLayoutId against {@link registeredLayouts}.
+		 * A null activeLayoutId (settings persisted before multiple layouts were supported) falls back to
+		 * the first registered layout so a lone OEM shell still wins; an activeLayoutId that names no
+		 * registered layout resolves to null so the missing-layout recovery in src/layouts/default.vue
+		 * reverts to the built-in shell instead of silently rendering a different one. Read by that
+		 * switcher and by useComponentSettings
+		 */
+		activeLayout(): RegisteredLayout | null {
+			const settingsStore = useSettingsStore();
+			if (!settingsStore.useCustomLayout || this.registeredLayouts.length === 0) {
+				return null;
+			}
+			if (settingsStore.activeLayoutId) {
+				return this.registeredLayouts.find((layout) => layout.options.id === settingsStore.activeLayoutId) ?? null;
+			}
+			return this.registeredLayouts[0];
+		},
+
+		/**
+		 * Options of the active layout, or null when the built-in shell is active. Read by the Settings
+		 * page (lock-gating of the switcher) and the /BuiltInLayout escape guard
+		 */
+		activeLayoutOptions(): RegisterLayoutOptions | null {
+			return this.activeLayout?.options ?? null;
 		},
 
 		/**

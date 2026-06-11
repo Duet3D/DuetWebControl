@@ -163,19 +163,19 @@
 			</v-card-text>
 
 			<v-card-actions>
-				<v-btn v-show="canCancel" color="dialog-action" variant="text" @click="shown = false">
+				<v-btn v-show="canCancel" variant="text" @click="shown = false">
 					{{ $t("dialog.pluginInstallation.cancel") }}
 				</v-btn>
 				<v-spacer />
-				<v-btn v-show="isFinished" color="dialog-action" variant="text" @click="finish">
+				<v-btn v-show="isFinished" variant="text" @click="finish">
 					{{ $t("dialog.pluginInstallation.finish") }}
 				</v-btn>
 				<v-spacer />
-				<v-btn v-show="currentPage > 0 && currentPage < Page.finish" color="dialog-action"
+				<v-btn v-show="currentPage > 0 && currentPage < Page.finish"
 					   variant="text" @click="currentPage--">
 					{{ $t("dialog.pluginInstallation.back") }}
 				</v-btn>
-				<v-btn v-show="currentPage < Page.finish" color="dialog-action" variant="text"
+				<v-btn v-show="currentPage < Page.finish" variant="text"
 					   :disabled="!canNext" @click="next">
 					{{ $t("dialog.pluginInstallation.next") }}
 				</v-btn>

@@ -10,7 +10,7 @@ import { setupLayouts } from "virtual:generated-layouts";
 import { routes, handleHotUpdate } from "vue-router/auto-routes";
 
 import { useSettingsStore } from "@/stores/settings";
-import { activeLayoutOptions } from "@/plugins/layout";
+import { useUiStore } from "@/stores/ui";
 import vuetify from "@/vue-plugins/vuetify";
 
 // unplugin-vue-router translates `[[...path]]` segments to `:path(.*)?`, a single optional
@@ -55,7 +55,7 @@ compiledRoutes.push({
 	component: { render: () => null },
 	beforeEnter: () => {
 		const settings = useSettingsStore();
-		if (activeLayoutOptions.value?.locked) {
+		if (useUiStore().activeLayoutOptions?.locked) {
 			return { path: "/" };
 		}
 		settings.useCustomLayout = false;

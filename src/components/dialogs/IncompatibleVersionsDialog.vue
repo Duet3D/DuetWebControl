@@ -19,7 +19,7 @@
 
 			<v-card-actions>
 				<v-spacer />
-				<v-btn ref="okButton" color="dialog-action" variant="text" @click="shown = false">
+				<v-btn ref="okButton" variant="text" @click="shown = false">
 					{{ $t("generic.ok") }}
 				</v-btn>
 				<v-spacer />

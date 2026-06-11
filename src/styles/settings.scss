@@ -24,8 +24,17 @@ textarea {
     line-height: 1.25rem !important;
 }
 
-a:not(:hover) {
-    text-decoration: none;
+@layer vuetify-core {
+    a:not(:hover) {
+        text-decoration: none;
+    }
+    a {
+        color: rgb(var(--v-theme-primary));
+    }
+    .global-container th,
+    .global-container strong {
+        color: rgb(var(--v-theme-card-title));
+    }
 }
 
 .v-overlay:not(.v-overlay--active) > .v-overlay__scrim {

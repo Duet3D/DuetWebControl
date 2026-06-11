@@ -8,7 +8,6 @@ import { useRoute, useRouter } from "vue-router";
 
 import BuiltInShell from "@/layouts/builtin.vue";
 import i18n from "@/i18n";
-import { activeLayout } from "@/plugins/layout";
 import { useSettingsStore } from "@/stores/settings";
 import { LogLevel, useUiStore } from "@/stores/ui";
 import Events from "@/utils/events";
@@ -18,7 +17,7 @@ const uiStore = useUiStore();
 const route = useRoute();
 const router = useRouter();
 
-const activeShell = computed(() => activeLayout.value?.component ?? BuiltInShell);
+const activeShell = computed(() => uiStore.activeLayout?.component ?? BuiltInShell);
 
 // The watcher fires only on toggles, not on first mount, because activeShell is a derived computed.
 // Force a clean remount on swap to drop any keep-alive cache from the previous shell and to reset
@@ -30,7 +29,7 @@ watch(activeShell, () => {
 
 onMounted(() => {
 	Events.on("dwcPluginsLoaded", () => {
-		if (settingsStore.useCustomLayout && !activeLayout.value) {
+		if (settingsStore.useCustomLayout && !uiStore.activeLayout) {
 			// System-initiated recovery: the user opted into a custom layout but no matching plugin
 			// registered one this session. The switcher is hidden when no custom layout is registered,
 			// so the user would have no UI to clear the stale preference. Clearing layoutUserSet

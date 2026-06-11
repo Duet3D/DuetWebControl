@@ -28,7 +28,7 @@
 			</v-col>
 
 			<v-col>
-				<v-slider :model-value="innerValue" :min="min" :max="max" :disabled="disabled"
+				<v-slider :model-value="innerValue" :min="min" :max="max" :disabled="disabled" color="primary" thumb-color="primary"
 						  :readonly="isLocked && lockable" hide-details thumb-label="always" class="slider"
 						  @update:model-value="innerValue = $event" @end="onSliderEnd">
 					<template #thumb-label="{ modelValue: thumbValue }">

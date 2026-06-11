@@ -1,7 +1,7 @@
 import type { InjectionKey, WritableComputedRef } from "vue";
 
-import { activeLayout } from "@/plugins/layout";
 import { useSettingsStore } from "@/stores/settings";
+import { useUiStore } from "@/stores/ui";
 
 /**
  * Kind of a dynamic component setting - selects which object-model entities the settings dialog
@@ -109,7 +109,7 @@ function derivePositionalId(): string {
 	// avoid that. No scope is provided to descendants because there is no layout chain to extend.
 	// Reads the *effective* state - useCustomLayout may be true while the plugin is still loading,
 	// during which window the built-in shell renders and route-based ids are the right derivation
-	if (!activeLayout.value) {
+	if (!useUiStore().activeLayout) {
 		return `${route.path}::${componentName}`;
 	}
 

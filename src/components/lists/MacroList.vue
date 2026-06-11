@@ -38,8 +38,8 @@
 				<v-list v-else :density="listDensity" class="pt-0">
 					<v-list-item v-if="!isRootDirectory && settings.showDirectories" @click="goUp">
 						<template #prepend>
-							<v-avatar size="32" color="surface-variant">
-								<v-icon size="small" color="on-surface-variant">mdi-arrow-up</v-icon>
+							<v-avatar size="32" color="macro-directory">
+								<v-icon size="small" color="on-macro-directory">mdi-arrow-up</v-icon>
 							</v-avatar>
 						</template>
 						<v-list-item-title>{{ $t("list.baseFileList.goUp") }}</v-list-item-title>
@@ -48,8 +48,8 @@
 					<v-list-item v-for="item in displayedFiles" :key="item.name" :disabled="uiStore.uiFrozen"
 								 @click="itemClick(item)" v-context-menu="(x: number, y: number) => openContextMenu(item, x, y)">
 						<template #prepend>
-							<v-avatar size="32" :color="item.isDirectory ? 'surface-variant' : 'primary'">
-								<v-icon size="small" :color="item.isDirectory ? 'on-surface-variant' : 'on-primary'">{{ item.isDirectory ? "mdi-folder" : "mdi-file" }}</v-icon>
+							<v-avatar size="32" :color="item.isDirectory ? 'macro-directory' : 'primary'">
+								<v-icon size="small" :color="item.isDirectory ? 'on-macro-directory' : 'on-primary'">{{ item.isDirectory ? "mdi-folder" : "mdi-file" }}</v-icon>
 							</v-avatar>
 						</template>
 						<v-list-item-title>{{ item.displayName }}</v-list-item-title>

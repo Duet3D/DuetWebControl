@@ -17,7 +17,7 @@
 					{{ $t("dialog.componentSettings.reset") }}
 				</v-btn>
 				<v-spacer />
-				<v-btn color="dialog-action" variant="text" @click="shown = false">
+				<v-btn variant="text" @click="shown = false">
 					{{ $t("generic.close") }}
 				</v-btn>
 			</v-card-actions>

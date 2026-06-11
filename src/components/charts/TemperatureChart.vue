@@ -72,6 +72,8 @@
 </template>
 
 <script setup lang="ts">
+import { useTheme } from "vuetify";
+
 import { Chart, Filler, Legend, LineController, LineElement, LinearScale, PointElement, TimeScale, Tooltip } from "chart.js";
 import "chartjs-adapter-date-fns";
 import { enUS } from "date-fns/locale/en-US";
@@ -92,6 +94,7 @@ const defaultMaxTemperature = 300;
 
 const machineStore = useMachineStore();
 const settingsStore = useSettingsStore();
+const theme = useTheme();
 
 // Background sampler keeps filling the rolling buffer regardless of whether any chart instance
 // is mounted; the call is idempotent so multiple chart mounts are fine
@@ -188,19 +191,22 @@ const minHeaterTemperature = computed(() => {
 	return min;
 });
 
-function applyDarkTheme(active: boolean) {
+function applyChartTheme() {
 	if (!chart) {
 		return;
 	}
-	const ticksColor = active ? "#FFF" : "#666";
-	chart.options!.plugins!.legend!.labels!.color = ticksColor;
-	chart.options!.scales!.x!.ticks!.color = ticksColor;
-	chart.options!.scales!.y!.ticks!.color = ticksColor;
+	// chart.js can't read CSS vars, so resolve theme tokens to concrete colours: the legend (top
+	// header) and axis ticks use the card-title grey, the gridlines the lighter chart-grid token
+	const { colors } = theme.current.value;
+	const textColor = colors["card-title"] as string;
+	const gridColor = colors["chart-grid"] as string;
 
-	const gridColor = active ? "rgba(255,255,255,0.15)" : "rgba(0,0,0,0.15)";
+	chart.options!.plugins!.legend!.labels!.color = textColor;
+	chart.options!.scales!.x!.ticks!.color = textColor;
+	chart.options!.scales!.y!.ticks!.color = textColor;
+	chart.options!.scales!.y2!.ticks!.color = textColor;
 	chart.options!.scales!.x!.grid!.color = gridColor;
 	chart.options!.scales!.y!.grid!.color = gridColor;
-	chart.options!.scales!.y2!.ticks!.color = ticksColor;
 
 	chart.update();
 }
@@ -273,7 +279,8 @@ onMounted(() => {
 					onClick: () => { /* visibility is controlled through the panel settings */ },
 					labels: {
 						filter: (legendItem, data) => !!(data.datasets[legendItem.datasetIndex!] as TempChartDataset).showLine,
-						font: { family: "Roboto,sans-serif" }
+						font: { family: "Roboto,sans-serif", weight: "bold" },
+						boxHeight: 12
 					}
 				}
 			},
@@ -313,7 +320,7 @@ onMounted(() => {
 		}
 	});
 
-	applyDarkTheme(settingsStore.darkTheme);
+	applyChartTheme();
 	applyVisibility();
 	refresh();
 
@@ -327,7 +334,7 @@ onBeforeUnmount(() => {
 	chart = null;
 });
 
-watch(() => settingsStore.darkTheme, (to) => applyDarkTheme(to));
+watch(() => settingsStore.darkTheme, () => applyChartTheme());
 
 // Editing the displayed-series settings takes effect immediately rather than waiting for the
 // next sample tick

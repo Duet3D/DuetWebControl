@@ -123,7 +123,7 @@
 						</td>
 					</template>
 					<template v-else>
-						<th>
+						<td class="font-weight-bold">
 							<template v-if="toolHeater">
 								<v-tooltip location="top" :text="getHeaterPower(toolHeater)">
 									<template #activator="{ props: tooltipProps }">
@@ -144,7 +144,7 @@
 							<span v-else>
 								{{ $t("generic.noValue") }}
 							</span>
-						</th>
+						</td>
 
 						<td>
 							{{ getHeaterValue(toolHeater) }}

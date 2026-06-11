@@ -24,13 +24,13 @@
 			<v-card-text>{{ destinationPrompt }}</v-card-text>
 			<v-card-actions>
 				<v-spacer />
-				<v-btn color="dialog-action" variant="text" @click="destinationDialog = false">
+				<v-btn variant="text" @click="destinationDialog = false">
 					{{ $t("generic.cancel") }}
 				</v-btn>
-				<v-btn color="dialog-action" variant="text" @click="confirmDestination('system')">
+				<v-btn variant="text" @click="confirmDestination('system')">
 					{{ $t("dialog.dropUpload.system") }}
 				</v-btn>
-				<v-btn color="dialog-action" variant="text" @click="confirmDestination('macro')">
+				<v-btn variant="text" @click="confirmDestination('macro')">
 					{{ $t("dialog.dropUpload.macro") }}
 				</v-btn>
 				<v-btn color="primary" variant="text" autofocus @click="confirmDestination('job')">

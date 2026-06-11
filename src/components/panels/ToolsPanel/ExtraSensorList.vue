@@ -30,9 +30,9 @@ table th {
 					</td>
 				</tr>
 				<tr>
-					<th class="py-2" :class="getExtraColor(extraSensor.index)">
+					<td class="py-2 font-weight-bold" :class="getExtraColor(extraSensor.index)">
 						{{ formatExtraSensorName(extraSensor.sensor, extraSensor.index) }}
-					</th>
+					</td>
 					<td class="py-2">
 						{{ displaySensorValue(extraSensor.sensor) }}
 					</td>

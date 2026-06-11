@@ -1,8 +1,9 @@
-import { ref, computed, markRaw, defineComponent, h, type Component, type Ref, type ComputedRef } from "vue";
+import { markRaw, defineComponent, h, type Component } from "vue";
 
 import router from "@/router";
 import { asRenderableComponent, findPageRecord } from "@/router/pages";
 import { useSettingsStore } from "@/stores/settings";
+import { useUiStore } from "@/stores/ui";
 
 /**
  * Options accepted by {@link registerLayout}. Several layouts may be registered at once; the user
@@ -53,38 +54,9 @@ export interface RegisteredLayout {
 	options: RegisterLayoutOptions;
 }
 
-/**
- * All currently registered custom layouts, in registration order. Read by the Settings page to
- * populate the layout combobox; the built-in shell is offered as a separate entry there and is
- * not part of this list
- */
-export const registeredLayouts: Ref<Array<RegisteredLayout>> = ref([]);
-
-/**
- * The custom layout that should currently render, or null when the built-in shell is active. Derived
- * from `settings.useCustomLayout` + `settings.activeLayoutId` against the registry. A null
- * `activeLayoutId` (settings persisted before multiple layouts were supported) falls back to the
- * first registered layout so a lone OEM shell still wins. An `activeLayoutId` that names no
- * registered layout resolves to null so the missing-layout recovery in `src/layouts/default.vue`
- * reverts to the built-in shell instead of silently rendering a different one. Read by that switcher
- * and by `useComponentSettings`
- */
-export const activeLayout: ComputedRef<RegisteredLayout | null> = computed(() => {
-	const settings = useSettingsStore();
-	if (!settings.useCustomLayout || registeredLayouts.value.length === 0) {
-		return null;
-	}
-	if (settings.activeLayoutId) {
-		return registeredLayouts.value.find((layout) => layout.options.id === settings.activeLayoutId) ?? null;
-	}
-	return registeredLayouts.value[0];
-});
-
-/**
- * Options of the active layout, or null when the built-in shell is active. Read by the Settings page
- * (lock-gating of the switcher) and the /BuiltInLayout escape guard
- */
-export const activeLayoutOptions: ComputedRef<RegisterLayoutOptions | null> = computed(() => activeLayout.value?.options ?? null);
+// The layout registry (`registeredLayouts`) and its derived `activeLayout` / `activeLayoutOptions`
+// live on the UI store (@/stores/ui) so external plugins can read them through window.DWC. This
+// module mutates the registry through useUiStore() in registerLayout()/unregisterLayout()
 
 /**
  * Layout-aware route overrides keyed by route record path. Each entry keeps the built-in component
@@ -156,12 +128,13 @@ function installRouteOverrides(routes: Record<string, Component>, ownerId: strin
 			const Dispatcher = defineComponent({
 				name: "RouteOverrideDispatcher",
 				setup() {
+					const uiStore = useUiStore();
 					return () => {
 						const current = _routeOverrides.get(recordPath);
 						if (!current) {
 							return null;
 						}
-						const activeId = activeLayout.value?.options.id;
+						const activeId = uiStore.activeLayout?.options.id;
 						const override = activeId ? current.byLayout.get(activeId) : undefined;
 						return h(override ?? current.builtin);
 					};
@@ -219,13 +192,14 @@ function installLockedRouteGuard(): void {
 	}
 	_lockedGuardInstalled = true;
 	router.beforeEach((to) => {
-		if (!activeLayoutOptions.value?.locked) {
+		const uiStore = useUiStore();
+		if (!uiStore.activeLayoutOptions?.locked) {
 			return true;
 		}
 		if (to.path === "/") {
 			return true;
 		}
-		const activeId = activeLayout.value?.options.id;
+		const activeId = uiStore.activeLayout?.options.id;
 		if (activeId && to.matched.some((record) => _routeOverrides.get(record.path)?.byLayout.has(activeId))) {
 			return true;
 		}
@@ -246,7 +220,8 @@ function installLockedRouteGuard(): void {
  * @throws Error when a layout with the same id is already registered
  */
 export function registerLayout(component: Component, options: RegisterLayoutOptions): void {
-	if (registeredLayouts.value.some((layout) => layout.options.id === options.id)) {
+	const uiStore = useUiStore();
+	if (uiStore.registeredLayouts.some((layout) => layout.options.id === options.id)) {
 		throw new Error(`Cannot register layout "${options.id}": a layout with this id is already registered. Call unregisterLayout("${options.id}") first.`);
 	}
 
@@ -258,13 +233,13 @@ export function registerLayout(component: Component, options: RegisterLayoutOpti
 		if (_appMounted) {
 			console.warn(`[DWC] Layout "${options.id}" requested locked: true but the app has already mounted; downgrading to unlocked. Locked layouts must register before app.mount()`);
 			effectiveOptions.locked = false;
-		} else if (registeredLayouts.value.some((layout) => layout.options.locked)) {
+		} else if (uiStore.registeredLayouts.some((layout) => layout.options.locked)) {
 			console.warn(`[DWC] Layout "${options.id}" requested locked: true but another locked layout is already registered; only one locked layout is allowed. Downgrading to unlocked`);
 			effectiveOptions.locked = false;
 		}
 	}
 
-	registeredLayouts.value.push({ component: markRaw(component), options: effectiveOptions });
+	uiStore.registeredLayouts.push({ component: markRaw(component), options: effectiveOptions });
 
 	if (effectiveOptions.routes) {
 		installRouteOverrides(effectiveOptions.routes, effectiveOptions.id);
@@ -296,16 +271,17 @@ export function registerLayout(component: Component, options: RegisterLayoutOpti
  * @throws Error when the named layout is locked
  */
 export function unregisterLayout(id: string): void {
-	const idx = registeredLayouts.value.findIndex((layout) => layout.options.id === id);
+	const uiStore = useUiStore();
+	const idx = uiStore.registeredLayouts.findIndex((layout) => layout.options.id === id);
 	if (idx === -1) {
 		return;
 	}
-	if (registeredLayouts.value[idx].options.locked) {
+	if (uiStore.registeredLayouts[idx].options.locked) {
 		throw new Error(`Cannot unregister layout "${id}": the layout is locked and must remain active for the session`);
 	}
 
 	uninstallRouteOverridesFor(id);
-	registeredLayouts.value.splice(idx, 1);
+	uiStore.registeredLayouts.splice(idx, 1);
 
 	const settings = useSettingsStore();
 	if (settings.activeLayoutId === id) {

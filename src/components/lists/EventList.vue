@@ -44,11 +44,6 @@
 	}
 }
 
-/* Row tinting per log level - light themes use accent tints, dark gets darker ones */
-.event-log-row.level-success { background-color: rgba(76, 175, 80, 0.18); }
-.event-log-row.level-warning { background-color: rgba(255, 193, 7, 0.20); }
-.event-log-row.level-error { background-color: rgba(244, 67, 54, 0.20); }
-.event-log-row.level-primary { background-color: rgba(33, 150, 243, 0.18); }
 </style>
 
 <template>
@@ -144,13 +139,13 @@ function toggleSort() {
 
 function rowClass(type: LogLevel): string {
 	switch (type) {
-		case LogLevel.success: return "level-success";
-		case LogLevel.warning: return "level-warning";
-		case LogLevel.error: return "level-error";
-		// info + primary share the blue tint - only success/warning/error get their own colour
+		case LogLevel.success: return "bg-success";
+		case LogLevel.warning: return "bg-warning";
+		case LogLevel.error: return "bg-error";
+		// info + primary share the blue background - only success/warning/error get their own colour
 		case LogLevel.info:
 		case LogLevel.primary:
-		default: return "level-primary";
+		default: return "bg-primary";
 	}
 }
 

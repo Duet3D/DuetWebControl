@@ -81,10 +81,10 @@
 					{{ $t("dialog.fileTransfer.currentSpeed", [displayTransferSpeed(currentSpeed)]) }}
 				</span>
 				<v-spacer />
-				<v-btn v-show="canCancel" color="dialog-action" variant="text" @click="cancel">
+				<v-btn v-show="canCancel" variant="text" @click="cancel">
 					{{ isUploading ? $t("dialog.fileTransfer.cancelUploads") : $t("dialog.fileTransfer.cancelDownloads") }}
 				</v-btn>
-				<v-btn v-show="transfersFinished" color="dialog-action" variant="text" autofocus @click="close">
+				<v-btn v-show="transfersFinished" variant="text" autofocus @click="close">
 					{{ $t("generic.close") }}
 				</v-btn>
 			</v-card-actions>

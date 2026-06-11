@@ -185,6 +185,23 @@ const _menuCategories = new Map<string, MenuCategory>();
  */
 const _routeRemovers = new Map<string, Array<() => void>>();
 
+// Bare (unwrapped) route records registered by plugins, exposed via the read-only
+// {@link registeredRoutes} export. A third-party custom layout that runs its own vue-router can
+// read this to mount plugin pages inside its own layout shell instead of DWC's default one - the
+// records carry no layout wrapper, only path/component/meta. shallowReactive so a layout that
+// watches the list stays in sync as plugins load/unload at runtime; the nested route objects are
+// stored as-is (not proxied), keeping the component references referential. Keyed privately by the
+// registration path so {@link unregisterRoute} can drop the matching entry even when the route uses
+// a parametrised `routePath` that differs from its navigation `path`
+const _registeredRoutes = Vue.shallowReactive<Array<RouteRecordRaw>>([]);
+const _registeredRoutesByPath = new Map<string, RouteRecordRaw>();
+
+/**
+ * Read-only list of plugin-registered routes (bare, before default-layout wrapping). Lets a
+ * third-party custom layout add plugin pages to its own router
+ */
+export const registeredRoutes = _registeredRoutes as ReadonlyArray<RouteRecordRaw>;
+
 /**
  * Settings-page tab contributed by a plugin via {@link registerSettingTab}
  */
@@ -410,16 +427,19 @@ export function registerRoute(
 	// `pageFill` marks a page that fills the viewport, which scrollBehavior reads to decide
 	// whether bottom-anchoring on navigation applies. `scrollToBottom` additionally asks the
 	// router to scroll the page to its bottom edge on open (viewer-style pages)
-	const wrapped = setupLayouts([{
+	const baseRoute = {
 		path: descriptor.routePath ?? descriptor.path,
 		component,
 		meta: { pageFill: descriptor.pageFill === true, scrollToBottom: descriptor.scrollToBottom === true },
-	}] as Array<RouteRecordRaw>);
+	} as RouteRecordRaw;
+	const wrapped = setupLayouts([baseRoute]);
 	const removers: Array<() => void> = [];
 	for (const route of wrapped) {
 		removers.push(_router.addRoute(route));
 	}
 	_routeRemovers.set(descriptor.path, removers);
+	_registeredRoutesByPath.set(descriptor.path, baseRoute);
+	_registeredRoutes.push(baseRoute);
 
 	// Surface the item in the navigation drawer. The menu store is the single source the shell
 	// reads from; category keys there are lowercase, hence the .toLowerCase() bridge to the
@@ -453,6 +473,14 @@ export function unregisterRoute(path: string) {
 			remove();
 		}
 		_routeRemovers.delete(path);
+	}
+	const registered = _registeredRoutesByPath.get(path);
+	if (registered) {
+		_registeredRoutesByPath.delete(path);
+		const idx = _registeredRoutes.indexOf(registered);
+		if (idx !== -1) {
+			_registeredRoutes.splice(idx, 1);
+		}
 	}
 	useMenuStore().unregisterItem(path);
 }
@@ -529,6 +557,72 @@ export function unregisterJobViewTab(key: string) {
 	const idx = _jobViewTabs.findIndex((tab) => tab.key === key);
 	if (idx !== -1) {
 		_jobViewTabs.splice(idx, 1);
+	}
+}
+
+/**
+ * A component a plugin exposes for embedding in third-party flexible layouts. A layout lists these
+ * in its "add widget" palette and renders the chosen one by {@link id}; a stored id whose plugin
+ * isn't loaded lets the layout fall back to a "needs plugin" placeholder. Registered via
+ * {@link registerEmbeddableComponent} and surfaced reactively on the UI store's `embeddableComponents`,
+ * so a layout (built into its own bundle) reads them through `window.DWC` without importing internals
+ */
+export interface EmbeddableComponent {
+	/** Stable, namespaced unique id a layout persists, e.g. "MyPlugin.PowerPanel" */
+	id: string;
+
+	/** Owning plugin id, so a shared layout can warn when the providing plugin is missing */
+	pluginId: string;
+
+	/** Palette label - an i18n key by default, or a literal when {@link translated} is true */
+	caption: string | (() => string);
+
+	/** Treat {@link caption} as a literal string instead of an i18n key */
+	translated?: boolean;
+
+	/** Material Design icon for the palette tile */
+	icon?: string;
+
+	/** Optional longer text shown in the palette preview */
+	description?: string;
+
+	/** Optional display metadata */
+	author?: string;
+
+	/** Component to render - markRaw'd at registration like layout / tab components */
+	component: Component;
+
+	/** Suggested initial grid footprint (columns x rows) so the widget lands at a sane size */
+	defaultSize?: { w: number; h: number };
+
+	/** Optional machine-mode filter, letting shells hide it like the built-in panels */
+	machineMode?: "fff" | "cnc" | "any";
+}
+
+/**
+ * Expose a component for embedding in third-party flexible layouts. Duplicate ids are ignored so a
+ * re-register on hot reload doesn't end up with two copies. The component is markRaw'd before it
+ * lands in the store so the store's deep reactivity never proxies it.
+ *
+ * @param definition Embeddable component descriptor; see {@link EmbeddableComponent}
+ */
+export function registerEmbeddableComponent(definition: EmbeddableComponent) {
+	const uiStore = useUiStore();
+	if (uiStore.embeddableComponents.some((existing) => existing.id === definition.id)) {
+		return;
+	}
+	uiStore.embeddableComponents.push({ ...definition, component: Vue.markRaw(definition.component) });
+}
+
+/**
+ * Remove a previously registered embeddable component.
+ * @param id Stable id passed to {@link registerEmbeddableComponent}
+ */
+export function unregisterEmbeddableComponent(id: string) {
+	const uiStore = useUiStore();
+	const idx = uiStore.embeddableComponents.findIndex((entry) => entry.id === id);
+	if (idx !== -1) {
+		uiStore.embeddableComponents.splice(idx, 1);
 	}
 }
 

@@ -28,10 +28,10 @@
 
 				<v-card-actions>
 					<v-spacer />
-					<v-btn color="dialog-action" variant="text" @click="hide">
+					<v-btn variant="text" @click="hide">
 						{{ $t("generic.cancel") }}
 					</v-btn>
-					<v-btn color="dialog-action" variant="text" type="submit">
+					<v-btn variant="text" type="submit">
 						{{ $t("generic.ok") }}
 					</v-btn>
 				</v-card-actions>

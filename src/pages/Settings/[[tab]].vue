@@ -283,8 +283,8 @@
 												  :label="$t('settings.display.theme')"
 												  v-hint="$t('settings.display.themeHint')"
 												  variant="outlined" density="comfortable" hide-details class="mt-4" />
-										<template v-if="registeredLayouts.length > 0 && !activeLayoutOptions?.locked">
-											<v-select v-if="registeredLayouts.length > 1" v-model="selectedLayoutId"
+										<template v-if="uiStore.registeredLayouts.length > 0 && !uiStore.activeLayoutOptions?.locked">
+											<v-select v-if="uiStore.registeredLayouts.length > 1" v-model="selectedLayoutId"
 													  :items="layoutItems" item-title="title" item-value="value"
 													  :label="$t('settings.display.layout')"
 													  v-hint="$t('settings.display.layoutHint')"
@@ -844,7 +844,6 @@ import ListEditor from "@/components/inputs/ListEditor.vue";
 import { useFirmwareInstallController } from "@/composables/useFirmwareInstallController";
 import i18n, { type Locale } from "@/i18n";
 import { getPluginSettingTabs } from "@/plugins";
-import { registeredLayouts, activeLayout, activeLayoutOptions } from "@/plugins/layout";
 import { registeredThemes } from "@/plugins/theme";
 import { localStorageSupported, removeLocalSetting } from "@/utils/localStorage";
 import { useCacheStore } from "@/stores/cache";
@@ -1007,13 +1006,13 @@ const switchLayoutLabel = computed(() => {
 	if (settingsStore.useCustomLayout) {
 		return i18n.global.t("settings.display.switchToDefaultLayout");
 	}
-	const layout = registeredLayouts.value[0];
+	const layout = uiStore.registeredLayouts[0];
 	const caption = layout?.options.caption ?? layout?.options.id ?? "";
 	return i18n.global.t("settings.display.switchToCustomLayout", { layout: caption });
 });
 
 async function onSwitchLayoutClick() {
-	const layout = registeredLayouts.value[0];
+	const layout = uiStore.registeredLayouts[0];
 	if (!settingsStore.useCustomLayout) {
 		const caption = layout?.options.caption ?? layout?.options.id ?? "";
 		if (!(await showConfirmDialog(i18n.global.t("settings.display.switchToCustomLayoutTitle"), i18n.global.t("settings.display.switchToCustomLayoutPrompt", { layout: caption }), "mdi-view-dashboard-variant", true))) {
@@ -1030,7 +1029,7 @@ async function onSwitchLayoutClick() {
 
 // Combobox model: null selects the built-in shell, a layout id selects that custom layout
 const selectedLayoutId = computed<string | null>({
-	get: () => settingsStore.useCustomLayout ? (activeLayout.value?.options.id ?? null) : null,
+	get: () => settingsStore.useCustomLayout ? (uiStore.activeLayout?.options.id ?? null) : null,
 	set(value) {
 		settingsStore.useCustomLayout = value !== null;
 		settingsStore.activeLayoutId = value;
@@ -1040,7 +1039,7 @@ const selectedLayoutId = computed<string | null>({
 
 const layoutItems = computed(() => [
 	{ title: i18n.global.t("settings.display.builtInLayout"), value: null as string | null },
-	...registeredLayouts.value.map((layout) => ({ title: layout.options.caption ?? layout.options.id, value: layout.options.id as string | null })),
+	...uiStore.registeredLayouts.map((layout) => ({ title: layout.options.caption ?? layout.options.id, value: layout.options.id as string | null })),
 ]);
 
 const displayUnitOptions = computed(() => [

@@ -102,7 +102,7 @@
 							</v-table>
 							<v-divider class="mb-3" />
 
-							<v-btn color="dialog-action" variant="outlined" class="mx-auto" @click="addMove">
+							<v-btn color="card-actions" variant="outlined" class="mx-auto" @click="addMove">
 								<v-icon class="mr-1">mdi-plus</v-icon>
 								{{ $t("plugins.accelerometer.addMove") }}
 							</v-btn>
@@ -175,18 +175,18 @@
 			</v-card-text>
 
 			<v-card-actions>
-				<v-btn v-if="!cancelled && !finished" color="dialog-action" variant="text" @click="cancel">
+				<v-btn v-if="!cancelled && !finished" variant="text" @click="cancel">
 					{{ $t("generic.cancel") }}
 				</v-btn>
 				<v-spacer />
-				<v-btn v-if="canGoBack" color="dialog-action" variant="text" @click="goBack">
+				<v-btn v-if="canGoBack" variant="text" @click="goBack">
 					{{ $t("plugins.accelerometer.back") }}
 				</v-btn>
-				<v-btn v-if="currentPage !== 'collection'" color="dialog-action" variant="text"
+				<v-btn v-if="currentPage !== 'collection'" variant="text"
 					   :disabled="!canGoNext" @click="goNext">
 					{{ $t("plugins.accelerometer.next") }}
 				</v-btn>
-				<v-btn v-if="cancelled || finished" color="dialog-action" variant="text"
+				<v-btn v-if="cancelled || finished" variant="text"
 					   @click="dialogShown = false">
 					{{ $t("plugins.accelerometer.finish") }}
 				</v-btn>

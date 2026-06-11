@@ -131,7 +131,7 @@
 					   :prompt="$t('dialog.runMacro.prompt', [runMacroDialog.filename])" icon="mdi-play"
 					   @confirmed="confirmRunMacro">
 			<template #extra-actions>
-				<v-btn color="dialog-action" variant="text" type="button" @click="editMacroFromDialog">
+				<v-btn variant="text" type="button" @click="editMacroFromDialog">
 					<v-icon class="mr-1">mdi-file-document-edit</v-icon>
 					{{ $t("list.fileList.edit") }}
 				</v-btn>
@@ -143,7 +143,7 @@
 					   :prompt="$t('dialog.startJob.prompt', [startJobDialog.filename])" icon="mdi-play"
 					   @confirmed="confirmStartJob">
 			<template #extra-actions>
-				<v-btn color="dialog-action" variant="text" type="button" @click="editJobFromDialog">
+				<v-btn variant="text" type="button" @click="editJobFromDialog">
 					<v-icon class="mr-1">mdi-file-document-edit</v-icon>
 					{{ $t("list.fileList.edit") }}
 				</v-btn>
@@ -160,13 +160,13 @@
 					<v-card-text>{{ $t("dialog.fileEdit.unsaved.prompt", [discardDialog.filename]) }}</v-card-text>
 					<v-card-actions>
 						<v-spacer />
-						<v-btn color="dialog-action" variant="text" type="button" @click="cancelClose">
+						<v-btn variant="text" type="button" @click="cancelClose">
 							{{ $t("generic.cancel") }}
 						</v-btn>
-						<v-btn color="dialog-action" variant="text" type="button" @click="discardAndClose">
+						<v-btn variant="text" type="button" @click="discardAndClose">
 							{{ $t("dialog.fileEdit.unsaved.dontSave") }}
 						</v-btn>
-						<v-btn color="dialog-action" variant="text" type="submit" autofocus>
+						<v-btn variant="text" type="submit" autofocus>
 							{{ $t("dialog.fileEdit.unsaved.save") }}
 						</v-btn>
 					</v-card-actions>

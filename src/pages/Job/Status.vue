@@ -53,7 +53,7 @@
 		</div>
 		<JobProgress v-else class="px-md-0 pt-md-0 flex-grow-0 flex-shrink-0" />
 
-		<v-row v-if="mdAndUp" class="panel-grid mt-0 flex-grow-1"
+		<v-row v-if="mdAndUp" class="panel-grid mt-0 px-1 flex-grow-1"
 			   :density="mobile ? 'compact' : 'default'">
 			<v-col cols="12" md="3" xl="2" class="d-flex flex-column overflow-y-auto order-md-1">
 				<v-row class="align-content-start" :density="mobile ? 'compact' : 'default'">

@@ -10,6 +10,20 @@
 	.machine-name { max-width: none; }
 }
 
+:deep(.v-navigation-drawer .v-list-item-title) {
+	font-size: 1rem;
+	line-height: 1.1rem;
+}
+
+.menu-category-item:not(.v-list-item--active) :deep(.v-list-item-title),
+.menu-category-item:not(.v-list-item--active) :deep(.v-list-item__prepend .v-icon) {
+	color: rgb(var(--v-theme-main-menu-category));
+}
+.menu-route-item:not(.v-list-item--active) :deep(.v-list-item-title),
+.menu-route-item:not(.v-list-item--active) :deep(.v-list-item__prepend .v-icon) {
+	color: rgb(var(--v-theme-main-menu-route));
+}
+
 .route-area {
 	position: relative;
 }
@@ -122,8 +136,9 @@
 				 targets; the grouped layout is kept for the regular drawer -->
 			<v-list v-if="settingsStore.iconMenu" nav density="compact">
 				<v-list-item v-for="item in menuStore.allItems" :key="item.path"
-							 :to="item.path" :prepend-icon="item.icon"
-							 :title="resolveItemTitle(item)">
+							 class="menu-route-item" v-hint="resolveItemCaption(item)"
+							 :to="item.path" :prepend-icon="item.icon">
+					<template #title>{{ resolveItemTitle(item) }}</template>
 					<template v-if="resolveBadge(item)" #append>
 						<NavMenuBadge :badge="resolveBadge(item)!" />
 					</template>
@@ -132,21 +147,25 @@
 			<v-list v-else nav density="compact" v-model:opened="openedCategories" open-strategy="multiple">
 				<template v-for="category in menuStore.visibleCategories" :key="category.key">
 					<v-list-item v-if="shouldFlattenCategory(category)"
+								 class="menu-route-item"
+								 v-hint="resolveItemCaption(menuStore.itemsByCategory(category.key)[0])"
 								 :to="menuStore.itemsByCategory(category.key)[0].path"
-								 :prepend-icon="menuStore.itemsByCategory(category.key)[0].icon"
-								 :title="resolveItemTitle(menuStore.itemsByCategory(category.key)[0])">
+								 :prepend-icon="menuStore.itemsByCategory(category.key)[0].icon">
+						<template #title>{{ resolveItemTitle(menuStore.itemsByCategory(category.key)[0]) }}</template>
 						<template v-if="resolveBadge(menuStore.itemsByCategory(category.key)[0])" #append>
 							<NavMenuBadge :badge="resolveBadge(menuStore.itemsByCategory(category.key)[0])!" />
 						</template>
 					</v-list-item>
 					<v-list-group v-else :value="category.key">
 						<template #activator="{ props }">
-							<v-list-item v-bind="props" :prepend-icon="category.icon"
-										 :title="$t(category.captionKey)" />
+							<v-list-item v-bind="props" class="menu-category-item" v-hint="$t(category.captionKey)" :prepend-icon="category.icon">
+								<template #title>{{ $t(category.captionKey) }}</template>
+							</v-list-item>
 						</template>
 						<v-list-item v-for="item in menuStore.itemsByCategory(category.key)" :key="item.path"
-									 :to="item.path" :prepend-icon="item.icon"
-									 :title="resolveItemTitle(item)">
+									 class="menu-route-item" v-hint="resolveItemCaption(item)"
+									 :to="item.path" :prepend-icon="item.icon">
+							<template #title>{{ resolveItemTitle(item) }}</template>
 							<template v-if="resolveBadge(item)" #append>
 								<NavMenuBadge :badge="resolveBadge(item)!" />
 							</template>
@@ -296,6 +315,12 @@ function resolveItemTitle(item: MenuItem): string {
 	if (!item.translated && isMdAndUp.value && SHORT_TITLES_MD_AND_UP[item.caption]) {
 		return i18n.global.t(SHORT_TITLES_MD_AND_UP[item.caption]);
 	}
+	return item.translated ? item.caption : i18n.global.t(item.caption);
+}
+
+// Full caption without the SHORT_TITLES_MD_AND_UP substitution, used for the native title
+// tooltip so a hover reveals the complete name even when the drawer shows the shortened label
+function resolveItemCaption(item: MenuItem): string {
 	return item.translated ? item.caption : i18n.global.t(item.caption);
 }
 

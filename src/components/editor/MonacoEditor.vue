@@ -95,10 +95,10 @@
 			<v-card-text>{{ $t("dialog.editorDrop.prompt", [dropDialog.filename]) }}</v-card-text>
 			<v-card-actions>
 				<v-spacer />
-				<v-btn color="dialog-action" variant="text" @click="dropDialog.shown = false">
+				<v-btn variant="text" @click="dropDialog.shown = false">
 					{{ $t("generic.cancel") }}
 				</v-btn>
-				<v-btn color="dialog-action" variant="text" @click="applyDroppedFile('insert')">
+				<v-btn variant="text" @click="applyDroppedFile('insert')">
 					{{ $t("dialog.editorDrop.insert") }}
 				</v-btn>
 				<v-btn color="primary" variant="text" autofocus @click="applyDroppedFile('overwrite')">

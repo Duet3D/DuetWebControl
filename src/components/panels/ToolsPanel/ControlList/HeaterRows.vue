@@ -50,7 +50,7 @@
 					</v-menu>
 				</th>
 
-				<th v-if="selectedHeater !== null">
+				<td v-if="selectedHeater !== null" class="font-weight-bold">
 					<v-tooltip location="top" :text="getHeaterPower(selectedHeater)">
 						<template #activator="{ props: tooltipProps }">
 							<a v-bind="tooltipProps" href="javascript:void(0)" :class="getHeaterClasses(selectedHeaterIndex)"
@@ -63,12 +63,12 @@
 					<span class="font-weight-regular text-body-small">
 						{{ $t(`generic.heaterStates.${selectedHeater.state}`) }}
 					</span>
-				</th>
-				<th v-else>
+				</td>
+				<td v-else class="font-weight-bold">
 					<a href="javascript:void(0)" class="font-weight-regular" @click="allHeatersClick">
 						{{ $t(`generic.heaterStates.${firstHeater.state}`) }}
 					</a>
-				</th>
+				</td>
 
 				<td>
 					{{ getHeaterValue(firstHeater) }}
@@ -102,7 +102,7 @@
 							</a>
 						</th>
 
-						<th :class="{ 'pb-3': heaterIndex > 0 }">
+						<td :class="{ 'pb-3': heaterIndex > 0 }" class="font-weight-bold">
 							<v-tooltip location="top" :text="getHeaterPower(heater)">
 								<template #activator="{ props: tooltipProps }">
 									<a v-bind="tooltipProps" href="javascript:void(0)" :class="getHeaterClasses(heaterIndex)"
@@ -115,7 +115,7 @@
 							<span class="font-weight-regular text-body-small">
 								{{ $t(`generic.heaterStates.${heater.state}`) }}
 							</span>
-						</th>
+						</td>
 
 						<td>
 							{{ getHeaterValue(heater) }}
