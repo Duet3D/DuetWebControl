@@ -836,15 +836,20 @@ export const useMachineStore = defineStore("machine", {
 		 * Install or upgrade a third-party plugin
 		 * @param zipFilename Filename of the ZIP container
 		 * @param zipBlob ZIP container data to upload (if applicable)
-		 * @param zipFile ZIP container to extract (if applicable)
 		 * @param start Whether to start the plugin upon installation
+		 * @param zipFile ZIP container to extract; reconstructed from zipBlob if omitted
 		 */
-		async installPlugin(zipFilename: string, zipBlob: Blob, zipFile: JSZip, start: boolean) {
+		async installPlugin(zipFilename: string, zipBlob: Blob, start: boolean, zipFile?: JSZip) {
 			if (this.connector === null) {
 				throw new OperationFailedError("installPlugin is not available in default machine module");
 			}
 			if (this.changingMultipleFiles) {
 				throw new OperationFailedError("Cannot install plugin while multiple files are being transferred");
+			}
+
+			if (!zipFile) {
+				const { default: JSZip } = await import("jszip");
+				zipFile = await JSZip.loadAsync(zipBlob);
 			}
 
 			// Check the required DWC version

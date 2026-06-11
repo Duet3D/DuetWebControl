@@ -141,10 +141,10 @@ Field reference:
 | `id` | string | Must match `[a-zA-Z0-9 .\-_]`, max 32 chars. Compared case-insensitively, so two ids differing only in case are the same plugin and cannot coexist. Used as the directory name and the chunk filename |
 | `name` | string | Human-readable display name |
 | `author` | string | Free-form |
-| `version` | string | Plugin version. `"auto"` resolves to the DWC version at build time; `"auto-major"` resolves to `<major>.<minor>` |
+| `version` | string | Plugin version. `"auto"` resolves to the DWC version at build time; `"auto-major"` resolves to `<major>.<minor>`; `"auto-minor"` resolves to `<major>.<minor>.<patch>` with any pre-release suffix stripped (e.g. `3.7.0-alpha.4` -> `3.7.0`) |
 | `license` | string | SPDX identifier preferred |
 | `homepage` | string | Optional URL |
-| `dwcVersion` | string | Minimum DWC version. Same `"auto"` / `"auto-major"` placeholders accepted |
+| `dwcVersion` | string | Minimum DWC version. Same `"auto"` / `"auto-major"` / `"auto-minor"` placeholders accepted |
 | `sbcDsfVersion` | string | Optional - minimum DSF version for SBC plugins |
 | `rrfVersion` | string | Optional - minimum RepRapFirmware version |
 | `tags` | string[] | Optional - free-form keywords for the plugin browser |

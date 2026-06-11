@@ -347,7 +347,7 @@ async function next() {
 		isFinished.value = false;
 		wasLoadedBeforeInstall.value = isPluginLoaded(pluginManifest.value.id);
 		try {
-			await machineStore.installPlugin(zipFilename.value, zipBlob.value!, zipFile.value!, startWhenFinished.value);
+			await machineStore.installPlugin(zipFilename.value, zipBlob.value!, startWhenFinished.value, zipFile.value!);
 		} catch (e) {
 			console.warn(e);
 			installationError.value = getErrorMessage(e);

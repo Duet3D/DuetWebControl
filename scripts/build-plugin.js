@@ -119,6 +119,10 @@ export function resolveVersionPlaceholders(manifest) {
 			const parts = reference.split(".");
 			return parts.slice(0, 2).join(".");
 		}
+		if (value === "auto-minor") {
+			const parts = reference.split(".");
+			return parts.slice(0, 3).join(".").split("-")[0];
+		}
 		return value;
 	}
 
