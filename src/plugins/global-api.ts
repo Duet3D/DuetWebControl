@@ -34,6 +34,7 @@ import * as Numbers from "@/utils/numbers";
 import Path from "@/utils/path";
 import * as Time from "@/utils/time";
 import * as Version from "@/utils/version";
+import packageInfo from "../../package.json";
 import buildPluginApiSurface from "virtual:dwc-plugin-api";
 import vuetifyCoreComponents from "virtual:dwc-vuetify-core";
 
@@ -41,6 +42,7 @@ import vuetifyCoreComponents from "virtual:dwc-vuetify-core";
 // explicitly named nested handles keep their precise types. Plugins type-check against their real
 // `@/...` imports, not against this surface, so the loose index is only for the window augmentation
 type DwcGlobal = Record<string, unknown> & {
+	version: string;
 	Vue: typeof Vue;
 	VueRouter: typeof VueRouter;
 	Pinia: typeof Pinia;
@@ -81,6 +83,7 @@ export function exposeGlobalAPI() {
 		{},
 		buildPluginApiSurface(),
 		{
+			version: packageInfo.version,
 			Vue, VueRouter, Pinia, VueI18n, ObjectModel, Connectors,
 			i18n,
 			Beep: beep, Colors, Csv: CSV, Display, Download, Enums, Errors, Events,
