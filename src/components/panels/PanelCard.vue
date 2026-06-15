@@ -4,35 +4,78 @@
 	-webkit-user-select: none;
 	-webkit-touch-callout: none;
 }
+
+.panel-title-area {
+	position: relative;
+	min-width: 0;
+}
+
+.panel-titles {
+	min-width: 0;
+	overflow: hidden;
+	white-space: nowrap;
+}
+
+.panel-titles > .panel-title {
+	flex: 0 0 auto;
+}
+
+.panel-titles--measuring {
+	position: absolute;
+	visibility: hidden;
+	pointer-events: none;
+	overflow: visible;
+}
 </style>
 
 <template>
 	<v-card>
 		<v-card-title class="py-2 d-flex align-center">
-			<template v-for="(entry, index) in resolvedTitles" :key="index">
-				<v-hover>
-					<template #default="{ isHovering, props: hoverProps }">
-						<span v-bind="hoverProps" class="panel-title d-flex align-center"
-							  :class="{ 'me-2': index < resolvedTitles.length - 1 }"
-							  @touchstart="onTouchStart(index, $event)" @touchend="cancelLongPress"
-							  @touchmove="onTouchMove" @touchcancel="cancelLongPress"
-							  @contextmenu="onContextMenu(index, $event)">
-							<PanelLink :active="activeTitle === index" @click="activeTitle = index">
-								<v-icon size="small" class="mr-1">{{ entry.icon }}</v-icon>
-								{{ entry.title }}
-							</PanelLink>
-							<v-btn v-if="hasDialog(index) && !isTouch && settingsStore.enablePanelEditing"
-								   icon="mdi-pencil" variant="text" size="small" density="comfortable" class="ms-1"
-								   :style="{ visibility: isHovering ? 'visible' : 'hidden' }"
-								   :title="$t('dialog.componentSettings.edit')" @click="openDialog(index)" />
-							<span v-if="slots['title-action-' + index]" class="d-flex align-center"
-								  :style="{ visibility: (isTouch || isHovering) ? 'visible' : 'hidden' }">
-								<slot :name="'title-action-' + index" />
-							</span>
-						</span>
+			<div ref="titleArea" class="panel-title-area d-flex align-center flex-grow-1">
+				<div ref="expandedEl" class="panel-titles d-flex align-center" :class="{ 'panel-titles--measuring': collapsed }">
+					<template v-for="(entry, index) in resolvedTitles" :key="index">
+						<v-hover>
+							<template #default="{ isHovering, props: hoverProps }">
+								<span v-bind="hoverProps" class="panel-title d-flex align-center"
+									  :class="{ 'me-2': index < resolvedTitles.length - 1 }"
+									  @touchstart="onTouchStart(index, $event)" @touchend="cancelLongPress"
+									  @touchmove="onTouchMove" @touchcancel="cancelLongPress"
+									  @contextmenu="onContextMenu(index, $event)">
+									<PanelLink :active="activeTitle === index" @click="activeTitle = index">
+										<v-icon size="small" class="mr-1">{{ entry.icon }}</v-icon>
+										{{ entry.title }}
+									</PanelLink>
+									<v-btn v-if="hasDialog(index) && !isTouch && settingsStore.enablePanelEditing"
+										   icon="mdi-pencil" variant="text" size="small" density="comfortable" class="ms-1"
+										   :style="{ visibility: isHovering ? 'visible' : 'hidden' }"
+										   :title="$t('dialog.componentSettings.edit')" @click="openDialog(index)" />
+									<span v-if="slots['title-action-' + index]" class="d-flex align-center"
+										  :style="{ visibility: (isTouch || isHovering) ? 'visible' : 'hidden' }">
+										<slot :name="'title-action-' + index" />
+									</span>
+								</span>
+							</template>
+						</v-hover>
 					</template>
-				</v-hover>
-			</template>
+				</div>
+
+				<v-menu v-if="collapsed" location="bottom start">
+					<template #activator="{ props: menuProps }">
+						<a v-bind="menuProps" href="javascript:void(0)" class="panel-title d-flex align-center">
+							<v-icon size="small" class="mr-1">{{ resolvedTitles[activeTitle]?.icon }}</v-icon>
+							{{ resolvedTitles[activeTitle]?.title }}
+							<v-icon size="small" class="ms-1">mdi-menu-down</v-icon>
+						</a>
+					</template>
+					<v-list>
+						<v-list-item v-for="(entry, index) in resolvedTitles" :key="index"
+									 :active="index === activeTitle" @click="activeTitle = index">
+							<v-icon size="small" class="mr-1">{{ entry.icon }}</v-icon>
+							{{ entry.title }}
+						</v-list-item>
+					</v-list>
+				</v-menu>
+			</div>
 
 			<slot name="title-append" />
 		</v-card-title>
@@ -73,6 +116,41 @@ const resolvedTitles = computed<Array<PanelCardTitle>>(() =>
 
 // Index of the active title - only meaningful for multi-title panels
 const activeTitle = defineModel<number>("activeTitle", { default: 0 });
+
+// When the inline tab list is wider than the space left for it, the whole list collapses into a
+// single link plus caret that opens a dropdown of all titles
+const collapsed = ref(false);
+const titleArea = ref<HTMLElement>();
+const expandedEl = ref<HTMLElement>();
+
+// The expanded list keeps rendering (off-flow) while collapsed so its natural width stays
+// measurable; comparing that against the area's available width never changes when collapse
+// toggles, which avoids the expand/collapse oscillation a naive scrollWidth check would cause
+function updateCollapsed() {
+	if (resolvedTitles.value.length <= 1) {
+		collapsed.value = false;
+		return;
+	}
+	const area = titleArea.value, expanded = expandedEl.value;
+	if (area && expanded) {
+		collapsed.value = expanded.scrollWidth > area.clientWidth + 1;
+	}
+}
+
+let resizeObserver: ResizeObserver | undefined;
+
+onMounted(() => {
+	resizeObserver = new ResizeObserver(() => updateCollapsed());
+	if (titleArea.value) {
+		resizeObserver.observe(titleArea.value);
+	}
+	if (expandedEl.value) {
+		resizeObserver.observe(expandedEl.value);
+	}
+	updateCollapsed();
+});
+
+watch(resolvedTitles, () => nextTick(updateCollapsed));
 
 const slots = useSlots();
 
@@ -157,5 +235,8 @@ function onContextMenu(index: number, event: Event) {
 	}
 }
 
-onBeforeUnmount(cancelLongPress);
+onBeforeUnmount(() => {
+	cancelLongPress();
+	resizeObserver?.disconnect();
+});
 </script>

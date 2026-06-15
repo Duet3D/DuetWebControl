@@ -1,6 +1,12 @@
+<style scoped>
+.control-input {
+	min-width: 4.1rem;
+}
+</style>
+
 <template>
 	<v-form @submit.prevent="commit">
-		<v-combobox v-model="inputValue" type="number" min="-273" max="1999" step="any" :label="label"
+		<v-combobox v-model="inputValue" class="control-input" type="number" min="-273" max="1999" step="any" :label="label"
 					:items="itemStrings" :loading="applying"
 					:disabled="disabled || uiStore.uiFrozen || !isValid" density="compact" variant="underlined"
 					hide-details hide-selected single-line @update:model-value="onModelValueChange" @blur="onBlur" />

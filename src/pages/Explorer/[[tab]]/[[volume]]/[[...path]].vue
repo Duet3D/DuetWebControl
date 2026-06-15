@@ -79,7 +79,8 @@
 							   :transition="windowItemTransition" :reverse-transition="windowItemTransition">
 					<MonacoEditor v-if="tab.kind === 'editor' && tab.filename"
 								  :ref="(el) => setEditorRef(tab.id, el)" :filename="tab.filename"
-								  :initial-content="tab.initialContent" @dirty="tab.dirty = $event" />
+								  :initial-content="tab.initialContent" @dirty="tab.dirty = $event"
+								  @saved="onEditorSaved(tab)" />
 					<FileList v-else v-model:directory="tab.directory"
 							  :options="optionsForTab(tab)"
 							  :root-directory="rootForTab(tab)" :root-label="rootLabelFor(tab)"
@@ -324,6 +325,7 @@ import MonacoEditor from "@/components/editor/MonacoEditor.vue";
 import { firmwareInstallControllerKey, useFirmwareInstallController } from "@/composables/useFirmwareInstallController";
 import i18n from "@/i18n";
 import { LogLevel, useUiStore } from "@/stores/ui";
+import { isPrinting } from "@/utils/enums";
 
 defineOptions({ name: "Explorer" });
 
@@ -342,6 +344,8 @@ interface ExplorerTab {
 	scrollY?: number;
 	/** Tracks unsaved Monaco changes (editor tabs only); drives the close confirm and unload guard */
 	dirty?: boolean;
+	/** Set once a file that warrants a firmware reset (config.g, board.txt) was saved in this tab */
+	resetPromptDue?: boolean;
 }
 
 const machineStore = useMachineStore();
@@ -587,6 +591,32 @@ function openEditorTab(filename: string) {
 	activeTab.value = tab.id;
 }
 
+// Whether saving this file should offer a firmware reset / config re-run once the editor closes.
+// config.g always qualifies (it lives at directories.system + config.g; the literal 0:/sys/config.g
+// is also accepted since the system directory is configurable but practically always resolves there).
+// board.txt only qualifies on a non-Duet mainboard - LPC/STM32 ports read it, genuine Duet boards
+// never do, so it would be a meaningless prompt there
+function warrantsResetPrompt(filename: string): boolean {
+	if (Path.equals(filename, Path.combine(machineStore.model.directories.system, Path.configFile))
+			|| Path.equals(filename, "0:/sys/config.g")) {
+		return true;
+	}
+	if (Path.equals(filename, Path.boardFile)) {
+		const mainboard = machineStore.model.boards[0] ?? null;
+		return mainboard !== null && !mainboard.name.includes("Duet");
+	}
+	return false;
+}
+
+// Remember the save so the reset prompt can fire when the tab is later closed, rather than
+// interrupting every save. The flag stays set for the life of the tab - the saved file differs
+// from the running configuration until the user resets or re-runs it
+function onEditorSaved(tab: ExplorerTab) {
+	if (tab.filename && warrantsResetPrompt(tab.filename)) {
+		tab.resetPromptDue = true;
+	}
+}
+
 // `transition` is applied per v-window-item and read by Vuetify each time the active item
 // changes. `undefined` keeps Vuetify's default sliding tab-transition (correct for clicks
 // between adjacent tabs); set to "fade-transition" for one cycle to soften the close case,
@@ -598,7 +628,15 @@ function closeTab(id: number) {
 	if (idx === -1) {
 		return;
 	}
+	const closed = tabs.value[idx];
 	tabs.value.splice(idx, 1);
+
+	// Closing an editor whose saved file warrants a reset (config.g, board.txt) is when we offer the
+	// firmware reset / config re-run, so the prompt waits until the user is done editing instead of
+	// nagging on save. Suppressed while printing - the config is in use and a reset would abort the job
+	if (closed.resetPromptDue && !isPrinting(machineStore.model.state.status)) {
+		sharedFirmwareController.configUpdatedDialog.shown = true;
+	}
 
 	// If the user just closed the last tab, spawn a fresh browser tab at the default volume so
 	// the user lands somewhere usable instead of an empty card
