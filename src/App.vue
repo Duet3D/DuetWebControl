@@ -46,38 +46,31 @@ if (!import.meta.env.DEV) {
 // installs a router guard that cuts off URL escape and is gated to pre-mount registration only
 onMounted(() => _markAppMounted());
 
-// #region Document title
+// #region Document title and favicon job progress (Piecon)
 
 const machineName = computed(() => machineStore.model.network.name || "Duet Web Control");
 const status = computed(() => machineStore.model.state.status);
 const jobProgress = computed(() => machineStore.jobProgress);
 
+// Title and favicon wedge share one watcher so the title write is always the last writer:
+// Piecon.reset() restores the document.title it captured on its first setProgress call, which
+// would otherwise clobber the title back to a stale "(x%) name" when a print stops
+let wasPrinting = false;
 watch([machineName, status, jobProgress], () => {
 	const printing = isPrinting(status.value);
-	const prefix = printing && jobProgress.value > 0
-		? `(${(jobProgress.value * 100).toFixed(1)}%) `
-		: "";
-	const title = `${prefix}${machineName.value}`;
-	if (document.title !== title) {
-		document.title = title;
-	}
-}, { immediate: true });
+	const showProgress = printing && jobProgress.value > 0;
 
-// #endregion
-
-// #region Favicon job progress (Piecon)
-
-// Overlay a wedge on the favicon during prints; clear it when the print finishes. Watching
-// the same machineStore.jobProgress that drives the title bar keeps the two indicators in sync
-let wasPrinting = false;
-watch([status, jobProgress], () => {
-	const printing = isPrinting(status.value);
-	if (printing && jobProgress.value > 0) {
+	if (showProgress) {
 		Piecon.setProgress(Math.min(100, Math.max(0, jobProgress.value * 100)));
 	} else if (wasPrinting && !printing) {
 		Piecon.reset();
 	}
 	wasPrinting = printing;
+
+	const title = showProgress ? `(${(jobProgress.value * 100).toFixed(1)}%) ${machineName.value}` : machineName.value;
+	if (document.title !== title) {
+		document.title = title;
+	}
 }, { immediate: true });
 
 // #endregion
