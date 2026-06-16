@@ -324,6 +324,7 @@ import JobThumbnailCell from "@/components/lists/JobThumbnailCell.vue";
 import MonacoEditor from "@/components/editor/MonacoEditor.vue";
 import { firmwareInstallControllerKey, useFirmwareInstallController } from "@/composables/useFirmwareInstallController";
 import i18n from "@/i18n";
+import { scrollPageToBottom } from "@/router";
 import { LogLevel, useUiStore } from "@/stores/ui";
 import { isPrinting } from "@/utils/enums";
 
@@ -340,7 +341,7 @@ interface ExplorerTab {
 	initialFiles?: Array<FileBrowserItem>;
 	/** One-shot pre-fetched editor content from the route data loader */
 	initialContent?: string;
-	/** Window scroll position snapshot from when this tab was last active; restored on re-entry */
+	/** Window scroll snapshot for browser tabs, restored on re-entry; editor tabs re-scroll to the bottom instead */
 	scrollY?: number;
 	/** Tracks unsaved Monaco changes (editor tabs only); drives the close confirm and unload guard */
 	dirty?: boolean;
@@ -432,20 +433,31 @@ const tabs = ref<Array<ExplorerTab>>(initialTabs);
 const activeTab = ref<number>(initialTabs[initialTabs.length - 1].id);
 
 // Tab-local window scroll memory. v-window-item keeps each tab's DOM mounted (eager) so the
-// browser tab content is technically still there when the user switches away - but the window
-// scroll position is a single document-level value, not per-tab. On every tab change we stash
-// the current scroll into the OUTGOING tab and restore the INCOMING tab's value (or scroll to
-// 0 if it never had one). nextTick lets v-window finish its display swap so the page height
-// reflects the incoming tab before we set scrollTop
+// content is still there when the user switches away - but the window scroll position is a single
+// document-level value, not per-tab. On a tab switch, stash the outgoing tab's scroll; for the
+// incoming tab an editor re-scrolls to the viewport bottom (the position scrollPageToBottom gives
+// it on load) while a browser tab restores wherever the user left it. nextTick lets v-window finish
+// its display swap so the page height reflects the incoming tab first
 watch(activeTab, (toId, fromId) => {
 	const outgoing = tabs.value.find((t) => t.id === fromId);
 	if (outgoing) {
 		outgoing.scrollY = window.scrollY;
 	}
 	const incoming = tabs.value.find((t) => t.id === toId);
-	nextTick(() => {
-		window.scrollTo({ top: incoming?.scrollY ?? 0, behavior: "instant" });
-	});
+	if (incoming?.kind === "editor") {
+		scrollPageToBottom();
+	} else {
+		nextTick(() => window.scrollTo({ top: incoming?.scrollY ?? 0, behavior: "instant" }));
+	}
+});
+
+// The Explorer is kept alive, so leaving for another page (e.g. the Dashboard) and coming back
+// neither remounts the editor nor fires the activeTab watch - re-scroll an open editor tab to the
+// bottom so it returns to its load-time position. Browser tabs are left to the router's scrollBehavior
+onActivated(() => {
+	if (tabs.value.find((t) => t.id === activeTab.value)?.kind === "editor") {
+		scrollPageToBottom();
+	}
 });
 
 // Single shared thumbnail fetcher across all browser tabs. Switching tabs mid-fetch cancels
