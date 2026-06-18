@@ -68,6 +68,25 @@ import { useUiStore, ContextMenuType } from "@/stores/ui";
 
 import packageInfo from "../../package.json";
 
+// #region Plugin asset URLs
+/**
+ * Resolve the runtime URL of an extra file a plugin ships in its `dwc/` directory.
+ *
+ * On install the connector extracts `dwc/<relPath>` into the web root, so a bundled asset (a WASM
+ * module, a web-worker script, an ML model, ...) is served at `BASE_URL + relPath`. Resolve it
+ * through this helper instead of hard-coding the deployment's base path, which varies by install:
+ *
+ *   const worker = new Worker(pluginAssetUrl("MyPlugin/detector.worker.js"), { type: "module" });
+ *
+ * @param relPath Asset path as listed in the manifest's `dwcFiles`, relative to the web root (no leading slash)
+ * @returns Absolute URL the browser can fetch
+ */
+export function pluginAssetUrl(relPath: string): string {
+	return import.meta.env.BASE_URL + relPath;
+}
+
+// #endregion
+
 // #region Built-in plugin registry
 const builtInPlugins: ModelCollection<DwcPlugin> = plugins;
 
@@ -395,6 +414,13 @@ export function registerRoute(
 	const category = Object.keys(route)[0];
 	const name = Object.keys(route[category])[0];
 	const descriptor = route[category][name];
+
+	// Idempotent by path: a repeated registration of the same route (a plugin reload, or a host that
+	// re-runs the entry point) is a no-op instead of stacking a duplicate drawer entry and a second
+	// router matcher. Mirrors registerSettingTab (by key) and registerEmbeddableComponent (by id)
+	if (_routeRemovers.has(descriptor.path)) {
+		return;
+	}
 
 	// Build menu item
 	const menuItem: MenuItem = {

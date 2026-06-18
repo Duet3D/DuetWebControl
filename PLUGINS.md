@@ -189,7 +189,7 @@ registerSettingTab({
 });
 ```
 
-For TypeScript plugins, the entry's `import` lines are externalised at build time - no DWC types end up bundled. Use the IDE for type checking; runtime resolution goes through `window.DWC` (see next section).
+For TypeScript plugins, the entry's `import` lines are externalised at build time - no DWC types end up bundled. The build scripts type-check your sources against DWC's real types before compiling (see [Building + packaging](#building--packaging)), and runtime resolution goes through `window.DWC` (see next section).
 
 ## Importing from DWC
 
@@ -206,6 +206,8 @@ What's available:
 | --- | --- |
 | `registerRoute`, `unregisterRoute`, `registerCategory`, `registerSettingTab`, `unregisterSettingTab`, `registerJobViewTab`, `unregisterJobViewTab`, `registerLayout`, `unregisterLayout`, `registerTheme`, `unregisterTheme`, `registerPluginContextMenuItem`, `registerPluginMessages` | `DWC.<name>` |
 | `useMachineStore`, `useSettingsStore`, `useCacheStore`, `useUiStore`, `ContextMenuType` | `DWC.<name>` |
+| `pluginAssetUrl` (resolve a bundled `dwc/` asset's runtime URL) | `DWC.pluginAssetUrl` |
+| `useConfirmDialog`, `useInputDialog` (and DWC's other composables) | `DWC.<name>` |
 | `Events` (the global event bus) | `DWC.Events` |
 | `i18n` | `DWC.i18n` |
 | `vue` (and `ref`, `computed`, `watch`, `defineComponent`, etc.) | `DWC.Vue` |
@@ -434,6 +436,53 @@ cacheStore.setPluginData("myPlugin", "lastViewedTab", "advanced");
 
 Read the values back through the same stores: `useCacheStore().plugins.myPlugin.lastViewedTab`, `useSettingsStore().plugins.myPlugin.preferredColor`.
 
+## Shipping extra assets (WASM, workers, data files)
+
+A plugin's compiled JS and CSS are not the only files it can carry. Anything you drop into a `dwc/` directory next to your sources is bundled into the ZIP and, on install, extracted into DWC's web root. `build-plugin-pkg.js` lists every such file in the manifest's `dwcFiles`. This is how you ship a WebAssembly module, a pre-built web-worker script, an ML model, a lookup table - any binary or data file your plugin loads at runtime rather than imports at build time.
+
+```
+MyPlugin/
+  src/
+    index.ts
+  dwc/
+    MyPlugin/                 # see the collision note below
+      opencv.wasm
+      detector.worker.js
+      model.bin
+```
+
+The loader only injects `.js`/`.css` from `dwcFiles` as `<script>`/`<link>`; everything else just lands on the filesystem for your code to fetch on demand.
+
+Resolve an asset's runtime URL with `pluginAssetUrl`, which prepends DWC's base path (it differs between installs - root, a subpath, an SBC):
+
+```ts
+import { pluginAssetUrl } from "DuetWebControl";
+
+// Fetch a WASM module
+const wasm = await fetch(pluginAssetUrl("MyPlugin/opencv.wasm"));
+
+// Spin up a worker off the main thread (ship the worker pre-built as an asset)
+const worker = new Worker(pluginAssetUrl("MyPlugin/detector.worker.js"), { type: "module" });
+```
+
+The argument is the asset's path exactly as it appears in `dwcFiles`, relative to the web root, no leading slash.
+
+Two practical notes:
+
+- **Ship workers pre-built.** The plugin build produces a single IIFE bundle; `new Worker(new URL("./worker.ts", import.meta.url))` is not bundled for you. Compile the worker separately, drop the result in `dwc/`, and instantiate it via `pluginAssetUrl`.
+- **Namespace your assets to avoid collisions.** Extra assets extract flat into the shared web root - two plugins that both ship `model.bin` would clobber each other (the compiled JS/CSS are content-hashed and prefixed with the plugin id, so only your extra files are at risk). Put them in a `dwc/<your-plugin-id>/` subfolder, as above, and the `dwcFiles` paths (and your `pluginAssetUrl` calls) carry that prefix.
+
+## Cross-origin requests and mixed content
+
+Some plugins talk to a service that isn't the Duet board - a vision bridge on a PC, an external API, a separate camera host. DWC ships no Content-Security-Policy, so cross-origin `fetch`/`WebSocket`/`XHR` from plugin code is not blocked by DWC itself; the usual CORS rules on the remote server still apply, so that service must send the appropriate `Access-Control-Allow-Origin` headers.
+
+The one case that bites is **mixed content**: if DWC is served over HTTPS, the browser blocks any plain-HTTP request the plugin makes, and no setting on DWC's side can relax that - it's a hard browser policy. If your plugin needs to reach an HTTP-only service, you have two options:
+
+- **Reverse-proxy the service onto DWC's origin.** Expose it under a path on the same host/scheme that serves DWC (e.g. nginx forwarding `/bridge/` to the local service). The request is then same-origin and same-scheme - no mixed-content block, no CORS.
+- **Serve the remote service over TLS.** Give the bridge/service its own HTTPS endpoint (a real certificate, or one the client trusts) so the scheme matches.
+
+If DWC is served over plain HTTP, mixed content does not arise and a direct cross-origin request works as long as the remote sends CORS headers.
+
 ## Internationalisation (i18n)
 
 Ship your translatable strings as JSON files alongside your source:
@@ -508,6 +557,12 @@ Pair with a `plugin.json`, zip both up as `dwc/js/hello-plugin.js` + `plugin.jso
 
 Two build scripts ship with DWC:
 
+### Type checking
+
+Both scripts type-check your plugin's `.ts`/`.vue` sources before compiling and abort if they find errors. The check pulls your files into DWC's own type environment, so the externalised imports (`DuetWebControl`, `@/...`, `vue`, `vuetify`, `@duet3d/*`) resolve to DWC's real types - the same checking an in-tree plugin gets from DWC's build, without copying any DWC source into your repo. Only diagnostics in your own files fail the build; DWC-internal ones are ignored.
+
+Two things to know: pure-JavaScript plugins are not type-checked (no opt-in to types), and because DWC auto-imports `ref`/`computed`/etc. for its own code, a missing `import { ref } from "vue"` in your plugin slips past this check but still fails your plugin's compile - so import what you use.
+
 ### `scripts/build-plugin.js` - the simple build
 
 ```bash
@@ -544,6 +599,19 @@ In DWC, navigate to **Settings -> Plugins**, click the upload button, and pick t
 After install, click the plugin's row to start it. Auto-start on connect is a per-plugin toggle in the same Plugins tab.
 
 Removing a plugin uninstalls it from the board.
+
+### Installing programmatically
+
+A plugin that manages other plugins (an updater, a bundled-plugin installer) can drive the same flow through the machine store:
+
+```ts
+import { useMachineStore } from "DuetWebControl";
+
+// installPlugin(zipFilename, zipBlob, start, zipFile?)
+await useMachineStore().installPlugin("MyPlugin-1.0.0.zip", zipBlob, true);
+```
+
+`start` installs and immediately loads the plugin. The fourth argument is an already-parsed `JSZip` instance; omit it and the store reconstructs one from `zipBlob`. The call validates the manifest and DWC compatibility before uploading, the same as the UI path.
 
 ## Migrating from earlier DWC
 

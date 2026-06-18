@@ -36,6 +36,7 @@ import {
 	findEntryFile,
 	buildPlugin,
 	createZip,
+	typeCheckPlugin,
 } from "./build-plugin.js";
 
 // #region Helpers
@@ -69,6 +70,10 @@ const entryFile = findEntryFile(resolvedPluginDir);
 
 console.log(`Building plugin package: ${manifest.id} (${manifest.name}) v${manifest.version}`);
 console.log(`Entry point: ${entryFile}`);
+
+if (!typeCheckPlugin(resolvedPluginDir)) {
+	process.exit(1);
+}
 
 const { outDir, jsFile, cssFile } = await buildPlugin(resolvedPluginDir, manifest, entryFile);
 

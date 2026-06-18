@@ -40,10 +40,17 @@
  * See build-plugin-pkg.js for full packaging with file list population.
  */
 
-import { existsSync, readFileSync, writeFileSync, readdirSync, statSync } from "fs";
-import { resolve, join, relative } from "path";
+import { existsSync, readFileSync, writeFileSync, readdirSync, statSync, mkdirSync, cpSync, rmSync } from "fs";
+import { resolve, join, relative, sep } from "path";
+import { pathToFileURL } from "url";
+import { spawnSync } from "child_process";
 import { build } from "vite";
 import vue from "@vitejs/plugin-vue";
+
+// Absolute path of the DWC checkout these scripts live in. The type check and the version-placeholder
+// resolver both anchor against it, so a plugin built from any working directory still finds DWC's
+// tsconfig, node_modules and source tree
+const DWC_ROOT = resolve(import.meta.dirname, "..");
 
 const PLUGIN_GLOBALS = {
 	"DuetWebControl": "DWC",
@@ -254,77 +261,208 @@ export async function createZip(archiveDir, zipPath) {
 
 // #endregion
 
+// #region Type checking
+
+/**
+ * Generate the ambient declarations for the two import aliases that have no real module behind them.
+ *
+ * `DuetWebControl` resolves at runtime to the flat `window.DWC` surface (every value export of
+ * `@/plugins`, `@/composables/*` and `@/stores/*`, plus the i18n instance), so the declaration just
+ * re-exports those modules - the `@/*` path mapping then points them at DWC's real source types.
+ * `DuetWebControl/components` is DWC's public component palette; its named exports mirror the
+ * generated GlobalComponents map so `import { CodeButton } from "DuetWebControl/components"` checks.
+ */
+function generateApiTypings() {
+	const listModules = (subdir) => readdirSync(join(DWC_ROOT, "src", subdir), { withFileTypes: true })
+		.filter((e) => e.isFile() && e.name.endsWith(".ts") && !e.name.endsWith(".d.ts"))
+		.map((e) => `@/${subdir}/${e.name.replace(/\.ts$/, "")}`);
+
+	const reExports = ["@/plugins", ...listModules("composables"), ...listModules("stores")]
+		.map((m) => `\texport * from ${JSON.stringify(m)};`)
+		.join("\n");
+
+	// The generated component map lists `Name: typeof import('./components/...vue')['default']`;
+	// turn each into a named re-export so explicit component imports resolve to the real SFC type
+	const componentDts = join(DWC_ROOT, "src", "components.d.ts");
+	const componentExports = [...readFileSync(componentDts, "utf-8").matchAll(/(\w+):\s*typeof import\('\.\/([^']+)'\)/g)]
+		.map(([, name, path]) => `\texport { default as ${name} } from ${JSON.stringify(`@/${path}`)};`)
+		.join("\n");
+
+	return `declare module "DuetWebControl" {\n${reExports}\n\texport { default as i18n } from "@/i18n";\n}\n\n`
+		+ `declare module "DuetWebControl/components" {\n${componentExports}\n}\n`;
+}
+
+/**
+ * Type-check a plugin's sources against DWC's real types before building.
+ *
+ * The plugin's `@/...` / `DuetWebControl` / framework imports are externalised at build time, so they
+ * resolve to nothing on their own. To check them, the plugin's files are pulled into DWC's own type
+ * environment: a throwaway tsconfig extends DWC's, includes the full `src/**` tree (so auto-imports,
+ * GlobalComponents and Vuetify's global types are in scope exactly as for in-tree code) plus the
+ * plugin's files, and maps every externalised module back to DWC's source / node_modules. vue-tsc
+ * runs against that; only diagnostics in the plugin's own files fail the build - DWC-internal ones
+ * (or any pre-existing in the host checkout) are filtered out so they aren't blamed on the plugin.
+ *
+ * The temp config lives under DWC's `node_modules/.cache` (gitignored) so module resolution finds
+ * DWC's dependencies, and is removed afterwards - no `_typecheck_*` artifacts left in any tree.
+ *
+ * @returns true if the plugin type-checks, false if it has type errors (already printed)
+ */
+export function typeCheckPlugin(pluginDir) {
+	const tmpDir = join(DWC_ROOT, "node_modules", ".cache", "dwc-plugin-typecheck");
+	rmSync(tmpDir, { recursive: true, force: true });
+	mkdirSync(tmpDir, { recursive: true });
+
+	try {
+		writeFileSync(join(tmpDir, "dwc-plugin-api.d.ts"), generateApiTypings());
+
+		// Absolute path targets so no `baseUrl` is needed (it is deprecated in TS 6) and the config's
+		// own location is irrelevant to resolution
+		const libPaths = {};
+		for (const lib of ["vue", "vue-router", "pinia", "vue-i18n", "vuetify", "@duet3d/objectmodel", "@duet3d/connectors"]) {
+			libPaths[lib] = [join(DWC_ROOT, "node_modules", lib)];
+			libPaths[`${lib}/*`] = [join(DWC_ROOT, "node_modules", lib, "*")];
+		}
+
+		const tsconfig = {
+			extends: join(DWC_ROOT, "tsconfig.json"),
+			compilerOptions: {
+				paths: { "@/*": [join(DWC_ROOT, "src", "*")], ...libPaths },
+				noEmit: true,
+				composite: false,
+				// Relax unused-locals: this is a type gate, not a linter, and an in-progress plugin
+				// shouldn't fail to build over a stray import
+				noUnusedLocals: false,
+				noUnusedParameters: false,
+			},
+			include: [
+				join(DWC_ROOT, "src/**/*"),
+				join(DWC_ROOT, "src/**/*.vue"),
+				join(tmpDir, "dwc-plugin-api.d.ts"),
+				join(pluginDir, "**/*.ts"),
+				join(pluginDir, "**/*.tsx"),
+				join(pluginDir, "**/*.vue"),
+			],
+			exclude: [join(pluginDir, "dist"), join(pluginDir, "pkg"), join(pluginDir, "node_modules")],
+		};
+		const configPath = join(tmpDir, "tsconfig.json");
+		writeFileSync(configPath, JSON.stringify(tsconfig, null, 2));
+
+		console.log("Type-checking plugin sources...");
+		const vueTsc = join(DWC_ROOT, "node_modules", ".bin", "vue-tsc");
+		const result = spawnSync(vueTsc, ["--noEmit", "--pretty", "false", "-p", configPath], { cwd: DWC_ROOT, encoding: "utf-8" });
+		const output = `${result.stdout ?? ""}${result.stderr ?? ""}`;
+
+		// tsc prints one `path(line,col): error TS...: msg` header per diagnostic, file path relative to
+		// cwd. Keep only the blocks whose file resolves inside the plugin dir; a header starts a block and
+		// trailing indented lines (related info) belong to it
+		const pluginPrefix = resolve(pluginDir) + sep;
+		const headerRegex = /^(\S.*?)\((\d+),(\d+)\):\s+(?:error|warning)\s+TS\d+:/;
+		const pluginErrors = [];
+		let keeping = false;
+		for (const line of output.split("\n")) {
+			const header = headerRegex.exec(line);
+			if (header) {
+				keeping = (resolve(DWC_ROOT, header[1]) + sep).startsWith(pluginPrefix);
+			}
+			if (keeping) {
+				pluginErrors.push(line);
+			}
+		}
+
+		if (pluginErrors.length > 0) {
+			console.error("\nPlugin type check failed:\n");
+			console.error(pluginErrors.join("\n"));
+			return false;
+		}
+
+		console.log("Type check passed");
+		return true;
+	} finally {
+		if (!process.env.DWC_KEEP_TMP) {
+			rmSync(tmpDir, { recursive: true, force: true });
+		}
+	}
+}
+
+// #endregion
+
 // #region Main
 
-const resolvedPluginDir = parsePluginDir();
-const manifest = readManifest(resolvedPluginDir);
-resolveVersionPlaceholders(manifest);
-const entryFile = findEntryFile(resolvedPluginDir);
+// Only run when invoked directly. build-plugin-pkg.js imports the helpers above, and an unguarded
+// top-level main would otherwise run this whole build as a side effect of that import
+if (import.meta.url === pathToFileURL(process.argv[1]).href) {
+	const resolvedPluginDir = parsePluginDir();
+	const manifest = readManifest(resolvedPluginDir);
+	resolveVersionPlaceholders(manifest);
+	const entryFile = findEntryFile(resolvedPluginDir);
 
-console.log(`Building plugin: ${manifest.id} (${manifest.name}) v${manifest.version}`);
-console.log(`Entry point: ${entryFile}`);
+	console.log(`Building plugin: ${manifest.id} (${manifest.name}) v${manifest.version}`);
+	console.log(`Entry point: ${entryFile}`);
 
-const { outDir, jsFile, cssFile } = await buildPlugin(resolvedPluginDir, manifest, entryFile);
-
-// Build a simple ZIP containing compiled chunks + optional extra
-// directories + plugin.json. File lists are NOT populated - use
-// build-plugin-pkg.js for that
-
-import { mkdirSync, cpSync } from "fs";
-
-const assembleDir = resolve(resolvedPluginDir, "pkg");
-mkdirSync(join(assembleDir, "dwc", "js"), { recursive: true });
-mkdirSync(join(assembleDir, "dwc", "css"), { recursive: true });
-
-let filesAdded = false;
-
-// Copy JS (+ sourcemap when emitted)
-if (jsFile) {
-	const jsPath = join(outDir, jsFile);
-	cpSync(jsPath, join(assembleDir, "dwc", "js", jsFile));
-	if (existsSync(`${jsPath}.map`)) {
-		cpSync(`${jsPath}.map`, join(assembleDir, "dwc", "js", `${jsFile}.map`));
+	if (!typeCheckPlugin(resolvedPluginDir)) {
+		process.exit(1);
 	}
-	filesAdded = true;
-}
 
-// Copy CSS (+ sourcemap) if generated
-if (cssFile) {
-	const cssPath = join(outDir, cssFile);
-	cpSync(cssPath, join(assembleDir, "dwc", "css", cssFile));
-	if (existsSync(`${cssPath}.map`)) {
-		cpSync(`${cssPath}.map`, join(assembleDir, "dwc", "css", `${cssFile}.map`));
-	}
-	filesAdded = true;
-}
+	const { outDir, jsFile, cssFile } = await buildPlugin(resolvedPluginDir, manifest, entryFile);
 
-// Copy extra directories (dsf, dwc, sd) if present
-for (const extra of ["dsf", "dwc", "sd"]) {
-	const extraDir = join(resolvedPluginDir, extra);
-	if (existsSync(extraDir)) {
-		cpSync(extraDir, join(assembleDir, extra), { recursive: true });
+	// Build a simple ZIP containing compiled chunks + optional extra
+	// directories + plugin.json. File lists are NOT populated - use
+	// build-plugin-pkg.js for that
+	const assembleDir = resolve(resolvedPluginDir, "pkg");
+	mkdirSync(join(assembleDir, "dwc", "js"), { recursive: true });
+	mkdirSync(join(assembleDir, "dwc", "css"), { recursive: true });
+
+	let filesAdded = false;
+
+	// Copy JS (+ sourcemap when emitted)
+	if (jsFile) {
+		const jsPath = join(outDir, jsFile);
+		cpSync(jsPath, join(assembleDir, "dwc", "js", jsFile));
+		if (existsSync(`${jsPath}.map`)) {
+			cpSync(`${jsPath}.map`, join(assembleDir, "dwc", "js", `${jsFile}.map`));
+		}
 		filesAdded = true;
 	}
+
+	// Copy CSS (+ sourcemap) if generated
+	if (cssFile) {
+		const cssPath = join(outDir, cssFile);
+		cpSync(cssPath, join(assembleDir, "dwc", "css", cssFile));
+		if (existsSync(`${cssPath}.map`)) {
+			cpSync(`${cssPath}.map`, join(assembleDir, "dwc", "css", `${cssFile}.map`));
+		}
+		filesAdded = true;
+	}
+
+	// Copy extra directories (dsf, dwc, sd) if present
+	for (const extra of ["dsf", "dwc", "sd"]) {
+		const extraDir = join(resolvedPluginDir, extra);
+		if (existsSync(extraDir)) {
+			cpSync(extraDir, join(assembleDir, extra), { recursive: true });
+			filesAdded = true;
+		}
+	}
+
+	if (!filesAdded) {
+		console.error("No files could be added to the plugin package");
+		process.exit(1);
+	}
+
+	// Write manifest (no file list population)
+	writeFileSync(join(assembleDir, "plugin.json"), JSON.stringify(manifest, null, 2));
+
+	// Create ZIP
+	try {
+		const zipPath = resolve(resolvedPluginDir, `${manifest.id}-${manifest.version}.zip`);
+		const bytes = await createZip(assembleDir, zipPath);
+		console.log(`\nPlugin ZIP created: ${zipPath} (${bytes} bytes)`);
+	} catch (e) {
+		console.log(`\nPlugin assembled in: ${assembleDir}`);
+		console.warn(`ZIP creation failed: ${e?.message ?? e}`);
+	}
+
+	console.log("Done!");
 }
-
-if (!filesAdded) {
-	console.error("No files could be added to the plugin package");
-	process.exit(1);
-}
-
-// Write manifest (no file list population)
-writeFileSync(join(assembleDir, "plugin.json"), JSON.stringify(manifest, null, 2));
-
-// Create ZIP
-try {
-	const zipPath = resolve(resolvedPluginDir, `${manifest.id}-${manifest.version}.zip`);
-	const bytes = await createZip(assembleDir, zipPath);
-	console.log(`\nPlugin ZIP created: ${zipPath} (${bytes} bytes)`);
-} catch (e) {
-	console.log(`\nPlugin assembled in: ${assembleDir}`);
-	console.warn(`ZIP creation failed: ${e?.message ?? e}`);
-}
-
-console.log("Done!")
 
 // #endregion
