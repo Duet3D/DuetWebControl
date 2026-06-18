@@ -70,6 +70,20 @@
 @media (min-width: 2138px) {
 	.code-input { width: 720px; }
 }
+
+.menu-resize-handle {
+	position: fixed;
+	bottom: 0;
+	width: 7px;
+	margin-left: -3px;
+	cursor: ew-resize;
+	touch-action: none;
+	/* Above the drawer (z 1004) so the few px straddling its right edge stay grabbable */
+	z-index: 1006;
+}
+.menu-resize-handle:hover {
+	background: rgba(var(--v-theme-on-surface), 0.12);
+}
 </style>
 
 <template>
@@ -128,7 +142,7 @@
 			<EmergencyButton v-if="settingsStore.showEmergencyStop" :class="isLargeButtons ? 'ms-5 me-4' : 'ms-3 me-2'" :large="isLargeButtons" />
 		</v-app-bar>
 
-		<v-navigation-drawer v-if="isMdAndUp" v-model="drawer"
+		<v-navigation-drawer v-if="isMdAndUp" v-model="drawer" :width="menuWidth"
 							 :rail="settingsStore.iconMenu" :expand-on-hover="settingsStore.iconMenu">
 			<!-- Rail mode hides everything in v-list except first elements, so nested v-list-group
 				 children disappear and only category activators (which aren't navigable) remain.
@@ -175,6 +189,13 @@
 			</v-list>
 		</v-navigation-drawer>
 
+		<!-- Drag handle pinned to the drawer's right edge. Fixed-positioned rather than nested so it
+			 spans the full height regardless of the drawer's own scroll. Hidden in rail/icon mode and
+			 gated behind the panel-editing toggle, alongside the dashboard's other edit affordances -->
+		<div v-if="isMdAndUp && drawer && !settingsStore.iconMenu && settingsStore.enablePanelEditing"
+			 class="menu-resize-handle" :style="{ left: `${menuWidth}px`, top: `${appBarHeight}px` }"
+			 @pointerdown="startMenuResize" />
+
 		<v-main>
 			<v-expand-transition>
 				<div v-if="statusPanelVisible">
@@ -205,12 +226,14 @@ import i18n from "@/i18n";
 
 import { MachineStatus } from "@duet3d/objectmodel";
 
+import { useCacheStore } from "@/stores/cache";
 import { useMachineStore } from "@/stores/machine";
 import { type MenuBadge, type MenuCategoryDef, type MenuItem, useMenuStore } from "@/stores/menu";
 import { useSettingsStore } from "@/stores/settings";
 import { useUiStore } from "@/stores/ui";
 import { isPaused, isPrinting } from "@/utils/enums";
 
+const cacheStore = useCacheStore();
 const machineStore = useMachineStore();
 const menuStore = useMenuStore();
 const settingsStore = useSettingsStore();
@@ -236,6 +259,32 @@ const drawer = ref(lgAndUp.value);
 watch(lgAndUp, (value) => {
 	drawer.value = value;
 });
+
+// Resizable navigation drawer. The persisted width lives in the cache (a per-browser UI preference,
+// like the other view state there); a local ref drives the drawer during a drag so each pointer move
+// doesn't churn the persisted store, and the final width is committed to the cache once on release
+const MIN_MENU_WIDTH = 180, MAX_MENU_WIDTH = 480;
+const menuWidth = ref(cacheStore.menuWidth);
+watch(() => cacheStore.menuWidth, (value) => { menuWidth.value = value; });
+
+function startMenuResize(event: PointerEvent) {
+	event.preventDefault();
+	const startX = event.clientX, startWidth = menuWidth.value;
+
+	const onMove = (e: PointerEvent) => {
+		menuWidth.value = Math.min(MAX_MENU_WIDTH, Math.max(MIN_MENU_WIDTH, startWidth + (e.clientX - startX)));
+	};
+	const onUp = () => {
+		window.removeEventListener("pointermove", onMove);
+		window.removeEventListener("pointerup", onUp);
+		document.body.style.userSelect = "";
+		cacheStore.menuWidth = menuWidth.value;
+	};
+
+	document.body.style.userSelect = "none";
+	window.addEventListener("pointermove", onMove);
+	window.addEventListener("pointerup", onUp);
+}
 
 const machineName = computed(() => machineStore.model.network.name || "Duet Web Control");
 

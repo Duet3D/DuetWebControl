@@ -75,6 +75,12 @@ export const useCacheStore = defineStore("cache", {
 		sorting: {} as Record<string, { key: string; order: "asc" | "desc" }>,
 
 		/**
+		 * Width of the main navigation drawer in pixels, adjusted via its drag handle and restored
+		 * across navigation and sessions
+		 */
+		menuWidth: 256,
+
+		/**
 		 * Custom plugin cache fields
 		 */
 		plugins: Object.assign({}, defaultPluginCacheFields) as Record<string, any>
