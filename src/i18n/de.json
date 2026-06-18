@@ -634,7 +634,13 @@
 	},
 	"jobViewPanel": {
 		"gcodeStream": "G-Code",
-		"noFileLoaded": "Keine Datei geladen"
+		"noFileLoaded": "Keine Datei geladen",
+		"preview": "Vorschau",
+		"toggleTabs": "Reiter ein- oder ausblenden",
+		"previewSettings": {
+			"showProgressOverlay": "Druckfortschritt einblenden",
+			"showProgressOverlayHint": "Die Vorschau mit fortschreitendem Druck zunehmend überlagern"
+		}
 	},
 	"panel": {
 		"atx": {
@@ -690,7 +696,6 @@
 			"repeatJob": "Nochmal starten",
 			"repeatPrint": "Nochmal drucken",
 			"repeatSimulation": "Nochmal simulieren",
-			"showPreview": "Vorschau zeigen",
 			"printNow": "Jetzt drucken",
 			"startJob": "Auftrag starten"
 		},

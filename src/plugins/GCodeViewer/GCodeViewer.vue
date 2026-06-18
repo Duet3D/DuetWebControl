@@ -194,6 +194,9 @@
 
 <template>
 	<div ref="primaryContainer" class="primary-container">
+		<!-- Teleport to body while fullscreen so the fixed overlay escapes any ancestor stacking
+			 context / clipping (e.g. when embedded as a panel tab); inert on the standalone page -->
+		<Teleport to="body" :disabled="!fullscreen">
 		<div :class="{ 'full-screen': fullscreen }" class="viewer-box">
 			<div v-if="fullscreen && settingsStore.showEmergencyStop" :class="emergencyButtonClass">
 				<CodeButton :code="'M112\nM999'" :log="false" :title="$t('button.emergencyStop.title')"
@@ -501,6 +504,7 @@
 				</v-row>
 			</div>
 		</div>
+		</Teleport>
 
 		<v-dialog v-model="objectDialogData.showDialog" max-width="300">
 			<v-card>
@@ -561,6 +565,10 @@ const settingsStore = useSettingsStore();
 const uiStore = useUiStore();
 const display = useDisplay();
 const route = useRoute();
+
+// The standalone page lives under /Plugins/GCodeViewer and sizes itself to the viewport; rendered
+// anywhere else (e.g. as a tab in the Job Status view panel) it fills its container instead
+const isEmbedded = computed(() => !route.path.startsWith("/Plugins/GCodeViewer"));
 
 // Intentionally module-scope (not a ref) - Babylon's internals don't survive Vue's reactive
 // proxy walk; the template never reads `viewer` directly so losing reactivity is safe
@@ -1125,18 +1133,21 @@ function resize() {
 		if (!primaryContainer.value) {
 			return;
 		}
-		// Match the heightmap canvas: fill the viewport minus the appbar + container padding,
-		// floored so a cramped window keeps a usable canvas
+		// On the standalone page the container has no bounded height of its own, so size it to the
+		// viewport minus the appbar + container padding (floored so a cramped window stays usable).
 		// xs/sm: layout strips its outer padding, but the viewer adds an 8px breathing margin
 		// (top + bottom = 16) on top of the appbar. md+ uses the layout's 16px top/bottom
-		// padding (32) and the viewer sits flush with that frame
-		const mainElement = document.querySelector(".v-main");
-		const appBarHeight = mainElement
-			? parseInt(getComputedStyle(mainElement).getPropertyValue("--v-layout-top")) || 64
-			: 64;
-		const chrome = appBarHeight + (display.mdAndUp.value ? 32 : 16);
-		const viewerHeight = Math.max(window.innerHeight - chrome, 400);
-		primaryContainer.value.style.height = `${viewerHeight}px`;
+		// padding (32) and the viewer sits flush with that frame. Embedded, the host panel bounds
+		// the height, so leave the CSS height: 100% in charge and only resync the canvas
+		if (!isEmbedded.value) {
+			const mainElement = document.querySelector(".v-main");
+			const appBarHeight = mainElement
+				? parseInt(getComputedStyle(mainElement).getPropertyValue("--v-layout-top")) || 64
+				: 64;
+			const chrome = appBarHeight + (display.mdAndUp.value ? 32 : 16);
+			const viewerHeight = Math.max(window.innerHeight - chrome, 400);
+			primaryContainer.value.style.height = `${viewerHeight}px`;
+		}
 		viewer?.resize();
 	}, 500);
 }

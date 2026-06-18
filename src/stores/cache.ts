@@ -68,6 +68,12 @@ export const useCacheStore = defineStore("cache", {
 		activeJobViewTab: "",
 
 		/**
+		 * Keys of Job Status view panel tabs the user hid via the panel's tab-visibility menu;
+		 * absent keys are shown, so newly added tabs default to visible
+		 */
+		jobViewHiddenTabs: [] as Array<string>,
+
+		/**
 		 * Persisted file-list sort by mode (`jobs`, `files`, `macros`, ...) - keys map to the
 		 * FileList `mode` prop. Cached here so a column-sort choice survives navigation between
 		 * pages; default is empty until the first header click

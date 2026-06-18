@@ -37,7 +37,7 @@
 						<v-hover>
 							<template #default="{ isHovering, props: hoverProps }">
 								<span v-bind="hoverProps" class="panel-title d-flex align-center"
-									  :class="{ 'me-2': index < resolvedTitles.length - 1 }"
+									  :class="titleSpacingClass(index)"
 									  @touchstart="onTouchStart(index, $event)" @touchend="cancelLongPress"
 									  @touchmove="onTouchMove" @touchcancel="cancelLongPress"
 									  @contextmenu="onContextMenu(index, $event)">
@@ -45,7 +45,7 @@
 										<v-icon size="small" class="mr-1">{{ entry.icon }}</v-icon>
 										{{ entry.title }}
 									</PanelLink>
-									<v-btn v-if="hasDialog(index) && !isTouch && settingsStore.enablePanelEditing"
+									<v-btn v-if="showsEditPencil(index)"
 										   icon="mdi-pencil" variant="text" size="small" density="comfortable" class="ms-1"
 										   :style="{ visibility: isHovering ? 'visible' : 'hidden' }"
 										   :title="$t('dialog.componentSettings.edit')" @click="openDialog(index)" />
@@ -82,7 +82,8 @@
 
 		<slot />
 
-		<ComponentSettingsDialog v-if="hasAnyDialog" v-model:shown="shown" :id="handle?.id"
+		<ComponentSettingsDialog v-if="hasAnyDialog" v-model:shown="shown"
+								 :id="resolvedTitles[dialogIndex]?.settingsId ?? handle?.id"
 								 :schema="dialogIndex === 0 ? handle?.schema : undefined"
 								 :panel-title="resolvedTitles[dialogIndex]?.title">
 			<template #settings>
@@ -101,6 +102,10 @@ const settingsStore = useSettingsStore();
 interface PanelCardTitle {
 	icon: string;
 	title: string;
+	// Component-settings id backing this title, used to target the dialog's Reset at the right
+	// record. Needed when a tabbed panel hosts more than one settings-bearing tab, since the single
+	// injected handle can only carry one id; single-handle panels leave it unset and use that handle
+	settingsId?: string;
 }
 
 // A panel either passes a single `icon` + `title` (the common case) or a `titles` array for a
@@ -179,6 +184,23 @@ function hasDialog(index: number): boolean {
 }
 
 const hasAnyDialog = computed(() => resolvedTitles.value.some((_, index) => hasDialog(index)));
+
+// The edit pencil shows only when the title has settings, panel editing is on, and the device has
+// hover (touch uses long-press instead)
+function showsEditPencil(index: number): boolean {
+	return hasDialog(index) && !isTouch && settingsStore.enablePanelEditing;
+}
+
+// Inter-title spacing: a title with its own pencil needs only a small margin since the pencil
+// already separates it; a pencil-less title gets the wider me-4 to line up when any pencil is
+// shown, or me-3 when no title has one
+const anyEditPencil = computed(() => resolvedTitles.value.some((_, index) => showsEditPencil(index)));
+function titleSpacingClass(index: number): string {
+	if (showsEditPencil(index)) {
+		return "me-1";
+	}
+	return anyEditPencil.value ? "me-4" : "me-3";
+}
 
 const shown = ref(false);
 const dialogIndex = ref(0);

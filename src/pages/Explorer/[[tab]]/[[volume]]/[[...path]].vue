@@ -87,7 +87,7 @@
 							  no-items-text="list.baseFileList.noFiles" no-view-mode
 							  :firmware-aware="isFirmwareContext(tab.directory)"
 							  @file-click="onFileClick" @file-edit="onFileEdit"
-							  @file-run-macro="onFileRunMacro"
+							  @file-run-macro="onFileRunMacro" @file-simulate="onFileSimulate"
 							  @refresh="onExplorerRefresh">
 						<template #progress>
 							<v-progress-linear v-if="thumbnailProgress !== -1" height="2"
@@ -798,6 +798,11 @@ function onFileRunMacro(item: FileBrowserItem, directory: string) {
 	runMacroDialog.filename = item.name;
 	runMacroDialog.fullPath = Path.combine(directory, item.name);
 	runMacroDialog.shown = true;
+}
+
+// Context-menu Simulate (gcode directories) mirrors the Jobs page: kick off an M37 dry run
+async function onFileSimulate(item: FileBrowserItem, directory: string) {
+	await machineStore.sendCode(`M37 P"${Path.escapeFilename(Path.combine(directory, item.name))}"`);
 }
 
 // #region Cross-tab drop

@@ -1,5 +1,5 @@
 import i18n from "@/i18n";
-import { registerPluginContextMenuItem, registerRoute } from "@/plugins";
+import { registerJobViewTab, registerPluginContextMenuItem, registerRoute } from "@/plugins";
 import { useCacheStore } from "@/stores/cache";
 import { ContextMenuType } from "@/stores/ui";
 
@@ -18,6 +18,16 @@ registerRoute(GCodeViewer, {
 			scrollToBottom: true
 		}
 	}
+});
+
+// Also offer the viewer as a tab in the Job Status view panel. Opened without route params the
+// component auto-loads the running job (see loadFromRoute), which is exactly what's wanted here
+registerJobViewTab({
+	key: "gcodeViewer",
+	icon: "mdi-rotate-3d",
+	caption: "plugins.gcodeViewer.caption",
+	component: GCodeViewer,
+	order: 30
 });
 
 registerPluginContextMenuItem(

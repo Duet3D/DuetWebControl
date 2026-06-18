@@ -1,9 +1,42 @@
+<style scoped>
+.plugin-tab-content {
+	min-height: 0;
+}
+</style>
+
 <template>
 	<PanelCard v-model:active-title="activeIndex" :titles="titles"
 			   class="d-flex flex-column flex-grow-1">
-		<JobLayerChart v-if="activeKey === 'layerChart'" :settings="layerSettings" />
+		<JobPreview v-if="activeKey === 'preview'" :settings="previewSettings" />
+		<JobLayerChart v-else-if="activeKey === 'layerChart'" :settings="layerSettings" />
 		<JobGCodeStream v-else-if="activeKey === 'gcodeStream'" />
-		<component v-else-if="activePluginComponent" :is="activePluginComponent" />
+		<!-- Plugin tabs (e.g. the G-code viewer) fill the remaining panel height; their own
+			 height: 100% / flex roots size against this box -->
+		<div v-else-if="activePluginComponent" class="plugin-tab-content flex-grow-1 d-flex flex-column">
+			<component :is="activePluginComponent" />
+		</div>
+
+		<template #title-append>
+			<v-menu v-if="settingsStore.enablePanelEditing" location="bottom end" :close-on-content-click="false">
+				<template #activator="{ props: menuProps }">
+					<v-btn v-bind="menuProps" icon="mdi-eye" variant="text" size="small" density="comfortable"
+						   :title="$t('jobViewPanel.toggleTabs')" />
+				</template>
+				<v-list density="compact">
+					<v-list-item v-for="tab in candidateTabs" :key="tab.key" @click="toggleTab(tab.key)">
+						<template #prepend>
+							<v-icon :color="isTabHidden(tab.key) ? undefined : 'primary'">
+								{{ isTabHidden(tab.key) ? "mdi-checkbox-blank-outline" : "mdi-checkbox-marked" }}
+							</v-icon>
+						</template>
+						<v-list-item-title>
+							<v-icon size="small" class="mr-1">{{ tab.icon }}</v-icon>
+							{{ tab.title }}
+						</v-list-item-title>
+					</v-list-item>
+				</v-list>
+			</v-menu>
+		</template>
 
 		<template v-if="layerTabIndex >= 0" #[layerSettingsSlot]>
 			<v-switch v-model="layerSettings.hideFirstLayer" color="primary"
@@ -20,6 +53,13 @@
 							v-hint="$t('chart.layer.settings.lastLayerCountHint')"
 							variant="outlined" density="comfortable" hide-details />
 		</template>
+
+		<template v-if="previewTabIndex >= 0" #[previewSettingsSlot]>
+			<v-switch v-model="previewSettings.showProgressOverlay" color="primary"
+					  :label="$t('jobViewPanel.previewSettings.showProgressOverlay')"
+					  v-hint="$t('jobViewPanel.previewSettings.showProgressOverlayHint')"
+					  density="comfortable" hide-details />
+		</template>
 	</PanelCard>
 </template>
 
@@ -28,18 +68,32 @@ import type { Component } from "vue";
 
 import JobGCodeStream from "./JobGCodeStream.vue";
 import JobLayerChart, { type LayerChartSettings, layerChartDefaults } from "./JobLayerChart.vue";
+import JobPreview, { type PreviewSettings, previewDefaults } from "./JobPreview.vue";
 import { useComponentSettings } from "@/composables/useComponentSettings";
 import i18n from "@/i18n";
 import { getJobViewTabs } from "@/plugins";
 import { useCacheStore } from "@/stores/cache";
+import { useMachineStore } from "@/stores/machine";
+import { useSettingsStore } from "@/stores/settings";
 import { useUiStore } from "@/stores/ui";
 
 const cacheStore = useCacheStore();
+const machineStore = useMachineStore();
+const settingsStore = useSettingsStore();
 const uiStore = useUiStore();
 
-// Per-panel layer-chart settings. The id is pinned so the persisted record follows the
-// chart even though it now lives inside this panel rather than being its own PanelCard
-const layerSettings = useComponentSettings<LayerChartSettings>({ ...layerChartDefaults }, { id: "jobViewPanel::layerChart" });
+// Per-panel settings, pinned ids so the persisted records follow each view even though they
+// live inside this shared panel rather than being their own PanelCards. The ids are also handed to
+// PanelCard per title so its Reset targets the right record when several tabs carry settings
+const LAYER_SETTINGS_ID = "jobViewPanel::layerChart", PREVIEW_SETTINGS_ID = "jobViewPanel::preview";
+const layerSettings = useComponentSettings<LayerChartSettings>({ ...layerChartDefaults }, { id: LAYER_SETTINGS_ID });
+const previewSettings = useComponentSettings<PreviewSettings>({ ...previewDefaults }, { id: PREVIEW_SETTINGS_ID });
+
+// The preview tab appears only while the loaded job carries at least one thumbnail with data
+const hasPreview = computed(() => {
+	const file = machineStore.model.job.file;
+	return file !== null && file.thumbnails.some(thumbnail => !!thumbnail.data);
+});
 
 interface ResolvedTab {
 	key: string;
@@ -47,12 +101,14 @@ interface ResolvedTab {
 	title: string;
 	order: number;
 	component?: Component;
+	settingsId?: string;
 }
 
 // The layer chart is meaningless outside FFF, so it is offered only there; the G-code stream
 // applies to every mode. Plugin tabs are merged in via getJobViewTabs()
-const builtInTabs = [
-	{ key: "layerChart", icon: "mdi-vector-polyline", caption: "chart.layer.caption", order: 10, condition: () => uiStore.isFFF },
+const builtInTabs: Array<{ key: string; icon: string; caption: string; order: number; condition?: () => boolean; settingsId?: string }> = [
+	{ key: "layerChart", icon: "mdi-vector-polyline", caption: "chart.layer.caption", order: 10, condition: () => uiStore.isFFF, settingsId: LAYER_SETTINGS_ID },
+	{ key: "preview", icon: "mdi-image", caption: "jobViewPanel.preview", order: 15, condition: () => hasPreview.value, settingsId: PREVIEW_SETTINGS_ID },
 	{ key: "gcodeStream", icon: "mdi-code-tags", caption: "jobViewPanel.gcodeStream", order: 20 },
 ];
 
@@ -68,10 +124,12 @@ function resolveCaption(caption: string | (() => string), translated?: boolean):
 	return translated ? raw : i18n.global.t(raw);
 }
 
-const availableTabs = computed<Array<ResolvedTab>>(() => {
+// Every tab whose own condition (machine mode, preview availability, ...) is met. The eye menu
+// lists these so a user can re-show one they hid; availableTabs narrows them by that choice
+const candidateTabs = computed<Array<ResolvedTab>>(() => {
 	const builtIn: Array<ResolvedTab> = builtInTabs
 		.filter(tab => evalCondition(tab.condition))
-		.map(tab => ({ key: tab.key, icon: tab.icon, title: resolveCaption(tab.caption), order: tab.order }));
+		.map(tab => ({ key: tab.key, icon: tab.icon, title: resolveCaption(tab.caption), order: tab.order, settingsId: tab.settingsId }));
 	const plugin: Array<ResolvedTab> = getJobViewTabs()
 		.filter(tab => evalCondition(tab.condition))
 		.map(tab => ({
@@ -84,7 +142,22 @@ const availableTabs = computed<Array<ResolvedTab>>(() => {
 	return [...builtIn, ...plugin].sort((a, b) => a.order - b.order);
 });
 
-const titles = computed(() => availableTabs.value.map(tab => ({ icon: tab.icon, title: tab.title })));
+function isTabHidden(key: string): boolean {
+	return cacheStore.jobViewHiddenTabs.includes(key);
+}
+
+function toggleTab(key: string) {
+	// Filtering first then conditionally re-adding both flips the entry and dedupes any stale copy
+	const hidden = cacheStore.jobViewHiddenTabs.filter(entry => entry !== key);
+	if (!isTabHidden(key)) {
+		hidden.push(key);
+	}
+	cacheStore.jobViewHiddenTabs = hidden;
+}
+
+const availableTabs = computed<Array<ResolvedTab>>(() => candidateTabs.value.filter(tab => !isTabHidden(tab.key)));
+
+const titles = computed(() => availableTabs.value.map(tab => ({ icon: tab.icon, title: tab.title, settingsId: tab.settingsId })));
 
 // The persisted choice is kept untouched when its tab is unavailable, so it is restored if
 // the tab returns (mode switch, plugin load) - mirrors ToolsPanel's active-tab clamp
@@ -110,4 +183,7 @@ const activePluginComponent = computed<Component | undefined>(() =>
 
 const layerTabIndex = computed(() => availableTabs.value.findIndex(tab => tab.key === "layerChart"));
 const layerSettingsSlot = computed(() => `settings-${layerTabIndex.value}`);
+
+const previewTabIndex = computed(() => availableTabs.value.findIndex(tab => tab.key === "preview"));
+const previewSettingsSlot = computed(() => `settings-${previewTabIndex.value}`);
 </script>

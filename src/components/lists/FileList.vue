@@ -351,7 +351,7 @@
 		</div>
 	</v-card>
 
-	<input ref="fileInput" type="file" multiple hidden @change="onFilesPicked" />
+	<input ref="fileInput" type="file" multiple hidden :accept="uploadAccept" @change="onFilesPicked" />
 
 	<v-menu v-model="contextMenu.shown" :target="[contextMenu.x, contextMenu.y]">
 		<v-list :density="controlDensity">
@@ -361,14 +361,14 @@
 				</template>
 				<v-list-item-title>{{ openLabel }}</v-list-item-title>
 			</v-list-item>
-			<v-list-item v-if="contextMenu.target && !contextMenu.target.isDirectory && fileMode === 'jobs'"
+			<v-list-item v-if="contextMenu.target && !contextMenu.target.isDirectory && inGCodeDirectory"
 						 @click="simulateFromContext">
 				<template #prepend>
 					<v-icon>mdi-flask</v-icon>
 				</template>
 				<v-list-item-title>{{ $t("list.jobs.simulate") }}</v-list-item-title>
 			</v-list-item>
-			<v-list-item v-if="contextMenu.target && !contextMenu.target.isDirectory && fileMode === 'jobs' && effectiveViewMode === 'tiles'"
+			<v-list-item v-if="contextMenu.target && !contextMenu.target.isDirectory && inGCodeDirectory && effectiveViewMode === 'tiles'"
 						 @click="showFileInfoFromContext">
 				<template #prepend>
 					<v-icon>mdi-information-outline</v-icon>
@@ -565,6 +565,37 @@ const props = defineProps<{
 }>();
 
 const fileMode = computed(() => props.mode ?? "files");
+
+// Jobs-style context actions (simulate, file info, plugin items like 3D view) apply wherever print
+// files live: the gcodes tree, or any external volume - matching how the Jobs page scopes them
+const inGCodeDirectory = computed(() => {
+	const dir = browser.directory.value;
+	const gCodes = machineStore.model.directories.gCodes;
+	return Path.startsWith(dir, gCodes) || Path.getVolume(dir) !== Path.getVolume(gCodes);
+});
+
+// Per-directory upload filter, mirroring v3.6's upload targets so the picker only offers files that
+// belong in the browsed directory. Empty (no restriction) for macros, menu and external volumes
+const uploadAccept = computed<string>(() => {
+	const dirs = machineStore.model.directories;
+	const dir = browser.directory.value;
+	if (fileMode.value === "jobs" || Path.startsWith(dir, dirs.gCodes)) {
+		return ".g,.gcode,.gc,.gco,.nc,.ngc,.tap";
+	}
+	if (Path.startsWith(dir, dirs.filaments)) {
+		return ".zip";
+	}
+	if (Path.startsWith(dir, dirs.firmware)) {
+		return ".zip,.bin,.uf2";
+	}
+	if (Path.startsWith(dir, dirs.system)) {
+		return ".zip,.bin,.uf2,.json,.g,.csv,.xml" + (machineStore.model.sbc !== null ? ",.deb" : "");
+	}
+	if (Path.startsWith(dir, dirs.web)) {
+		return ".zip,.csv,.json,.htm,.html,.ico,.xml,.css,.map,.js,.ttf,.eot,.svg,.woff,.woff2,.jpeg,.jpg,.png,.gz";
+	}
+	return "";
+});
 
 const emit = defineEmits<{
 	fileClick: [item: FileBrowserItem, directory: string];
@@ -1534,14 +1565,14 @@ async function openInConfigTool() {
 // #endregion
 
 // #region Plugin-registered context menu items
-// Surface entries plugins added via registerPluginContextMenuItem. Limited to the JobFileList
-// type for now since that's the only ContextMenuType we expose, and it only makes sense for
-// rows that represent files (not directories)
+// Surface entries plugins added via registerPluginContextMenuItem. Limited to the JobFileList type
+// (the only ContextMenuType we expose), shown for file rows in any gcode directory - the Jobs page
+// and the Explorer's gcode folders alike, not just the dedicated Jobs list
 const pluginContextMenuItems = computed(() => {
-	if (fileMode.value !== "jobs") {
+	if (!contextMenu.target || contextMenu.target.isDirectory) {
 		return [];
 	}
-	if (!contextMenu.target || contextMenu.target.isDirectory) {
+	if (!inGCodeDirectory.value) {
 		return [];
 	}
 	return uiStore.contextMenuItems[ContextMenuType.JobFileList] ?? [];

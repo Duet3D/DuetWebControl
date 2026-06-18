@@ -59,6 +59,7 @@ declare module 'vue' {
     JobGCodeStream: typeof import('./components/panels/JobViewPanel/JobGCodeStream.vue')['default']
     JobInfoPanel: typeof import('./components/panels/JobInfoPanel.vue')['default']
     JobLayerChart: typeof import('./components/panels/JobViewPanel/JobLayerChart.vue')['default']
+    JobPreview: typeof import('./components/panels/JobViewPanel/JobPreview.vue')['default']
     JobProgress: typeof import('./components/misc/JobProgress.vue')['default']
     JobThumbnailCell: typeof import('./components/lists/JobThumbnailCell.vue')['default']
     JobTimesPanel: typeof import('./components/panels/JobTimesPanel.vue')['default']
