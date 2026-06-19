@@ -192,14 +192,14 @@ function showsEditPencil(index: number): boolean {
 }
 
 // Inter-title spacing: a title with its own pencil needs only a small margin since the pencil
-// already separates it; a pencil-less title gets the wider me-4 to line up when any pencil is
+// already separates it; a pencil-less title gets the wider me-8 to line up when any pencil is
 // shown, or me-3 when no title has one
 const anyEditPencil = computed(() => resolvedTitles.value.some((_, index) => showsEditPencil(index)));
 function titleSpacingClass(index: number): string {
 	if (showsEditPencil(index)) {
 		return "me-1";
 	}
-	return anyEditPencil.value ? "me-4" : "me-3";
+	return anyEditPencil.value ? "me-8" : "me-3";
 }
 
 const shown = ref(false);

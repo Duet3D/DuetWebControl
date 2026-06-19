@@ -633,7 +633,7 @@
 	"jobViewPanel": {
 		"gcodeStream": "G-code",
 		"noFileLoaded": "No file loaded",
-		"preview": "Preview",
+		"preview": "Thumbnail",
 		"toggleTabs": "Show or hide tabs",
 		"previewSettings": {
 			"showProgressOverlay": "Show print progress overlay",
@@ -769,6 +769,7 @@
 			"changeFilament": "Change Filament",
 			"unloadFilament": "Unload Filament",
 			"reassignFilament": "Reassign Filament",
+			"editFilamentFiles": "Edit Filament Files",
 			"heater": "Heater {0}",
 			"heaterPower": "Power: {0}",
 			"current": "Current",
@@ -1189,7 +1190,11 @@
 			"boardFirmware": "Firmware",
 			"noBoards": "No board information available.",
 			"credits": "Web interface developed by {author} for {duet3d}.",
-			"license": "Licensed under the terms of the {gpl}."
+			"license": "Licensed under the terms of the {gpl}.",
+			"closeCaption": "Close DWC",
+			"closeHint": "Close the local Duet Web Control window. Only available when DWC runs on the local display.",
+			"close": "Close",
+			"closeError": "Failed to close DWC"
 		},
 		"plugins": {
 			"caption": "Plugins",
@@ -1411,8 +1416,8 @@
 				"title": "Reload the current gcode, this is used when changing settings like color, feedrate color, etc."
 			},
 			"loadCurrentJob": {
-				"caption": "Load Current Job",
-				"title": "Load the current printing or simulating job"
+				"caption": "Follow Live Progress",
+				"title": "Load the current printing or simulating job and follow its live progress"
 			},
 			"unloadGCode": {
 				"caption": "Unload GCode",

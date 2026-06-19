@@ -165,6 +165,12 @@ export function checkVersion(actual: string, required: string): boolean {
 const loadedPlugins = new Set<string>();
 
 /**
+ * Set of plugin IDs whose last load attempt failed (e.g. unsatisfied DWC version or dependency).
+ * Lets the management UI report them as stopped rather than leaving them stuck as "pending"
+ */
+const failedPlugins = new Set<string>();
+
+/**
  * Vue Router instance, set during initialisation
  */
 // Router is imported directly at module load instead of being injected via initPluginSystem
@@ -716,6 +722,21 @@ export function isPluginLoaded(id: string): boolean {
 }
 
 /**
+ * Check whether a plugin's last load attempt failed
+ */
+export function isPluginLoadFailed(id: string): boolean {
+	return Array.from(failedPlugins).some(p => samePluginId(p, id));
+}
+
+function clearPluginLoadFailed(id: string): void {
+	for (const failed of failedPlugins) {
+		if (samePluginId(failed, id)) {
+			failedPlugins.delete(failed);
+		}
+	}
+}
+
+/**
  * Check whether a plugin is a built-in plugin
  */
 export function isPluginBuiltIn(id: string): boolean {
@@ -747,18 +768,24 @@ export async function loadDwcPlugin(id: string, saveSettings = true): Promise<vo
 	}
 
 	const builtIn = builtInPlugins.find(p => samePluginId(p.id, id));
-	if (builtIn) {
-		await loadBuiltInPlugin(builtIn);
-	} else if (import.meta.env.DEV) {
-		// External plugins are served from the board's filesystem, which the dev server can't
-		// provide, so fetching their JS/CSS would 404. Skip the load in dev rather than letting
-		// every board-enabled plugin raise a spurious load failure
-		console.warn(`Skipping external plugin "${id}": external plugins are only available in production builds`);
-		return;
-	} else {
-		await loadExternalPlugin(id);
+	try {
+		if (builtIn) {
+			await loadBuiltInPlugin(builtIn);
+		} else if (import.meta.env.DEV) {
+			// External plugins are served from the board's filesystem, which the dev server can't
+			// provide, so fetching their JS/CSS would 404. Skip the load in dev rather than letting
+			// every board-enabled plugin raise a spurious load failure
+			console.warn(`Skipping external plugin "${id}": external plugins are only available in production builds`);
+			return;
+		} else {
+			await loadExternalPlugin(id);
+		}
+	} catch (e) {
+		failedPlugins.add(id);
+		throw e;
 	}
 
+	clearPluginLoadFailed(id);
 	if (saveSettings) {
 		useSettingsStore().dwcPluginLoaded(id);
 	}
@@ -798,10 +825,12 @@ export async function loadDwcPlugins(): Promise<void> {
  * @param id Plugin ID
  */
 export async function unloadDwcPlugin(id: string): Promise<void> {
-	if (!isPluginLoaded(id)) {
-		return;
-	}
+	clearPluginLoadFailed(id);
 
+	// A plugin enabled in settings but never loaded (e.g. its DWC load failed) still has to be
+	// dropped from the enabled list and reported via the event, so disable it regardless of
+	// whether browser-side assets are live
+	const wasLoaded = isPluginLoaded(id);
 	for (const loaded of loadedPlugins) {
 		if (samePluginId(loaded, id)) {
 			loadedPlugins.delete(loaded);
@@ -810,7 +839,9 @@ export async function unloadDwcPlugin(id: string): Promise<void> {
 
 	useSettingsStore().disableDwcPlugin(id);
 
-	Events.emit("dwcPluginUnloaded", id);
+	if (wasLoaded) {
+		Events.emit("dwcPluginUnloaded", id);
+	}
 }
 
 // #endregion

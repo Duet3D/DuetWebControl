@@ -300,6 +300,16 @@ export function useFirmwareInstall() {
 	async function runUpdate(plan: FirmwareUpdatePlan): Promise<void> {
 		machineStore.boardsBeingUpdated = [...plan.firmwareBoards];
 
+		// A main-board or WiFi-server reflash drops the HTTP connection mid-update, so DWC can only
+		// reload once the board serves the new bundle again. Arm a reload that the machine store fires
+		// on reconnect, and set it before the first M997 - a fast reboot could otherwise reconnect
+		// before the flag is in place and miss it. Only reload for the host we are rendering for
+		const reloadDwc = plan.webInterfaceTouched && machineStore.connector?.hostname === location.host;
+		const connectionDrops = plan.firmwareBoards.includes(0) || plan.wifiServer;
+		if (reloadDwc && connectionDrops) {
+			machineStore.reloadAfterReconnect = true;
+		}
+
 		// Expansion boards first, one M997 per CAN address
 		for (const canAddress of plan.firmwareBoards) {
 			if (canAddress > 0) {
@@ -345,9 +355,9 @@ export function useFirmwareInstall() {
 		machineStore.boardBeingUpdated = -1;
 		machineStore.boardsBeingUpdated = [];
 
-		// Auto-reload DWC when its own bundle was just refreshed and we're connected to the host
-		// we're rendering for
-		if (plan.webInterfaceTouched && machineStore.connector?.hostname === location.host) {
+		// Expansion-/display-only reflashes keep the HTTP connection up, so no reconnect will fire the
+		// armed reload - refresh straight away to pick up the new bundle
+		if (reloadDwc && !connectionDrops) {
 			location.reload();
 		}
 	}

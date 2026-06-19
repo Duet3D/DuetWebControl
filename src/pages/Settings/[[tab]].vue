@@ -811,6 +811,24 @@
 							</div>
 						</v-card-text>
 					</v-card>
+
+					<v-card v-if="machineStore.isLocal && machineStore.isDuetPiManagementPluginRunning" class="mt-3">
+						<v-card-title>
+							<v-icon class="mr-2">mdi-close-box</v-icon>
+							{{ $t("settings.about.closeCaption") }}
+						</v-card-title>
+						<v-card-text>
+							<div class="d-flex align-center">
+								<div class="flex-grow-1 text-body-small text-medium-emphasis">
+									{{ $t("settings.about.closeHint") }}
+								</div>
+								<v-btn class="ms-2" color="warning" @click="closeDwc">
+									<v-icon class="mr-1">mdi-close</v-icon>
+									{{ $t("settings.about.close") }}
+								</v-btn>
+							</div>
+						</v-card-text>
+					</v-card>
 				</v-window-item>
 
 				<v-window-item v-for="tab in pluginSettingTabs" :key="tab.key" :value="tab.key" eager>
@@ -1068,6 +1086,16 @@ const dwcBuildDateTime = __BUILD_DATETIME__;
 
 function reloadPage() {
 	window.location.reload();
+}
+
+// Chromium refuses window.close() for a navigated, UA-opened window (the kiosk case), so the
+// DuetPi Management Plugin terminates the local browser process via its closeBrowser endpoint
+async function closeDwc() {
+	try {
+		await machineStore.request("POST", "machine/DuetPiManagementPlugin/closeBrowser", null, "");
+	} catch (e) {
+		uiStore.log(LogLevel.error, i18n.global.t("settings.about.closeError"), getErrorMessage(e, true));
+	}
 }
 
 const isPollConnector = computed(() => machineStore.connector instanceof PollConnector);

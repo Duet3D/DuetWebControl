@@ -77,6 +77,11 @@
 											<v-icon class="mr-1">mdi-arrow-up</v-icon>
 											{{ $t("panel.tools.unloadFilament") }}
 										</v-list-item>
+										<v-divider />
+										<v-list-item @click="editFilamentFiles(tool)">
+											<v-icon class="mr-1">mdi-file-document-edit</v-icon>
+											{{ $t("panel.tools.editFilamentFiles") }}
+										</v-list-item>
 									</v-list>
 								</v-menu>
 								<a v-else href="javascript:void(0)" :class="{ disabled }"
@@ -188,6 +193,7 @@ import { useUiStore, LogLevel } from "@/stores/ui";
 import { getHeaterColor } from "@/utils/colors";
 import { display, displaySensorValue } from "@/utils/display";
 import { getErrorMessage } from "@/utils/errors";
+import Path from "@/utils/path";
 
 const emit = defineEmits<{
 	(e: "resetHeaterFault", heater: number): void;
@@ -196,6 +202,7 @@ const emit = defineEmits<{
 const machineStore = useMachineStore();
 const settingsStore = useSettingsStore();
 const uiStore = useUiStore();
+const router = useRouter();
 
 const toolSettings = inject(TOOL_DISPLAY_SETTINGS_KEY)!;
 
@@ -358,6 +365,13 @@ function showFilamentDialog(tool: Tool, runMacros: boolean) {
 	filamentDialogTool.value = tool;
 	filamentRunMacros.value = runMacros;
 	filamentDialogShown.value = true;
+}
+
+function editFilamentFiles(tool: Tool) {
+	const filament = getFilament(tool);
+	if (filament) {
+		router.push(Path.explorerRoute(Path.combine(Path.filaments, filament)));
+	}
 }
 
 async function unloadFilament(tool: Tool) {

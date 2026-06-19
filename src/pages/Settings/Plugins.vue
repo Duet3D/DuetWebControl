@@ -160,7 +160,7 @@ import { useDisplay } from "vuetify";
 import type { Plugin, PluginManifest } from "@duet3d/objectmodel";
 
 import i18n from "@/i18n";
-import { getBuiltInPlugins, isPluginBuiltIn, isPluginLoaded, loadDwcPlugin, unloadDwcPlugin } from "@/plugins";
+import { getBuiltInPlugins, isPluginBuiltIn, isPluginLoaded, isPluginLoadFailed, loadDwcPlugin, unloadDwcPlugin } from "@/plugins";
 import { samePluginId } from "@/utils/plugins";
 import { useCacheStore } from "@/stores/cache";
 import { useMachineStore } from "@/stores/machine";
@@ -209,21 +209,23 @@ const pluginLoadTick = ref(0);
 const bumpLoadTick = () => { pluginLoadTick.value += 1; };
 Events.on("dwcPluginLoaded", bumpLoadTick);
 Events.on("dwcPluginUnloaded", bumpLoadTick);
+Events.on("dwcPluginLoadError", bumpLoadTick);
 onBeforeUnmount(() => {
 	Events.off("dwcPluginLoaded", bumpLoadTick);
 	Events.off("dwcPluginUnloaded", bumpLoadTick);
+	Events.off("dwcPluginLoadError", bumpLoadTick);
 });
 
+// "Started" means actually running - DWC assets loaded or an SBC process alive. Being enabled in
+// settings is intent, not runtime state: a plugin can be enabled yet not loaded (load failed, or a
+// reconnect hasn't replayed it yet), in which case it must stay stoppable / uninstallable
 function isStarted(id: string): boolean {
 	pluginLoadTick.value;
 	if (isPluginLoaded(id)) {
 		return true;
 	}
 	const sbcPid = machineStore.model.plugins.get(id)?.pid ?? -1;
-	if (sbcPid > 0) {
-		return true;
-	}
-	return settingsStore.enabledPlugins.some(p => samePluginId(p, id));
+	return sbcPid > 0;
 }
 
 type PluginStatus = "started" | "starting" | "stopping" | "partial" | "installed" | "pending" | "stopped";
@@ -277,8 +279,10 @@ function pluginStatus(id: string): PluginStatus {
 		return "started";
 	}
 
-	// External plugin enabled in settings but not yet loaded by the runtime (reconnect away)
-	if (settingsStore.enabledPlugins.some(p => samePluginId(p, id))) {
+	// Enabled in settings but not running. A failed load (e.g. unsatisfied DWC version or
+	// dependency) reads as stopped so Start / Uninstall stay reachable; only a load that hasn't
+	// been attempted yet (reconnect away, or external plugins skipped in dev) reads as pending
+	if (settingsStore.enabledPlugins.some(p => samePluginId(p, id)) && !isPluginLoadFailed(id)) {
 		return "pending";
 	}
 	return "stopped";

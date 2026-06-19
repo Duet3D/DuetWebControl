@@ -124,6 +124,13 @@ export const useMachineStore = defineStore("machine", {
 		isReconnecting: false,
 
 		/**
+		 * Reload DWC once the connection is back up. Armed during a firmware update that also refreshes
+		 * the DWC bundle - the main-board/WiFi reflash drops the HTTP connection, so the page can only
+		 * pick up the new assets after the board is serving again
+		 */
+		reloadAfterReconnect: false,
+
+		/**
 		 * Indicates if nultiple files are being changed
 		 */
 		changingMultipleFiles: false,
@@ -147,6 +154,20 @@ export const useMachineStore = defineStore("machine", {
 		 * @returns Whether DWC is connected to the machine
 		 */
 		isConnected: state => state.connector !== null,
+
+		/**
+		 * Whether DWC is served from the local machine (loopback host)
+		 * @returns Whether DWC runs on localhost
+		 */
+		isLocal: () => ["localhost", "127.0.0.1", "::1", "[::1]"].includes(location.hostname),
+
+		/**
+		 * Whether the DuetPi Management Plugin is installed and running. Its closeBrowser endpoint
+		 * is required to shut down the local DWC kiosk
+		 * @param state Store state
+		 * @returns Whether the DuetPi Management Plugin is running
+		 */
+		isDuetPiManagementPluginRunning: state => (state.model.plugins.get("DuetPiManagementPlugin")?.pid ?? 0) > 0,
 
 		/**
 		 * Currently selected tool
@@ -447,6 +468,12 @@ export const useMachineStore = defineStore("machine", {
 
 				this.isReconnecting = false;
 				Events.emit("reconnected", this.connector.hostname);
+
+				// A firmware update that also refreshed DWC had to defer its reload until the board
+				// came back; now that it serves the new assets, pick them up
+				if (this.reloadAfterReconnect) {
+					location.reload();
+				}
 			} catch (e) {
 				// Route through handleConnectionError so the retry-with-delay path fires;
 				// isReconnecting is still true, so it lands in the setTimeout branch

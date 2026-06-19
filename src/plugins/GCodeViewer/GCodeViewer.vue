@@ -231,9 +231,9 @@
 					<v-icon>mdi-cog</v-icon>
 				</v-btn>
 				<br />
-				<v-btn v-if="isJobRunning && !loading && !visualizingCurrentJob"
+				<v-btn v-if="isJobRunning && !loading && !followingJob"
 					   :title="$t('plugins.gcodeViewer.loadCurrentJob.title')" class="mb-10"
-					   color="primary" size="small" @click="loadRunningJob">
+					   color="primary" size="small" @click="() => loadRunningJob(true)">
 					<v-icon>mdi-printer-3d</v-icon>
 				</v-btn>
 				<br />
@@ -268,9 +268,9 @@
 									   color="primary" prepend-icon="mdi-reload-alert" @click="reloadviewer">
 									{{ $t("plugins.gcodeViewer.reloadView.caption") }}
 								</v-btn>
-								<v-btn :disabled="!isJobRunning || loading || visualizingCurrentJob"
+								<v-btn :disabled="!isJobRunning || loading || followingJob"
 									   :title="$t('plugins.gcodeViewer.loadCurrentJob.title')" block
-									   color="secondary" prepend-icon="mdi-printer-3d" @click="loadRunningJob">
+									   color="secondary" prepend-icon="mdi-printer-3d" @click="() => loadRunningJob(true)">
 									{{ $t("plugins.gcodeViewer.loadCurrentJob.caption") }}
 								</v-btn>
 								<v-btn :disabled="loading" :title="$t('plugins.gcodeViewer.unloadGCode.title')" block
@@ -470,7 +470,7 @@
 				</aside>
 			</Transition>
 
-			<div v-show="!visualizingCurrentJob && scrubFileSize > 0"
+			<div v-show="!followingJob && scrubFileSize > 0"
 				 :class="[{ 'button-container-drawer': drawer }, scrubberClass]">
 				<v-row class="scrubber-row">
 					<v-col cols="10" md="5">
@@ -559,6 +559,11 @@ interface ObjectInfo {
 	name?: string;
 }
 
+interface PrintBounds {
+	min: Vector3;
+	max: Vector3;
+}
+
 const machineStore = useMachineStore();
 const cacheStore = useCacheStore();
 const settingsStore = useSettingsStore();
@@ -636,6 +641,12 @@ const perimeterOnly = ref(false);
 const transparencyPercent = ref(50);
 const progressMode = ref(false);
 
+// True only while the viewer actively follows the running print head (live tracking). The Job
+// Status tab turns this on automatically; the standalone page leaves it off and renders the whole
+// file as finished, so the user can scrub it - they opt into live view via the "load current job"
+// button, which also re-enables per-object cancellation
+const followingJob = ref(false);
+
 // #region OM-derived computeds
 const job = computed<Job>(() => machineStore.model.job);
 const move = computed<Move>(() => machineStore.model.move);
@@ -663,7 +674,7 @@ const canCancelObject = computed(() => {
 		if (!isJobRunning.value || (job.value.build?.objects?.length ?? 0) <= 0) {
 			return false;
 		}
-		return visualizingCurrentJob.value;
+		return followingJob.value;
 	} catch {
 		return false;
 	}
@@ -772,6 +783,7 @@ const currentWorkplace = computed(() => {
 // #region Viewer lifecycle
 async function loadSdFile(path: string) {
 	selectedFile.value = path;
+	followingJob.value = false;
 	if (!viewer) {
 		return;
 	}
@@ -787,7 +799,7 @@ async function loadSdFile(path: string) {
 			fileData.value = viewer.fileData;
 		}
 		scrubFileSize.value = viewer.fileSize;
-		viewer.gcodeProcessor.setLiveTracking(visualizingCurrentJob.value);
+		viewer.gcodeProcessor.setLiveTracking(false);
 		setGCodeValues();
 		applyDefaultOrientation();
 	} finally {
@@ -821,55 +833,106 @@ function loadFromRoute() {
 	}
 }
 
-// Default camera placement: a front view of the bed tilted 45 deg down. For an ArcRotateCamera
-// alpha -PI/2 faces the bed's front edge and beta PI/4 is the tilt; targeting the bed centre
-// keeps it centred. frameBedToViewport() then sizes the orbit radius to fit
+// Default camera placement: a front view tilted 45 deg down. For an ArcRotateCamera alpha -PI/2
+// faces the front edge and beta PI/4 is the tilt. The look-at point and orbit radius frame the
+// printed geometry when a file is loaded, falling back to the whole bed when it isn't
 function applyDefaultOrientation() {
 	const camera = viewer?.scene?.activeCamera;
 	if (!camera) {
 		return;
 	}
-	const center = viewer.bed.getCenter();
-	camera.target = new Vector3(center.x, -2, center.y);
+	const bounds = getPrintBounds();
+	if (bounds) {
+		camera.target = new Vector3((bounds.min.x + bounds.max.x) / 2, (bounds.min.y + bounds.max.y) / 2,
+			(bounds.min.z + bounds.max.z) / 2);
+	} else {
+		const center = viewer.bed.getCenter();
+		camera.target = new Vector3(center.x, -2, center.y);
+	}
 	camera.alpha = -Math.PI / 2;
 	camera.beta = Math.PI / 4;
-	frameBedToViewport();
+	frameToViewport(framingCorners(bounds));
 	viewer.scene.render(true);
 }
 
-// Pull the orbit camera back until the bed footprint fills the viewport. The four bed corners
-// are projected with the live view + projection matrices and the radius is rescaled from how
-// much of the clip volume they span, so the fit adapts to any bed size, the camera tilt and
-// the viewport aspect ratio. A strip is reserved at the bottom so the playback controls stay
-// clear of the bed. Perspective makes a single pass approximate, hence the short converging loop
-function frameBedToViewport() {
-	const camera = viewer?.scene?.activeCamera;
-	if (!camera) {
-		return;
+// Axis-aligned bounding box of every extruding move in the loaded file, in Babylon space (x = X,
+// y = print height, z = Y). Returns null when nothing extruding has been parsed yet, so callers
+// fall back to framing the bed. Walked once per load / reset (never per frame), so the linear scan
+// over all rendered segments is cheap relative to the parse that just produced them
+function getPrintBounds(): PrintBounds | null {
+	const lines = viewer?.gcodeProcessor?.renderedLines as
+		Array<{ start: Vector3; end: Vector3; extruding: boolean }> | undefined;
+	if (!lines || lines.length === 0) {
+		return null;
+	}
+	let minX = Infinity, minY = Infinity, minZ = Infinity;
+	let maxX = -Infinity, maxY = -Infinity, maxZ = -Infinity;
+	for (const line of lines) {
+		if (!line.extruding) {
+			continue;
+		}
+		minX = Math.min(minX, line.start.x, line.end.x); maxX = Math.max(maxX, line.start.x, line.end.x);
+		minY = Math.min(minY, line.start.y, line.end.y); maxY = Math.max(maxY, line.start.y, line.end.y);
+		minZ = Math.min(minZ, line.start.z, line.end.z); maxZ = Math.max(maxZ, line.start.z, line.end.z);
+	}
+	if (!Number.isFinite(minX)) {
+		return null;
+	}
+	return { min: new Vector3(minX, minY, minZ), max: new Vector3(maxX, maxY, maxZ) };
+}
+
+// Corners fed to the framing fit: the eight corners of the print bounding box, or - with nothing
+// loaded - the four bed-footprint corners on the bed plane. All in Babylon space (y is height)
+function framingCorners(bounds: PrintBounds | null): Array<[number, number, number]> {
+	if (bounds) {
+		const lo = bounds.min, hi = bounds.max;
+		return [
+			[lo.x, lo.y, lo.z], [hi.x, lo.y, lo.z], [lo.x, lo.y, hi.z], [hi.x, lo.y, hi.z],
+			[lo.x, hi.y, lo.z], [hi.x, hi.y, lo.z], [lo.x, hi.y, hi.z], [hi.x, hi.y, hi.z],
+		];
 	}
 	const center = viewer.bed.getCenter();
 	const size = viewer.bed.getSize();
+	const hx = size.x / 2, hy = size.y / 2;
+	return [
+		[center.x - hx, -2, center.y - hy], [center.x + hx, -2, center.y - hy],
+		[center.x - hx, -2, center.y + hy], [center.x + hx, -2, center.y + hy],
+	];
+}
+
+// Pull the orbit camera back until the supplied bounding-box corners fill the viewport. Each corner
+// is projected with the live view + projection matrices and the radius is rescaled from how much of
+// the clip volume they span, so the fit adapts to the box size, the camera tilt and the viewport
+// aspect ratio. A strip is reserved at the bottom so the playback controls stay clear. Perspective
+// makes a single pass approximate, hence the short converging loops
+function frameToViewport(corners: Array<[number, number, number]>) {
+	const camera = viewer?.scene?.activeCamera;
+	if (!camera || corners.length === 0) {
+		return;
+	}
+
+	let spanMinX = Infinity, spanMaxX = -Infinity;
+	let spanMinY = Infinity, spanMaxY = -Infinity;
+	let spanMinZ = Infinity, spanMaxZ = -Infinity;
+	for (const [x, y, z] of corners) {
+		spanMinX = Math.min(spanMinX, x); spanMaxX = Math.max(spanMaxX, x);
+		spanMinY = Math.min(spanMinY, y); spanMaxY = Math.max(spanMaxY, y);
+		spanMinZ = Math.min(spanMinZ, z); spanMaxZ = Math.max(spanMaxZ, z);
+	}
+	const maxSpan = Math.max(spanMaxX - spanMinX, spanMaxY - spanMinY, spanMaxZ - spanMinZ, 1);
 
 	// Before the canvas has a real size the projection matrix is degenerate; fall back to a
 	// rough radius and let the next call (after layout / a file load) frame it properly
 	const engine = viewer.scene.getEngine();
 	if (engine.getRenderWidth() < 1 || engine.getRenderHeight() < 1) {
-		camera.radius = 2 * Math.max(size.x, size.y, 1);
+		camera.radius = 2 * maxSpan;
 		return;
 	}
 
-	const hx = size.x / 2, hy = size.y / 2;
-	const corners: Array<[number, number, number]> = [
-		[center.x - hx, -2, center.y - hy],
-		[center.x + hx, -2, center.y - hy],
-		[center.x - hx, -2, center.y + hy],
-		[center.x + hx, -2, center.y + hy],
-	];
-
 	// Start far enough back that every corner is in front of the camera on the first pass
-	camera.radius = 2 * Math.max(size.x, size.y, 1);
+	camera.radius = 2 * maxSpan;
 
-	// Zoom so the bed fills 95% of the viewport width or 74% of its height, whichever binds
+	// Zoom so the box fills 95% of the viewport width or 74% of its height, whichever binds
 	// first - the rest stays as breathing room
 	const targetX = 0.95;
 	const targetY = 0.74;
@@ -912,7 +975,7 @@ function frameBedToViewport() {
 		}
 	}
 
-	// Centre the bed vertically between the top of the playback controls overlay and the top of
+	// Centre the box vertically between the top of the playback controls overlay and the top of
 	// the viewport - clip-space y +0.1 is the midpoint of that band. Perspective skews the
 	// projected box, so the look-at point is nudged until the box centre lands; damped empirical
 	// steps converge without depending on the exact FOV
@@ -1157,14 +1220,15 @@ function reset() {
 }
 
 // Loads the job currently being processed, but only when the viewer is idle and empty - an
-// explicit file selection or an in-progress load is left untouched
+// explicit file selection or an in-progress load is left untouched. The embedded Job Status tab
+// follows the live print head; the standalone page renders the whole file as finished instead
 function autoLoadRunningJob() {
 	if (isJobRunning.value && !loading.value && !visualizingCurrentJob.value && selectedFile.value === "") {
-		loadRunningJob();
+		loadRunningJob(isEmbedded.value);
 	}
 }
 
-async function loadRunningJob() {
+async function loadRunningJob(live = true) {
 	if (!viewer || !job.value.file) {
 		return;
 	}
@@ -1175,6 +1239,7 @@ async function loadRunningJob() {
 		viewer.clearScene(true);
 	}
 	selectedFile.value = job.value.file.fileName;
+	followingJob.value = live;
 
 	try {
 		const blob = await machineStore.download({
@@ -1182,7 +1247,7 @@ async function loadRunningJob() {
 			type: "text",
 		}, false, false, false);
 		loading.value = true;
-		viewer.gcodeProcessor.setLiveTracking(true);
+		viewer.gcodeProcessor.setLiveTracking(live);
 		viewer.gcodeProcessor.updateForceWireMode(forceWireMode.value);
 		viewer.gcodeProcessor.useHighQualityExtrusion(useHQRendering.value);
 		preLoadSettings();
@@ -1195,7 +1260,11 @@ async function loadRunningJob() {
 		applyDefaultOrientation();
 		viewer.buildObjects.loadObjectBoundaries(job.value.build?.objects ?? []);
 	} finally {
-		viewer.gcodeProcessor.updateFilePosition(0);
+		if (live) {
+			viewer.gcodeProcessor.updateFilePosition(0);
+		} else {
+			viewer.gcodeProcessor.doFinalPass();
+		}
 		viewer.gcodeProcessor.forceRedraw();
 		loading.value = false;
 	}
@@ -1236,6 +1305,19 @@ function clearScene() {
 	viewer?.clearScene(true);
 }
 
+// Reveal the whole file once live tracking ends. doFinalPass() only flips the processor's internal
+// flag - it never pushes the file position to the render instances, which clip geometry purely by
+// their last currentFilePosition. When a job ends the object model can reset job.filePosition to 0
+// in a patch that arrives while followingJob is still true, clipping the finished print away to
+// nothing; pushing the end position back in restores it
+function showCompletedPrint() {
+	if (!viewer) {
+		return;
+	}
+	viewer.gcodeProcessor.updateFilePosition(Number.MAX_VALUE);
+	viewer.gcodeProcessor.doFinalPass();
+}
+
 async function objectDialogCancelObject() {
 	objectDialogData.showDialog = false;
 	const action = objectDialogData.info.cancelled ? "U" : "P";
@@ -1271,7 +1353,7 @@ function preLoadSettings() {
 		return;
 	}
 	viewer.gcodeProcessor.updateForceWireMode(forceWireMode.value);
-	viewer.gcodeProcessor.setLiveTracking(visualizingCurrentJob.value);
+	viewer.gcodeProcessor.setLiveTracking(followingJob.value);
 	viewer.gcodeProcessor.useHighQualityExtrusion(useHQRendering.value);
 	viewer.gcodeProcessor.perimeterOnly = perimeterOnly.value;
 	viewer.gcodeProcessor.currentWorkplace = currentWorkplace.value;
@@ -1391,12 +1473,13 @@ watch(persistTravels, (newValue) => {
 
 watch(visualizingCurrentJob, (newValue) => {
 	if (!newValue) {
-		viewer?.gcodeProcessor.doFinalPass();
+		followingJob.value = false;
+		showCompletedPrint();
 	}
 });
 
 watch(filePosition, (newValue) => {
-	if (visualizingCurrentJob.value) {
+	if (followingJob.value) {
 		scrubPosition.value = newValue;
 		viewer?.gcodeProcessor.updateFilePosition(newValue + 1);
 	}
@@ -1466,10 +1549,11 @@ watch(isJobRunning, (newValue) => {
 	if (!viewer) {
 		return;
 	}
-	viewer.gcodeProcessor.setLiveTracking(newValue);
 	if (!newValue) {
-		viewer.gcodeProcessor.doFinalPass();
+		followingJob.value = false;
+		showCompletedPrint();
 	}
+	viewer.gcodeProcessor.setLiveTracking(followingJob.value);
 });
 
 watch(selectedFile, () => {
