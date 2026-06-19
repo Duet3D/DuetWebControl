@@ -16,6 +16,53 @@ import { useSettingsStore } from "./settings";
  */
 export const defaultPluginCacheFields: Record<string, any> = {}
 
+/**
+ * Persistence record for a single {@link useComponentCache} instance. Mirrors the per-component
+ * settings record - the schema version lets a component migrate or fall back to defaults when its
+ * cached shape evolves
+ */
+export interface ComponentCacheRecord {
+	schemaVersion: number;
+	data: unknown;
+}
+
+/**
+ * Defaults registered by {@link useComponentCache} keyed by component id, so a cache load (which
+ * replaces componentCache wholesale) can re-backfill keys added since a record was persisted
+ */
+const componentCacheDefaults = new Map<string, unknown>();
+
+/**
+ * Backfill keys present in `defaults` but missing from `data`. Adding a field with a default is a
+ * schema-compatible change, so it must not require a version bump. Mutates and returns `data`
+ */
+function backfillComponentDefaults<T>(data: T, defaults: unknown): T {
+	if (data !== null && typeof data === "object" && defaults !== null && typeof defaults === "object") {
+		const target = data as Record<string, unknown>;
+		for (const [key, value] of Object.entries(defaults as Record<string, unknown>)) {
+			if (!(key in target)) {
+				target[key] = JSON.parse(JSON.stringify(value));
+			}
+		}
+	}
+	return data;
+}
+
+// Apply a persisted/merged componentCache blob record-by-record (persisted record wins over an
+// in-memory default a component registered before the load), then backfill any keys added to a
+// component's defaults since its record was written
+function applyComponentCache(store: any, componentCache: unknown) {
+	if (componentCache && typeof componentCache === "object") {
+		store.componentCache = { ...store.componentCache, ...componentCache };
+		for (const [id, defaults] of componentCacheDefaults) {
+			const record = store.componentCache[id];
+			if (record) {
+				backfillComponentDefaults(record.data, defaults);
+			}
+		}
+	}
+}
+
 // Snapshot of the dwc-cache.json blob last loaded from or written to the board. See the
 // matching settingsBaseline in settings.ts for the rationale; cache uses the same cross-session
 // merge but does not surface conflicts to the user - the data is derived and a rare collision
@@ -30,7 +77,14 @@ function applyMergedCache(store: any, merged: any) {
 	const remaining = { ...merged };
 	delete remaining.fileInfos;
 
+	// componentCache is merged record-by-record rather than deep-patched, so stale data keys don't
+	// linger when a component's shape changed (mirrors load())
+	const componentCache = remaining.componentCache;
+	delete remaining.componentCache;
+
 	store.$patch(remaining);
+
+	applyComponentCache(store, componentCache);
 
 	if (fileInfos && typeof fileInfos === "object") {
 		for (const key of Object.keys(store.fileInfos)) {
@@ -63,11 +117,6 @@ export const useCacheStore = defineStore("cache", {
 		lastJobDirectory: "",
 
 		/**
-		 * Stable key of the Job Status view panel tab last viewed, restored across sessions
-		 */
-		activeJobViewTab: "",
-
-		/**
 		 * Keys of Job Status view panel tabs the user hid via the panel's tab-visibility menu;
 		 * absent keys are shown, so newly added tabs default to visible
 		 */
@@ -89,7 +138,13 @@ export const useCacheStore = defineStore("cache", {
 		/**
 		 * Custom plugin cache fields
 		 */
-		plugins: Object.assign({}, defaultPluginCacheFields) as Record<string, any>
+		plugins: Object.assign({}, defaultPluginCacheFields) as Record<string, any>,
+
+		/**
+		 * Per-component cache records (transient UI state keyed by component identity, e.g. the
+		 * last selected Job Status tab). Driven by the {@link useComponentCache} composable
+		 */
+		componentCache: {} as Record<string, ComponentCacheRecord>
 	}),
 	actions: {
 		/**
@@ -139,7 +194,15 @@ export const useCacheStore = defineStore("cache", {
 					// Load cache
 					const fileInfos = cache.fileInfos;
 					delete cache.fileInfos;
+					// componentCache is applied record-by-record below, not deep-patched
+					const componentCache = cache.componentCache;
+					delete cache.componentCache;
+					// Superseded by the per-component cache (jobViewPanel tab record); drop the stale
+					// key so it isn't re-saved into state going forward
+					delete cache.activeJobViewTab;
 					this.$patch(cache);
+
+					applyComponentCache(this, componentCache);
 
 					// Fix loaded file info types
 					for (const key in fileInfos) {
@@ -339,6 +402,40 @@ export const useCacheStore = defineStore("cache", {
 		hasPluginData(plugin: string): boolean {
 			const target = plugin.toLowerCase();
 			return Object.keys(this.plugins).some((key) => key.toLowerCase() === target && Object.keys(this.plugins[key] ?? {}).length > 0);
+		},
+
+		/**
+		 * Return the persisted cache record for a component, initialising it from {@link defaults} when
+		 * missing or when the persisted record fails the schema check (and the optional {@link upgrade}
+		 * handler does not yield a usable value). Used by {@link useComponentCache} - prefer that
+		 * composable over direct calls
+		 * @param id Stable component identity
+		 * @param defaults Initial cache shape
+		 * @param schemaVersion Current schema version - bump when the shape changes incompatibly
+		 * @param upgrade Optional migration receiving the previously-persisted value (any shape, any version)
+		 * @returns The current data payload (a reactive reference into the store)
+		 */
+		getOrInitComponentCache<T>(id: string, defaults: T, schemaVersion: number, upgrade?: (old: unknown) => T): T {
+			// Remember the defaults so a later cache load can re-backfill this record (the load path
+			// replaces componentCache wholesale, bypassing the check below)
+			componentCacheDefaults.set(id, defaults);
+
+			const existing = this.componentCache[id];
+			if (existing && existing.schemaVersion === schemaVersion) {
+				return backfillComponentDefaults(existing.data, defaults) as T;
+			}
+			if (existing && upgrade) {
+				try {
+					const migrated = upgrade(existing.data);
+					this.componentCache[id] = { schemaVersion, data: migrated };
+					return migrated;
+				} catch (e) {
+					console.warn(`Component cache upgrade failed for ${id}; falling back to defaults`, e);
+				}
+			}
+			const initialData = JSON.parse(JSON.stringify(defaults)) as T;
+			this.componentCache[id] = { schemaVersion, data: initialData };
+			return initialData;
 		}
 	}
 })

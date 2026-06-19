@@ -137,6 +137,30 @@ function derivePositionalId(): string {
 }
 
 /**
+ * Resolve the stable id for the current component: the explicit id when given, otherwise the derived
+ * positional path. The derived id is memoised on the component instance so a component that consumes
+ * both {@link useComponentSettings} and {@link useComponentCache} (or calls either twice) shares one
+ * identity - deriving twice would otherwise bump the sibling counter again and hand out a different,
+ * shifted id while re-providing the descendant scope. Used by both composables; pass `options.id` to
+ * pin a stable key instead
+ */
+export function resolveComponentId(explicitId?: string): string {
+	if (explicitId !== undefined) {
+		return explicitId;
+	}
+	const instance = getCurrentInstance() as { __dwcComponentId?: string } | null;
+	if (!instance) {
+		throw new Error("resolveComponentId must be called inside setup()");
+	}
+	if (typeof instance.__dwcComponentId === "string") {
+		return instance.__dwcComponentId;
+	}
+	const id = derivePositionalId();
+	instance.__dwcComponentId = id;
+	return id;
+}
+
+/**
  * Reactive, persisted per-component settings. Returns a writable computed ref - assigning to `.value`
  * replaces the whole payload, mutating nested fields works through Pinia's reactivity. Identity defaults
  * to a derived positional path; pass `options.id` to pin it to a stable key
@@ -154,7 +178,7 @@ function derivePositionalId(): string {
  */
 export function useComponentSettings<T>(defaults: T, options?: ComponentSettingsOptions<T>): WritableComputedRef<T> {
 	const settingsStore = useSettingsStore();
-	const id = options?.id ?? derivePositionalId();
+	const id = resolveComponentId(options?.id);
 	const schemaVersion = options?.schemaVersion ?? 1;
 
 	settingsStore.getOrInitComponentSetting(id, defaults, schemaVersion, options?.upgrade);

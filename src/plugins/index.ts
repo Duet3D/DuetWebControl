@@ -316,6 +316,13 @@ export interface JobViewTab {
 	 * Useful for tabs that only apply to certain machine modes
 	 */
 	condition?: boolean | (() => boolean);
+
+	/**
+	 * Scroll the page to its bottom edge when this tab becomes active, so a viewport-filling tab
+	 * (e.g. the G-code viewer) opens flush with the status row scrolled off the top - the same
+	 * behaviour the standalone full-page route gets via its `scrollToBottom` route meta
+	 */
+	scrollToBottom?: boolean;
 }
 
 // shallowReactive for the same reason as _settingTabs: only push/splice need tracking, and

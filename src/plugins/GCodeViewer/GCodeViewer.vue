@@ -834,14 +834,14 @@ function loadFromRoute() {
 }
 
 // Default camera placement: a front view tilted 45 deg down. For an ArcRotateCamera alpha -PI/2
-// faces the front edge and beta PI/4 is the tilt. The look-at point and orbit radius frame the
-// printed geometry when a file is loaded, falling back to the whole bed when it isn't
+// faces the front edge and beta PI/4 is the tilt. In the embedded Job Status tab the look-at point
+// and orbit radius frame the printed geometry; the standalone page keeps the whole-bed framing
 function applyDefaultOrientation() {
 	const camera = viewer?.scene?.activeCamera;
 	if (!camera) {
 		return;
 	}
-	const bounds = getPrintBounds();
+	const bounds = isEmbedded.value ? getPrintBounds() : null;
 	if (bounds) {
 		camera.target = new Vector3((bounds.min.x + bounds.max.x) / 2, (bounds.min.y + bounds.max.y) / 2,
 			(bounds.min.z + bounds.max.z) / 2);

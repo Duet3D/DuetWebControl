@@ -27,7 +27,8 @@ registerJobViewTab({
 	icon: "mdi-rotate-3d",
 	caption: "plugins.gcodeViewer.caption",
 	component: GCodeViewer,
-	order: 30
+	order: 30,
+	scrollToBottom: true
 });
 
 registerPluginContextMenuItem(

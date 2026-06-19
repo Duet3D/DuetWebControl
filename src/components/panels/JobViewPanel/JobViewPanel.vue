@@ -69,9 +69,11 @@ import type { Component } from "vue";
 import JobGCodeStream from "./JobGCodeStream.vue";
 import JobLayerChart, { type LayerChartSettings, layerChartDefaults } from "./JobLayerChart.vue";
 import JobPreview, { type PreviewSettings, previewDefaults } from "./JobPreview.vue";
+import { useComponentCache } from "@/composables/useComponentCache";
 import { useComponentSettings } from "@/composables/useComponentSettings";
 import i18n from "@/i18n";
 import { getJobViewTabs } from "@/plugins";
+import { scrollPageToBottom } from "@/router";
 import { useCacheStore } from "@/stores/cache";
 import { useMachineStore } from "@/stores/machine";
 import { useSettingsStore } from "@/stores/settings";
@@ -102,14 +104,15 @@ interface ResolvedTab {
 	order: number;
 	component?: Component;
 	settingsId?: string;
+	scrollToBottom?: boolean;
 }
 
 // The layer chart is meaningless outside FFF, so it is offered only there; the G-code stream
 // applies to every mode. Plugin tabs are merged in via getJobViewTabs()
-const builtInTabs: Array<{ key: string; icon: string; caption: string; order: number; condition?: () => boolean; settingsId?: string }> = [
+const builtInTabs: Array<{ key: string; icon: string; caption: string; order: number; condition?: () => boolean; settingsId?: string; scrollToBottom?: boolean }> = [
 	{ key: "layerChart", icon: "mdi-vector-polyline", caption: "chart.layer.caption", order: 10, condition: () => uiStore.isFFF, settingsId: LAYER_SETTINGS_ID },
 	{ key: "preview", icon: "mdi-image", caption: "jobViewPanel.preview", order: 15, condition: () => hasPreview.value, settingsId: PREVIEW_SETTINGS_ID },
-	{ key: "gcodeStream", icon: "mdi-code-tags", caption: "jobViewPanel.gcodeStream", order: 20 },
+	{ key: "gcodeStream", icon: "mdi-code-tags", caption: "jobViewPanel.gcodeStream", order: 20, scrollToBottom: true },
 ];
 
 function evalCondition(condition: boolean | (() => boolean) | undefined): boolean {
@@ -129,7 +132,7 @@ function resolveCaption(caption: string | (() => string), translated?: boolean):
 const candidateTabs = computed<Array<ResolvedTab>>(() => {
 	const builtIn: Array<ResolvedTab> = builtInTabs
 		.filter(tab => evalCondition(tab.condition))
-		.map(tab => ({ key: tab.key, icon: tab.icon, title: resolveCaption(tab.caption), order: tab.order, settingsId: tab.settingsId }));
+		.map(tab => ({ key: tab.key, icon: tab.icon, title: resolveCaption(tab.caption), order: tab.order, settingsId: tab.settingsId, scrollToBottom: tab.scrollToBottom }));
 	const plugin: Array<ResolvedTab> = getJobViewTabs()
 		.filter(tab => evalCondition(tab.condition))
 		.map(tab => ({
@@ -138,6 +141,7 @@ const candidateTabs = computed<Array<ResolvedTab>>(() => {
 			title: resolveCaption(tab.caption, tab.translated),
 			order: tab.order ?? 100,
 			component: tab.component,
+			scrollToBottom: tab.scrollToBottom,
 		}));
 	return [...builtIn, ...plugin].sort((a, b) => a.order - b.order);
 });
@@ -159,9 +163,13 @@ const availableTabs = computed<Array<ResolvedTab>>(() => candidateTabs.value.fil
 
 const titles = computed(() => availableTabs.value.map(tab => ({ icon: tab.icon, title: tab.title, settingsId: tab.settingsId })));
 
+// Last selected tab persisted per panel instance. A derived (positional) id means two panels in a
+// custom layout each remember their own tab, rather than sharing one global choice
+const tabCache = useComponentCache<{ activeTab: string }>({ activeTab: "" });
+
 // The persisted choice is kept untouched when its tab is unavailable, so it is restored if
 // the tab returns (mode switch, plugin load) - mirrors ToolsPanel's active-tab clamp
-const selectedKey = ref(cacheStore.activeJobViewTab);
+const selectedKey = ref(tabCache.value.activeTab);
 const activeKey = computed<string>(() =>
 	availableTabs.value.some(tab => tab.key === selectedKey.value)
 		? selectedKey.value
@@ -173,9 +181,28 @@ const activeIndex = computed<number>({
 		const key = availableTabs.value[index]?.key;
 		if (key) {
 			selectedKey.value = key;
-			cacheStore.activeJobViewTab = key;
+			tabCache.value.activeTab = key;
 		}
 	},
+});
+
+// Maximise a viewport-filling tab (the Monaco G-code viewer) by scrolling the page so the status
+// row above slides off the top, matching the standalone full-page viewer. scrollPageToBottom is a
+// no-op below md and when the user disabled auto-scroll, and chases the panel as its height settles
+function scrollForActiveTab() {
+	if (availableTabs.value.find(tab => tab.key === activeKey.value)?.scrollToBottom) {
+		scrollPageToBottom();
+	}
+}
+
+watch(activeKey, () => nextTick(scrollForActiveTab));
+onMounted(() => nextTick(scrollForActiveTab));
+
+// Re-sync from the cache when the panel is revealed again - covers the panel living under
+// keep-alive, where setup runs once and the cache may have moved on since deactivation
+onActivated(() => {
+	selectedKey.value = tabCache.value.activeTab;
+	nextTick(scrollForActiveTab);
 });
 
 const activePluginComponent = computed<Component | undefined>(() =>
