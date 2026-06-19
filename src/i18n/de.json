@@ -633,7 +633,7 @@
 		"filamentRemaining": "{0} verbleibend"
 	},
 	"jobViewPanel": {
-		"gcodeStream": "G-Code",
+		"gcodeStream": "G-Code Stream",
 		"noFileLoaded": "Keine Datei geladen",
 		"preview": "Miniaturansicht",
 		"toggleTabs": "Reiter ein- oder ausblenden",
