@@ -864,7 +864,13 @@ export const useSettingsStore = defineStore("settings", {
 					return;
 				}
 
-				if (remoteRaw && typeof remoteRaw === "object") {
+				// Only reconcile with a peer that writes the same settings schema. A file from a
+				// DWC version that predates a key this build owns (e.g. componentSettings) is missing
+				// that key entirely, so a three-way merge reads it as the peer deleting the key and
+				// conflicts on every save while both sessions share the board. Treat a mismatched
+				// version as foreign and let our current-format settings overwrite it instead
+				const remoteVersion = (remoteRaw && typeof remoteRaw.schemaVersion === "number") ? remoteRaw.schemaVersion : 0;
+				if (remoteRaw && typeof remoteRaw === "object" && remoteVersion === SETTINGS_SCHEMA_VERSION) {
 					const remote = upgradeSettings(remoteRaw);
 					const local = snapshot(this.$state);
 					const result = threeWayMerge(local, settingsBaseline, remote, { unionArrayPaths: SETTINGS_UNION_PATHS });
