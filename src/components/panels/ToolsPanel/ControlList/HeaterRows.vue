@@ -90,11 +90,11 @@
 			</tr>
 		</template>
 		<template v-else-if="heaterItems.some(item => item.heater !== null)">
-			<template v-for="{ index, heater, heaterIndex } in heaterItems">
+			<template v-for="{ index, heater, heaterIndex, first } in heaterItems">
 				<template v-if="heater !== null">
 					<tr :key="index">
 						<th class="pl-2">
-							<a v-if="heaterIndex === 0" href="javascript:void(0)" :class="{ disabled }"
+							<a v-if="first" href="javascript:void(0)" :class="{ disabled }"
 							   @click="heaterClick(index, heater)">
 								<v-icon size="small"
 										:icon="props.type === 'bed' ? 'mdi-radiator' : 'mdi-heat-pump-outline'" />
@@ -102,7 +102,7 @@
 							</a>
 						</th>
 
-						<td :class="{ 'pb-3': heaterIndex > 0 }" class="font-weight-bold">
+						<td :class="{ 'pb-3': !first }" class="font-weight-bold">
 							<v-tooltip location="top" :text="getHeaterPower(heater)">
 								<template #activator="{ props: tooltipProps }">
 									<a v-bind="tooltipProps" href="javascript:void(0)" :class="getHeaterClasses(heaterIndex)"
@@ -122,11 +122,11 @@
 						</td>
 
 						<td v-if="toolSettings.showActiveTemperatures" class="pl-2 pr-1">
-							<ControlInput v-if="heaterIndex === 0" :type="props.type" :index="index" active />
+							<ControlInput v-if="first" :type="props.type" :index="index" active />
 						</td>
 
 						<td v-if="toolSettings.showStandbyTemperatures" class="pl-1 pr-2">
-							<ControlInput v-if="heaterIndex === 0" :type="props.type" :index="index" standby />
+							<ControlInput v-if="first" :type="props.type" :index="index" standby />
 						</td>
 					</tr>
 				</template>
@@ -195,16 +195,21 @@ const singleControl = computed(() => {
 const heaterItems = computed(() => {
 	const mapping = (props.type === "bed") ? machineStore.bedHeaterMapping : machineStore.chamberHeaterMapping;
 	const displayed = (props.type === "bed") ? toolSettings.value.displayedBeds : toolSettings.value.displayedChambers;
-	const heaterList: Array<{ index: number; heater: Heater; heaterIndex: number }> = [];
+	const heaterList: Array<{ index: number; heater: Heater; heaterIndex: number; first: boolean }> = [];
 	for (let index = 0; index < mapping.length; index++) {
 		if (displayed !== null && !displayed.includes(index)) {
 			continue;
 		}
+		// `first` marks the leading heater of each slot - it carries the slot label and the
+		// active/standby inputs, while any further heaters of the same slot list only their value.
+		// This is positional, not the heater number: a chamber on heater 2 is still its slot's first
+		let first = true;
 		for (const heaterIndex of mapping[index]) {
 			if (heaterIndex >= 0 && heaterIndex < machineStore.model.heat.heaters.length) {
 				const heater = machineStore.model.heat.heaters[heaterIndex];
 				if (heater !== null) {
-					heaterList.push({ index, heater, heaterIndex });
+					heaterList.push({ index, heater, heaterIndex, first });
+					first = false;
 				}
 			}
 		}
