@@ -46,6 +46,7 @@ import { VForm } from "vuetify/components";
 import i18n from "@/i18n";
 import { type CustomChartAxis, useSettingsStore } from "@/stores/settings";
 import { validateExpression } from "@/utils/expression";
+import { generateUuid } from "@/utils/uuid";
 
 const props = defineProps<{
 	editId?: string | null;
@@ -82,7 +83,7 @@ async function apply() {
 	if (props.editId) {
 		settingsStore.updateCustomChartItem(props.editId, data);
 	} else {
-		settingsStore.addCustomChartItem({ id: crypto.randomUUID(), ...data });
+		settingsStore.addCustomChartItem({ id: generateUuid(), ...data });
 	}
 	hide();
 }

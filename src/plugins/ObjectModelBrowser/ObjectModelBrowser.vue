@@ -66,7 +66,7 @@ input[readonly] {
 			<div class="d-flex align-center flex-wrap ga-2 mb-3">
 				<span>{{ $t("plugins.objectModelBrowser.selectedNode") }}</span>
 				<template v-if="activeId">
-					<input ref="activeInput" type="text" :value="activeId" readonly
+					<input type="text" :value="activeId" readonly
 						   :class="['text-center', settingsStore.darkTheme ? 'text-white' : '']"
 						   @click="selectInput" />
 					<v-icon size="small" @click="copyPath">mdi-content-copy</v-icon>
@@ -124,6 +124,7 @@ import { useDisplay } from "vuetify";
 import i18n from "@/i18n";
 import { useMachineStore } from "@/stores/machine";
 import { useSettingsStore } from "@/stores/settings";
+import { copyToClipboard } from "@/utils/clipboard";
 import { getObjectModelDocumentation } from "@/utils/objectModelDoc";
 
 interface ModelTreeItem {
@@ -421,8 +422,6 @@ function filterItem(_value: unknown, query: string, item: unknown): boolean {
 
 // #region Selected-node helpers
 
-const activeInput = ref<HTMLInputElement | null>(null);
-
 function selectInput(event: Event) {
 	(event.target as HTMLInputElement).select();
 }
@@ -431,13 +430,7 @@ async function copyPath() {
 	if (!activeId.value) {
 		return;
 	}
-	try {
-		await navigator.clipboard.writeText(activeId.value);
-	} catch {
-		activeInput.value?.focus();
-		activeInput.value?.select();
-		document.execCommand("copy");
-	}
+	await copyToClipboard(activeId.value);
 }
 
 // #endregion

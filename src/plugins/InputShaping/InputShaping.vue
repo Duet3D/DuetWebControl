@@ -228,7 +228,7 @@
 								<v-card-text v-if="customShaperCode" class="pb-0">
 									<label>{{ $t("plugins.accelerometer.resultingCode") }}</label>
 									<div class="d-flex align-center">
-										<input ref="customShaperCodeRef" type="text" :value="customShaperCode"
+										<input type="text" :value="customShaperCode"
 											   class="flex-grow-1" readonly @click="selectInput" />
 										<v-icon size="small" class="ml-1" @click="copyShaperCode">mdi-content-copy</v-icon>
 									</div>
@@ -284,6 +284,7 @@ import { useDisplay } from "vuetify";
 
 import { useMachineStore } from "@/stores/machine";
 import { useUiStore } from "@/stores/ui";
+import { copyToClipboard } from "@/utils/clipboard";
 import { getErrorMessage } from "@/utils/errors";
 import Events from "@/utils/events";
 import Path from "@/utils/path";
@@ -328,8 +329,6 @@ const sampleStartIndex = ref<number | null>(null);
 const sampleEndIndex = ref<number | null>(null);
 const hadOverflow = ref(false);
 const wideBand = ref(false);
-
-const customShaperCodeRef = ref<HTMLInputElement | null>(null);
 
 const lastRun = computed(() => {
 	let last = 0;
@@ -403,13 +402,7 @@ async function copyShaperCode() {
 	if (!customShaperCode.value) {
 		return;
 	}
-	try {
-		await navigator.clipboard.writeText(customShaperCode.value);
-	} catch {
-		customShaperCodeRef.value?.focus();
-		customShaperCodeRef.value?.select();
-		document.execCommand("copy");
-	}
+	await copyToClipboard(customShaperCode.value);
 }
 
 async function configureCustomShaper() {
