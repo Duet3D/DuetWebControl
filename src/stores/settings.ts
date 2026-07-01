@@ -92,6 +92,7 @@ export interface CustomChartItem {
 	id: string;
 	name: string;
 	value: string;
+	unit: string;
 	visible: boolean;
 	axis: CustomChartAxis;
 }
@@ -125,11 +126,17 @@ export enum WebcamFlip {
 	Both = "both"
 }
 
+export enum AutoScrollMode {
+	off = "off",
+	toBottom = "toBottom",
+	viewerPages = "viewerPages"
+}
+
 // Schema version embedded in persisted settings blobs. Bump SETTINGS_SCHEMA_VERSION and add a
 // step to {@link settingsUpgrades} whenever the shape changes incompatibly; the load path
 // chains upgrades from the persisted version up to the current one. Mirrors the pattern used by
 // useComponentSettings for per-component records
-const SETTINGS_SCHEMA_VERSION = 1;
+const SETTINGS_SCHEMA_VERSION = 3;
 
 /**
  * One per upgrade step. Index N runs when migrating from version N to N+1. Each step receives
@@ -145,6 +152,38 @@ const settingsUpgrades: ReadonlyArray<(blob: any) => any> = [
 		for (const container of [blob, blob?.main, blob?.machine]) {
 			if (container && typeof container === "object") {
 				delete container.bottomNavigation;
+			}
+		}
+		return blob;
+	},
+
+	// 1 -> 2: behaviour.autoScroll (boolean) became behaviour.autoScrollMode (three-way enum) so
+	// "always scroll to bottom" can be told apart from "only when leaving a page at its bottom edge"
+	(blob: any) => {
+		const behaviour = blob?.behaviour;
+		if (behaviour && typeof behaviour === "object") {
+			if (typeof behaviour.autoScroll === "boolean") {
+				behaviour.autoScrollMode = behaviour.autoScroll ? AutoScrollMode.viewerPages : AutoScrollMode.off;
+			}
+			delete behaviour.autoScroll;
+		}
+		return blob;
+	},
+
+	// 2 -> 3: customChartData items gained an explicit `unit` field. Previously the only way to
+	// show a unit was a trailing "[unit]" suffix in the name (the same convention firmware uses
+	// for real sensors) - split any such suffix out into the new field so existing series keep
+	// the same label and unit
+	(blob: any) => {
+		if (Array.isArray(blob?.customChartData)) {
+			for (const item of blob.customChartData) {
+				if (item && typeof item === "object" && typeof item.unit !== "string") {
+					const matches = typeof item.name === "string" ? /(.*)\[(.*)\]$/.exec(item.name) : null;
+					item.unit = matches ? matches[2] : "";
+					if (matches) {
+						item.name = matches[1];
+					}
+				}
 			}
 		}
 		return blob;
@@ -235,9 +274,14 @@ export const useSettingsStore = defineStore("settings", {
 			/**
 			 * Scroll viewport-filling pages (height map, G-code viewer, file editor) to their
 			 * bottom edge on open so the panel sits flush with the status row scrolled off the top.
-			 * Honoured only on md and larger displays
+			 * Honoured only on md and larger displays.
+			 * - off: never auto-scroll
+			 * - toBottom: always land on the bottom edge, including cross-page navigation into a
+			 *   viewer page regardless of where the previous page was scrolled to
+			 * - viewerPages: same on-open behaviour, but the cross-page navigation carry-over only
+			 *   kicks in when the page being left was itself scrolled to its bottom edge
 			 */
-			autoScroll: true,
+			autoScrollMode: AutoScrollMode.viewerPages as AutoScrollMode,
 		},
 
 		/**

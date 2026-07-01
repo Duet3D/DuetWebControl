@@ -97,7 +97,8 @@
 				"save": "Speichern",
 				"dontSave": "Nicht speichern"
 			},
-			"gcodeReference": "G-Code-Referenz"
+			"gcodeReference": "G-Code-Referenz",
+			"indentComments": "Kommentare einrücken"
 		},
 		"newFile": {
 			"title": "Neue Datei",
@@ -451,6 +452,8 @@
 				"name": "Name",
 				"value": "Wert",
 				"valueHint": "Ausdruck, der gegen das Objektmodell ausgewertet wird, z.B. heat.heaters[0].avgPwm * 100",
+				"unit": "Einheit",
+				"unitPlaceholder": "z.B. mm3/s",
 				"visible": "Sichtbar",
 				"axis": "Achse",
 				"axisLeft": "Links",
@@ -996,8 +999,13 @@
 			"switchToJobOnPrintStartHint": "Bei Druckbeginn automatisch die Auftragsseite mit allen Steuerungen öffnen",
 			"checkVersions": "Plugin- und Firmwareversionen prüfen",
 			"checkVersionsHint": "Hinweis anzeigen, wenn DWC-, RRF- oder Plugin-Versionen nicht zusammenpassen",
-			"autoScroll": "Ansichtsseiten automatisch einscrollen",
-			"autoScrollHint": "Beim Öffnen der Höhenkarte, des G-Code-Viewers oder des Datei-Editors die Seite nach unten scrollen, sodass das Panel den Bildschirm füllt und die Statuszeile darüber ausgeblendet wird. Gilt auf mittelgroßen und größeren Anzeigen."
+			"autoScrollMode": "Ansichtsseiten automatisch einscrollen",
+			"autoScrollModeHint": "Beim Öffnen der Höhenkarte, des G-Code-Viewers oder des Datei-Editors die Seite nach unten scrollen, sodass das Panel den Bildschirm füllt und die Statuszeile darüber ausgeblendet wird. Gilt auf mittelgroßen und größeren Anzeigen.",
+			"autoScrollModeOptions": {
+				"off": "Aus",
+				"toBottom": "Immer ganz nach unten scrollen",
+				"viewerPages": "Nur auf Ansichtsseiten"
+			}
 		},
 		"communicationCard": {
 			"caption": "Kommunikation"

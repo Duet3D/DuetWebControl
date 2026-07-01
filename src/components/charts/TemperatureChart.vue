@@ -272,6 +272,9 @@ onMounted(() => {
 		options: {
 			animation: false,
 			elements: { line: { tension: 0 } },
+			// "nearest along the x-axis, don't require hovering the (invisible, 0-radius) point
+			// itself" - lets the tooltip trigger anywhere over the chart at a given time
+			interaction: { mode: "index", intersect: false },
 			plugins: {
 				legend: {
 					// Series visibility is driven by the panel settings, not by clicking the
@@ -281,6 +284,21 @@ onMounted(() => {
 						filter: (legendItem, data) => !!(data.datasets[legendItem.datasetIndex!] as TempChartDataset).showLine,
 						font: { family: "Roboto,sans-serif", weight: "bold" },
 						boxHeight: 12
+					}
+				},
+				tooltip: {
+					// Index mode surfaces every dataset at the hovered time, including ones the
+					// panel settings hid (showLine false) or that had no reading (NaN) then
+					filter: (item) => {
+						const dataset = item.dataset as TempChartDataset;
+						return dataset.showLine === true && typeof item.parsed.y === "number" && !isNaN(item.parsed.y);
+					},
+					callbacks: {
+						label: (item) => {
+							const dataset = item.dataset as TempChartDataset;
+							const unit = dataset.unit ? ` ${dataset.unit}` : "";
+							return `${dataset.label}: ${(item.parsed.y as number).toFixed(1)}${unit}`;
+						}
 					}
 				}
 			},
@@ -354,7 +372,7 @@ watch(() => [settingsStore.customChartData, settingsStore.customChartRightAxis],
 // Build a CSV of every currently-displayed series over the rolling sample window
 function downloadCsv() {
 	const visible = sampleSeries.filter(dataset => dataset.showLine);
-	const header = ["Time", ...visible.map(dataset => dataset.label ?? "")];
+	const header = ["Time", ...visible.map(dataset => dataset.unit ? `${dataset.label} (${dataset.unit})` : (dataset.label ?? ""))];
 	const rows = sampleTimes.map((time, sampleIndex) => {
 		const cells = visible.map(dataset => {
 			const value = dataset.data[sampleIndex];

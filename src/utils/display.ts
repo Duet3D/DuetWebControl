@@ -69,19 +69,29 @@ export function displayZ(value: number | Array<number> | string | null | undefin
 }
 
 /**
+ * Split a sensor/series name into its display portion and an optional trailing [unit] suffix,
+ * e.g. "Chamber [degC]" -> { name: "Chamber ", unit: "degC" }. Shared by the tools panel and the
+ * temperature chart so a name typed once (heater/sensor name in RRF, or a custom series name)
+ * drives both the label and the unit everywhere it's displayed
+ * @param name Raw name, or null/empty if none is set
+ * @returns The name with the suffix stripped (or the original name if there is no suffix), and the unit (or null)
+ */
+export function parseNameWithUnit(name: string | null | undefined): { name: string | null; unit: string | null } {
+	if (!name) {
+		return { name: name ?? null, unit: null };
+	}
+	const matches = /(.*)\[(.*)\]$/.exec(name);
+	return matches ? { name: matches[1], unit: matches[2] } : { name, unit: null };
+}
+
+/**
  * Display a sensor value with optional unit from square brackets in the name
  * @param sensor Sensor
  * @returns
  */
 export function displaySensorValue(sensor: AnalogSensor) {
-	if (sensor.name) {
-		const matches = /(.*)\[(.*)\]$/.exec(sensor.name);
-		if (matches) {
-			return display(sensor.lastReading, 1, matches[2]);
-		}
-	}
-	const unit = (sensor.type === AnalogSensorType.dhtHumidity) ? "%RH" : "°C";
-	return display(sensor.lastReading, 1, unit);
+	const { unit } = parseNameWithUnit(sensor.name);
+	return display(sensor.lastReading, 1, unit ?? ((sensor.type === AnalogSensorType.dhtHumidity) ? "%RH" : "°C"));
 }
 
 /**
@@ -92,11 +102,7 @@ export function displaySensorValue(sensor: AnalogSensor) {
  */
 export function formatExtraSensorName(sensor: AnalogSensor, index: number): string {
 	if (sensor.name) {
-		const matches = /(.*)\[(.*)\]$/.exec(sensor.name);
-		if (matches) {
-			return matches[1];
-		}
-		return sensor.name;
+		return parseNameWithUnit(sensor.name).name ?? sensor.name;
 	}
 	return i18n.global.t("panel.tools.extra.sensorIndex", [index]);
 }
@@ -228,17 +234,36 @@ export function displayTime(value: number | null | undefined, showTrailingZeroes
 }
 
 /**
- * Indent  comments in a G-code file
+ * Indent comments in a G-code file
  * @param content File content
  * @returns Indented file content
  */
 export function indent(content: string): string {
+	// Quoted strings and {} expressions may contain a literal ';' that isn't a comment start
+	function findSemicolon(line: string): number {
+		let inQuotes = false, inExpression = false;
+		for (let i = 0; i < line.length; i++) {
+			if (inQuotes) {
+				inQuotes = (line[i] !== '"');
+			} else if (line[i] === '"') {
+				inQuotes = true;
+			} else if (inExpression) {
+				inExpression = (line[i] !== '}');
+			} else if (line[i] === '{') {
+				inExpression = true;
+			} else if (line[i] === ';') {
+				return i;
+			}
+		}
+		return -1;
+	}
+
 	const lines = content.split('\n');
 
 	// Find out how long the maximum command is
 	let maxCommandLength = 0;
 	for (const line of lines) {
-		const commentIndex = line.indexOf(';');
+		const commentIndex = findSemicolon(line);
 		if (commentIndex > 0) {
 			const commandLength = line.substring(0, commentIndex).trimEnd().length;
 			if (commandLength > maxCommandLength) {
@@ -250,11 +275,11 @@ export function indent(content: string): string {
 	// Align line comments
 	let newResult = "";
 	for (const line of lines) {
-		const commentIndex = line.indexOf(';');
+		const commentIndex = findSemicolon(line);
 		if (commentIndex <= 0) {
 			newResult += line + '\n';
 		} else {
-			const command = line.substring(0, commentIndex).trimEnd(); const comment = line.substring(commentIndex);
+			const command = line.substring(0, commentIndex).trimEnd(), comment = line.substring(commentIndex);
 
 			let indentation = "";
 			for (let i = command.length; i < maxCommandLength + 1; i++) {

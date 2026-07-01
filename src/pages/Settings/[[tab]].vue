@@ -116,10 +116,11 @@
 												  :label="$t('settings.behaviour.checkVersions')"
 												  v-hint="$t('settings.behaviour.checkVersionsHint')"
 												  density="comfortable" hide-details />
-										<v-switch v-model="settingsStore.behaviour.autoScroll" color="primary"
-												  :label="$t('settings.behaviour.autoScroll')"
-												  v-hint="$t('settings.behaviour.autoScrollHint')"
-												  density="comfortable" hide-details />
+										<v-select v-model="settingsStore.behaviour.autoScrollMode" :items="autoScrollModeOptions"
+												  item-title="label" item-value="value"
+												  :label="$t('settings.behaviour.autoScrollMode')"
+												  v-hint="$t('settings.behaviour.autoScrollModeHint')"
+												  variant="outlined" density="comfortable" hide-details class="mt-4" />
 									</v-card-text>
 								</v-card>
 							</v-col>
@@ -867,7 +868,7 @@ import { localStorageSupported, removeLocalSetting } from "@/utils/localStorage"
 import { useCacheStore } from "@/stores/cache";
 import { useMachineStore } from "@/stores/machine";
 import { useMenuStore } from "@/stores/menu";
-import { DashboardMode, UnitOfMeasure, useSettingsStore, WebcamFlip } from "@/stores/settings";
+import { AutoScrollMode, DashboardMode, UnitOfMeasure, useSettingsStore, WebcamFlip } from "@/stores/settings";
 import { LogLevel, useUiStore } from "@/stores/ui";
 import { display, displaySize } from "@/utils/display";
 import { getErrorMessage } from "@/utils/errors";
@@ -991,6 +992,12 @@ const presetsTab = ref<string>("tool");
 const languageOptions = computed(() => [
 	{ label: "English", value: "en" },
 	{ label: "Deutsch", value: "de" },
+]);
+
+const autoScrollModeOptions = computed(() => [
+	{ label: i18n.global.t("settings.behaviour.autoScrollModeOptions.off"), value: AutoScrollMode.off },
+	{ label: i18n.global.t("settings.behaviour.autoScrollModeOptions.toBottom"), value: AutoScrollMode.toBottom },
+	{ label: i18n.global.t("settings.behaviour.autoScrollModeOptions.viewerPages"), value: AutoScrollMode.viewerPages },
 ]);
 
 const flipOptions = computed(() => [

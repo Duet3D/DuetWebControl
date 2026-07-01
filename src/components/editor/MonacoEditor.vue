@@ -60,6 +60,11 @@
 				<v-icon>mdi-help-circle-outline</v-icon>
 			</v-btn>
 
+			<v-btn v-if="isGCode" variant="text" icon :disabled="saving || loading"
+				   :title="$t('dialog.fileEdit.indentComments')" @click="indentComments">
+				<v-icon>mdi-format-indent-increase</v-icon>
+			</v-btn>
+
 			<v-btn variant="text" icon :disabled="!dirty || saving || loading || !canRevert"
 				   :title="canRevert ? $t('dialog.fileEdit.revert') : $t('dialog.fileEdit.revertTooLarge')"
 				   @click="revert">
@@ -118,6 +123,7 @@ import { scrollPageToBottom } from "@/router";
 import { useMachineStore } from "@/stores/machine";
 import { useUiStore } from "@/stores/ui";
 import { useSettingsStore } from "@/stores/settings";
+import { indent } from "@/utils/display";
 import { getErrorMessage } from "@/utils/errors";
 import { ensureMonaco } from "@/utils/monaco";
 import Path from "@/utils/path";
@@ -152,15 +158,24 @@ let editor: Monaco.editor.IStandaloneCodeEditor | null = null;
 let originalValue: string | null = "";
 let detachGcodeFeatures: Monaco.IDisposable | null = null;
 
+// Model version id captured right after load/save/revert. Monaco keeps this identical whenever
+// the buffer's content matches that snapshot again - including after undoing every edit - so
+// comparing against it detects a clean buffer without diffing the (possibly huge) text itself
+let savedVersionId: number | null = null;
+
 // Touch-friendly textarea fallback. Snapshotted at boot so changing the setting mid-session
 // doesn't swap editors out from under an open file; the user has to reopen it
 const useMonaco = ref(true);
 const textContent = ref("");
 let suppressDirty = false;
-watch(textContent, () => {
-	if (!suppressDirty) {
-		dirty.value = true;
+watch(textContent, (value) => {
+	if (suppressDirty) {
+		return;
 	}
+	// Monaco's version-id trick isn't available here; fall back to a direct comparison. That's
+	// only cheap while canRevert holds a baseline in memory - past the big-file threshold there's
+	// nothing to diff against, so dirty just latches true on the first edit
+	dirty.value = canRevert.value ? (value !== originalValue) : true;
 });
 
 // Files larger than this are loaded into the editor but the original content is dropped from
@@ -303,13 +318,10 @@ async function bootstrap() {
 			...buildEditorOptions(settingsStore.editor),
 		});
 		editor.getModel()?.updateOptions(buildModelOptions(settingsStore.editor));
+		savedVersionId = editor.getModel()?.getAlternativeVersionId() ?? null;
 
-		// Flip dirty on any change rather than diffing against originalValue - the latter would
-		// have to be null for big files, and value-comparing a multi-megabyte string on every
-		// keystroke is wasted CPU even when the buffer fits in memory. dirty is cleared on save()
-		// and on the revert() restore
 		editor.onDidChangeModelContent(() => {
-			dirty.value = true;
+			dirty.value = editor!.getModel()?.getAlternativeVersionId() !== savedVersionId;
 		});
 
 		// Ctrl/Cmd+S triggers the toolbar save. addCommand also preventDefaults the browser's
@@ -399,6 +411,9 @@ async function save(): Promise<boolean> {
 			originalValue = null;
 			canRevert.value = false;
 		}
+		if (useMonaco.value) {
+			savedVersionId = editor?.getModel()?.getAlternativeVersionId() ?? null;
+		}
 		dirty.value = false;
 		emit("saved", props.filename);
 		return true;
@@ -419,6 +434,7 @@ function revert() {
 	}
 	if (useMonaco.value) {
 		editor?.setValue(originalValue);
+		savedVersionId = editor?.getModel()?.getAlternativeVersionId() ?? null;
 	} else {
 		suppressDirty = true;
 		textContent.value = originalValue;
@@ -492,6 +508,26 @@ function applyDroppedFile(mode: "overwrite" | "insert") {
 // itself picks the right search widget based on whether the cursor is in an expression
 function searchGcode() {
 	editor?.getAction("duet.searchGcode")?.run();
+}
+
+// Aligns line comments onto a common column across the whole file. Goes through executeEdits
+// (rather than setValue) so the change is undoable and doesn't reset the cursor/scroll position
+function indentComments() {
+	if (useMonaco.value) {
+		if (!editor) {
+			return;
+		}
+		const indentedFile = indent(editor.getValue());
+		if (editor.getValue() !== indentedFile) {
+			const model = editor.getModel();
+			if (model) {
+				editor.executeEdits(null, [{ range: model.getFullModelRange(), text: indentedFile }]);
+				editor.pushUndoStop();
+			}
+		}
+	} else {
+		textContent.value = indent(textContent.value);
+	}
 }
 
 // Lets the Explorer trigger a save when closing a tab with unsaved changes

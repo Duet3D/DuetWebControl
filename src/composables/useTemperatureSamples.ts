@@ -1,9 +1,10 @@
 import type { ChartDataset } from "chart.js";
-import type { AnalogSensor } from "@duet3d/objectmodel";
+import { AnalogSensorType, type AnalogSensor } from "@duet3d/objectmodel";
 
 import i18n from "@/i18n";
 import { useMachineStore } from "@/stores/machine";
 import { useSettingsStore, type CustomChartItem } from "@/stores/settings";
+import { parseNameWithUnit } from "@/utils/display";
 import { evaluateExpression } from "@/utils/expression";
 import Events from "@/utils/events";
 
@@ -30,6 +31,9 @@ interface ExtraDatasetValues {
 	extra: boolean;
 	locale: string;
 	rawLabel: string | null;
+	// Unit parsed from a trailing "[unit]" suffix in the source name (heater/sensor name, or
+	// custom series name); null for a custom series whose name carries no suffix
+	unit: string | null;
 	// Custom (user-defined, expression-driven) series carry their definition id instead of a
 	// sensor/heater index
 	custom?: boolean;
@@ -42,12 +46,13 @@ const customPalette = [
 	"#9C27B0", "#0097A7", "#FF5722", "#3F51B5", "#AFB42B", "#E91E63", "#795548", "#607D8B"
 ];
 
-function makeDataset(index: number, extra: boolean, label: string, numSamples: number): TempChartDataset {
+function makeDataset(index: number, extra: boolean, label: string, unit: string | null, numSamples: number): TempChartDataset {
 	const color = getHeaterColor(index, extra);
 	return {
 		index,
 		extra,
 		label,
+		unit,
 		fill: false,
 		backgroundColor: color,
 		borderColor: color,
@@ -70,6 +75,7 @@ function makeCustomDataset(item: CustomChartItem, paletteIndex: number, numSampl
 		custom: true,
 		customId: item.id,
 		label: item.name,
+		unit: item.unit || null,
 		fill: false,
 		backgroundColor: color,
 		borderColor: color,
@@ -101,22 +107,24 @@ function pushSeriesData(index: number, extra: boolean, sensor: AnalogSensor) {
 
 	const currentLocale = i18n.global.locale.value;
 	if (!dataset || dataset.locale !== currentLocale || dataset.rawLabel !== sensor.name) {
+		const parsed = parseNameWithUnit(sensor.name);
 		let name: string;
 		if (sensor.name) {
-			const matches = /(.*)\[(.*)\]$/.exec(sensor.name);
-			name = matches ? matches[1] : sensor.name;
+			name = parsed.name ?? sensor.name;
 		} else if (extra) {
 			name = i18n.global.t("chart.temperature.sensor", [index]);
 		} else {
 			name = i18n.global.t("chart.temperature.heater", [index]);
 		}
+		const unit = parsed.unit ?? ((sensor.type === AnalogSensorType.dhtHumidity) ? "%RH" : "°C");
 
 		if (dataset) {
 			dataset.rawLabel = sensor.name;
 			dataset.label = name;
 			dataset.locale = currentLocale;
+			dataset.unit = unit;
 		} else {
-			dataset = makeDataset(index, extra, name, sampleTimes.length);
+			dataset = makeDataset(index, extra, name, unit, sampleTimes.length);
 			sampleSeries.push(dataset);
 		}
 	}
@@ -143,8 +151,9 @@ function recordCustomSamples(model: Record<string, unknown>) {
 			dataset = makeCustomDataset(item, paletteIndex, sampleTimes.length);
 			sampleSeries.push(dataset);
 		} else {
-			// Reflect edits to name / axis / visibility without dropping the collected history
+			// Reflect edits to name / unit / axis / visibility without dropping the collected history
 			dataset.label = item.name;
+			dataset.unit = item.unit || null;
 			dataset.yAxisID = item.axis === "right" ? "y2" : "y";
 			dataset.showLine = item.visible;
 		}

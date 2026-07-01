@@ -15,11 +15,15 @@
 								  :rules="valueRules" :hint="$t('chart.temperature.custom.valueHint')"
 								  persistent-hint required class="mb-2" />
 					<v-row no-gutters class="align-center">
-						<v-col cols="12" sm="6">
+						<v-col cols="12" sm="4">
 							<v-select v-model="axis" :items="axisItems" item-value="value" item-title="title"
 									  :label="$t('chart.temperature.custom.axis')" hide-details />
 						</v-col>
-						<v-col cols="12" sm="6" class="ps-sm-5">
+						<v-col cols="12" sm="4" class="ps-sm-5">
+							<v-text-field v-model="unit" :label="$t('chart.temperature.custom.unit')"
+										  :placeholder="$t('chart.temperature.custom.unitPlaceholder')" hide-details />
+						</v-col>
+						<v-col cols="12" sm="4" class="ps-sm-5">
 							<v-switch v-model="visible" color="primary" density="compact" hide-details
 									  :label="$t('chart.temperature.custom.visible')" />
 						</v-col>
@@ -59,6 +63,7 @@ const form = ref<InstanceType<typeof VForm> | null>(null);
 
 const name = ref("");
 const value = ref("");
+const unit = ref("");
 const visible = ref(true);
 const axis = ref<CustomChartAxis>("left");
 
@@ -79,7 +84,7 @@ async function apply() {
 		return;
 	}
 
-	const data = { name: name.value, value: value.value, visible: visible.value, axis: axis.value };
+	const data = { name: name.value, value: value.value, unit: unit.value, visible: visible.value, axis: axis.value };
 	if (props.editId) {
 		settingsStore.updateCustomChartItem(props.editId, data);
 	} else {
@@ -99,6 +104,7 @@ watch(shown, (to) => {
 	const item = props.editId ? settingsStore.customChartData.find(entry => entry.id === props.editId) : null;
 	name.value = item?.name ?? "";
 	value.value = item?.value ?? "";
+	unit.value = item?.unit ?? "";
 	visible.value = item?.visible ?? true;
 	axis.value = item?.axis ?? "left";
 });

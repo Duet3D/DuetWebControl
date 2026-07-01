@@ -97,7 +97,8 @@
 				"save": "Save",
 				"dontSave": "Don't save"
 			},
-			"gcodeReference": "G-Code Reference"
+			"gcodeReference": "G-Code Reference",
+			"indentComments": "Indent Comments"
 		},
 		"newFile": {
 			"title": "New File",
@@ -449,6 +450,8 @@
 				"name": "Name",
 				"value": "Value",
 				"valueHint": "Expression evaluated against the object model, e.g. heat.heaters[0].avgPwm * 100",
+				"unit": "Unit",
+				"unitPlaceholder": "e.g. mm3/s",
 				"visible": "Visible",
 				"axis": "Axis",
 				"axisLeft": "Left",
@@ -998,8 +1001,13 @@
 			"switchToJobOnPrintStartHint": "Automatically open the Job Status page when a print begins",
 			"checkVersions": "Check for plugin / firmware version compatibility",
 			"checkVersionsHint": "Show a notification when DWC, RRF or plugin versions do not match",
-			"autoScroll": "Scroll viewer pages into view automatically",
-			"autoScrollHint": "When opening the height map, G-code viewer or file editor, scroll the page down so the panel fills the screen with the status row scrolled off the top. Applies on medium and larger displays."
+			"autoScrollMode": "Auto-scroll viewer pages",
+			"autoScrollModeHint": "When opening the height map, G-code viewer or file editor, scroll the page down so the panel fills the screen with the status row scrolled off the top. Applies on medium and larger displays.",
+			"autoScrollModeOptions": {
+				"off": "Off",
+				"toBottom": "Always scroll to bottom",
+				"viewerPages": "Only on viewer pages"
+			}
 		},
 		"communicationCard": {
 			"caption": "Communication"

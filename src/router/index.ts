@@ -9,7 +9,7 @@ import { createRouter, createWebHistory, type RouteRecordRaw } from "vue-router"
 import { setupLayouts } from "virtual:generated-layouts";
 import { routes, handleHotUpdate } from "vue-router/auto-routes";
 
-import { useSettingsStore } from "@/stores/settings";
+import { AutoScrollMode, useSettingsStore } from "@/stores/settings";
 import { useUiStore } from "@/stores/ui";
 import vuetify from "@/vue-plugins/vuetify";
 
@@ -78,9 +78,10 @@ const router = createRouter({
 	// - `#hash` link: smooth-scroll to the anchor
 	// - same top-level route (e.g. navigating between Explorer subdirectories): keep the
 	//   current scroll position so a click on a folder row doesn't jump the page to top
-	// - cross-page navigation from a page scrolled to its bottom (md+): open the next page
-	//   at its bottom too, but only when the destination is a viewport-filling page
-	//   (`meta.pageFill`) - landing at the bottom of a regular flowing page would be disorienting
+	// - cross-page navigation into a viewport-filling page (`meta.pageFill`, md+ only): open it at
+	//   its bottom too - unconditionally in "toBottom" mode, or only when the page being left was
+	//   itself scrolled to its bottom edge in "viewerPages" mode (landing at the bottom of a
+	//   regular flowing page would be disorienting otherwise)
 	// - otherwise (cross-page navigation): scroll to top
 	scrollBehavior(to, from, savedPosition) {
 		if (savedPosition) {
@@ -95,7 +96,10 @@ const router = createRouter({
 		if (sameRoute) {
 			return false;
 		}
-		if (leftPageAtBottom && vuetify.display.mdAndUp.value && to.meta.pageFill === true) {
+		const autoScrollMode = useSettingsStore().behaviour.autoScrollMode;
+		const carryToBottom = autoScrollMode === AutoScrollMode.toBottom
+			|| (autoScrollMode === AutoScrollMode.viewerPages && leftPageAtBottom);
+		if (carryToBottom && vuetify.display.mdAndUp.value && to.meta.pageFill === true) {
 			return { top: document.documentElement.scrollHeight };
 		}
 		return { top: 0 };
@@ -115,9 +119,12 @@ router.beforeEach(() => {
 // so the document keeps growing after the first scroll. The scroll is repeated over the first
 // second to chase the growing bottom; the first pass animates, the catch-up passes jump
 // instantly so they don't queue competing smooth animations. A no-op below md, where the
-// stacked layout has no status row to scroll past, and when the user disabled it
+// stacked layout has no status row to scroll past, and when the user disabled it. Runs the same
+// way in both non-off modes - the "toBottom" vs "viewerPages" distinction only affects whether
+// cross-page navigation carries over into a page that wasn't explicitly opened as a viewer, see
+// the leftPageAtBottom handling in scrollBehavior above
 export function scrollPageToBottom() {
-	if (!useSettingsStore().behaviour.autoScroll || !vuetify.display.mdAndUp.value) {
+	if (useSettingsStore().behaviour.autoScrollMode === AutoScrollMode.off || !vuetify.display.mdAndUp.value) {
 		return;
 	}
 	const scrollToEnd = (smooth: boolean) => {
