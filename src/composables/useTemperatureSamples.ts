@@ -1,5 +1,5 @@
 import type { ChartDataset } from "chart.js";
-import { AnalogSensorType, type AnalogSensor } from "@duet3d/objectmodel";
+import { AnalogSensorType, MachineStatus, type AnalogSensor } from "@duet3d/objectmodel";
 
 import i18n from "@/i18n";
 import { useMachineStore } from "@/stores/machine";
@@ -163,6 +163,15 @@ function recordCustomSamples(model: Record<string, unknown>) {
 
 function recordSamples() {
 	const machineStore = useMachineStore();
+
+	// Skip while disconnected: on a reset the object model is torn down and repopulated incrementally,
+	// so sensors.analog can already be present while heat.heaters is still empty. Recording in that
+	// window classifies heater sensors as extra sensors and desyncs their series, which makes the
+	// heater lines look frozen once the model settles again
+	if (!machineStore.isConnected || machineStore.model.state.status === MachineStatus.disconnected) {
+		return;
+	}
+
 	const now = Date.now();
 	if (sampleTimes.length > 0 && now - sampleTimes[sampleTimes.length - 1] < sampleInterval) {
 		return;
@@ -186,6 +195,15 @@ function recordSamples() {
 		sampleSeries.forEach(dataset => dataset.data!.shift());
 	}
 	sampleTimes.push(now);
+
+	// Keep every series length-aligned with sampleTimes. A series only receives a value on ticks where
+	// its sensor resolves to the same (index, extra) key; a sensor that reads null for a tick or is
+	// briefly reclassified would otherwise fall permanently behind and render as a frozen line
+	for (const dataset of sampleSeries) {
+		while (dataset.data!.length < sampleTimes.length) {
+			dataset.data!.push(NaN);
+		}
+	}
 
 	for (const listener of sampleListeners) {
 		listener();
