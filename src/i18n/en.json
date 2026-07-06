@@ -1184,7 +1184,7 @@
 			"largeFileOptimizations": "Optimize large files",
 			"largeFileOptimizationsHint": "Drop syntax highlighting, folding and bracket matching above ~20 MB to save memory; leave off to keep big G-code files coloured",
 			"replaceTabsOnSave": "Replace tabs with spaces on save",
-			"replaceTabsOnSaveHint": "Convert every tab character in the file to spaces whenever it is saved",
+			"replaceTabsOnSaveHint": "Convert every tab character in the file to spaces whenever it is saved. Does not apply to job files in the G-codes directory.",
 			"replaceTabsSize": "Spaces per tab",
 			"replaceTabsSizeHint": "Number of spaces each tab is replaced by when saving"
 		},

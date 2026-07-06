@@ -394,7 +394,11 @@ async function save(): Promise<boolean> {
 	saving.value = true;
 	transferProgress.value = null;
 	try {
-		if (settingsStore.editor.replaceTabsOnSave) {
+		// Job files in the G-codes directory are excluded from tab replacement: they are
+		// sliced output, so rewriting them is never intended and they can be huge
+		if (settingsStore.editor.replaceTabsOnSave &&
+			!Path.startsWith(props.filename, machineStore.model.directories.gCodes)
+		) {
 			replaceTabs();
 		}
 		const content = useMonaco.value ? editor!.getValue() : textContent.value;
