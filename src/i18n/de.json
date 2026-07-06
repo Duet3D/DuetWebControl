@@ -1180,7 +1180,11 @@
 			"formatOnType": "Während der Eingabe formatieren",
 			"formatOnTypeHint": "Code während der Eingabe automatisch neu formatieren",
 			"largeFileOptimizations": "Große Dateien optimieren",
-			"largeFileOptimizationsHint": "Syntaxhervorhebung, Faltung und Klammerpaar-Hervorhebung über ~20 MB deaktivieren, um Speicher zu sparen; ausgeschaltet lassen, damit große G-Code-Dateien farbig bleiben"
+			"largeFileOptimizationsHint": "Syntaxhervorhebung, Faltung und Klammerpaar-Hervorhebung über ~20 MB deaktivieren, um Speicher zu sparen; ausgeschaltet lassen, damit große G-Code-Dateien farbig bleiben",
+			"replaceTabsOnSave": "Tabs beim Speichern durch Leerzeichen ersetzen",
+			"replaceTabsOnSaveHint": "Beim Speichern jedes Tabulatorzeichen in der Datei durch Leerzeichen ersetzen. Wird bei sehr großen Dateien übersprungen.",
+			"replaceTabsSize": "Leerzeichen pro Tab",
+			"replaceTabsSizeHint": "Anzahl der Leerzeichen, durch die jeder Tab beim Speichern ersetzt wird"
 		},
 		"about": {
 			"dwc": "Duet Web Control",

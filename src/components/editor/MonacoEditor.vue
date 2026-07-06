@@ -394,6 +394,9 @@ async function save(): Promise<boolean> {
 	saving.value = true;
 	transferProgress.value = null;
 	try {
+		if (settingsStore.editor.replaceTabsOnSave) {
+			replaceTabs();
+		}
 		const content = useMonaco.value ? editor!.getValue() : textContent.value;
 		await machineStore.upload(
 			{ filename: props.filename, content: new Blob([content]) },
@@ -527,6 +530,36 @@ function indentComments() {
 		}
 	} else {
 		textContent.value = indent(textContent.value);
+	}
+}
+
+// Replaces every tab character in the buffer with spaces, invoked from save() when the
+// corresponding setting is enabled. Rewrites the buffer (not just the uploaded content) so the
+// editor keeps matching the file on disk; goes through executeEdits so the change is undoable
+// and doesn't reset the cursor/scroll position.
+// Files past BIG_FILE_THRESHOLD are skipped, matching the other whole-buffer operations: that
+// size means sliced job output rather than a hand-edited file, and rewriting it is expensive
+function replaceTabs() {
+	// Guard against a cleared/invalid number field in the settings; fall back to the default of 4
+	const size = settingsStore.editor.replaceTabsSize;
+	const spaces = " ".repeat((Number.isFinite(size) && size >= 1) ? Math.floor(size) : 4);
+
+	if (useMonaco.value) {
+		if (!editor) {
+			return;
+		}
+		const value = editor.getValue();
+		if (value.length <= BIG_FILE_THRESHOLD && value.includes("\t")) {
+			const model = editor.getModel();
+			if (model) {
+				editor.executeEdits(null, [{ range: model.getFullModelRange(), text: value.replaceAll("\t", spaces) }]);
+				editor.pushUndoStop();
+			}
+		}
+	} else if (textContent.value.length <= BIG_FILE_THRESHOLD && textContent.value.includes("\t")) {
+		// No need for the suppressDirty dance here: save() resets dirty once the upload succeeds,
+		// and on failure the buffer genuinely differs from the file so staying dirty is correct
+		textContent.value = textContent.value.replaceAll("\t", spaces);
 	}
 }
 

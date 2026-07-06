@@ -457,6 +457,12 @@ export const useSettingsStore = defineStore("settings", {
 			/** Monaco's large-file optimisations: above ~20 MB it drops syntax highlighting, folding and
 			 * bracket matching to save memory. Off by default so big job gcode files still colour */
 			largeFileOptimizations: false,
+			/** Replace every tab character in the buffer with spaces when the file is saved.
+			 * Files past the editor's big-file threshold are exempt, like the other
+			 * whole-buffer operations (they are sliced job output, not hand-edited files) */
+			replaceTabsOnSave: false,
+			/** Number of spaces each tab is replaced by when {@link replaceTabsOnSave} is enabled */
+			replaceTabsSize: 4,
 		},
 
 		/**
