@@ -394,11 +394,7 @@ async function save(): Promise<boolean> {
 	saving.value = true;
 	transferProgress.value = null;
 	try {
-		// Job files in the G-codes directory are excluded from tab replacement: they are
-		// sliced output, so rewriting them is never intended and they can be huge
-		if (settingsStore.editor.replaceTabsOnSave &&
-			!Path.startsWith(props.filename, machineStore.model.directories.gCodes)
-		) {
+		if (settingsStore.editor.replaceTabsOnSave) {
 			replaceTabs();
 		}
 		const content = useMonaco.value ? editor!.getValue() : textContent.value;
@@ -540,7 +536,9 @@ function indentComments() {
 // Replaces every tab character in the buffer with spaces, invoked from save() when the
 // corresponding setting is enabled. Rewrites the buffer (not just the uploaded content) so the
 // editor keeps matching the file on disk; goes through executeEdits so the change is undoable
-// and doesn't reset the cursor/scroll position
+// and doesn't reset the cursor/scroll position.
+// Files past BIG_FILE_THRESHOLD are skipped, matching the other whole-buffer operations: that
+// size means sliced job output rather than a hand-edited file, and rewriting it is expensive
 function replaceTabs() {
 	// Guard against a cleared/invalid number field in the settings; fall back to the default of 4
 	const size = settingsStore.editor.replaceTabsSize;
@@ -551,14 +549,14 @@ function replaceTabs() {
 			return;
 		}
 		const value = editor.getValue();
-		if (value.includes("\t")) {
+		if (value.length <= BIG_FILE_THRESHOLD && value.includes("\t")) {
 			const model = editor.getModel();
 			if (model) {
 				editor.executeEdits(null, [{ range: model.getFullModelRange(), text: value.replaceAll("\t", spaces) }]);
 				editor.pushUndoStop();
 			}
 		}
-	} else if (textContent.value.includes("\t")) {
+	} else if (textContent.value.length <= BIG_FILE_THRESHOLD && textContent.value.includes("\t")) {
 		// No need for the suppressDirty dance here: save() resets dirty once the upload succeeds,
 		// and on failure the buffer genuinely differs from the file so staying dirty is correct
 		textContent.value = textContent.value.replaceAll("\t", spaces);
