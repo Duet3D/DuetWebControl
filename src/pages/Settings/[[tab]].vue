@@ -512,6 +512,16 @@
 												  :label="$t('settings.editor.bracketPairColorization')"
 												  v-hint="$t('settings.editor.bracketPairColorizationHint')"
 												  density="comfortable" hide-details />
+										<v-switch v-model="settingsStore.editor.replaceTabsOnSave" color="primary"
+												  :label="$t('settings.editor.replaceTabsOnSave')"
+												  v-hint="$t('settings.editor.replaceTabsOnSaveHint')"
+												  density="comfortable" hide-details />
+										<v-text-field v-model.number="settingsStore.editor.replaceTabsSize" type="number"
+													  :disabled="!settingsStore.editor.replaceTabsOnSave"
+													  :label="$t('settings.editor.replaceTabsSize')"
+													  v-hint="$t('settings.editor.replaceTabsSizeHint')"
+													  variant="outlined" density="comfortable" hide-details
+													  min="1" max="16" class="mt-2" />
 									</v-card-text>
 								</v-card>
 							</v-col>
