@@ -589,7 +589,7 @@ const uploadAccept = computed<string>(() => {
 		return ".zip,.bin,.uf2";
 	}
 	if (Path.startsWith(dir, dirs.system)) {
-		return ".zip,.bin,.uf2,.json,.g,.csv,.xml" + (machineStore.model.sbc !== null ? ",.deb" : "");
+		return ".zip,.bin,.uf2,.json,.g,.csv,.xml" + (machineStore.model.sbc !== null ? ",.deb" : ",.crt,.key");
 	}
 	if (Path.startsWith(dir, dirs.web)) {
 		return ".zip,.csv,.json,.htm,.html,.ico,.xml,.css,.map,.js,.ttf,.eot,.svg,.woff,.woff2,.jpeg,.jpg,.png,.gz";

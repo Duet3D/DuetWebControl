@@ -15,14 +15,11 @@
 </route>
 
 <template>
-	<div class="temperatures-page d-flex flex-column" :class="{ 'dwc-page-fill': shouldFill }">
-		<TemperatureChart ref="chartRef" />
+	<div class="temperatures-page d-flex flex-column dwc-page-fill">
+		<TemperatureChart />
 	</div>
 </template>
 
 <script setup lang="ts">
 import TemperatureChart from "@/components/charts/TemperatureChart.vue";
-
-const chartRef = ref<{ shouldFill: boolean } | null>(null);
-const shouldFill = computed(() => chartRef.value?.shouldFill ?? false);
 </script>

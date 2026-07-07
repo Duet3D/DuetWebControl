@@ -259,6 +259,66 @@ function applyVisibility() {
 function onSample() {
 	applyVisibility();
 	refresh();
+	// refresh() reindexes the scrolled buffer and drops chart.js's own touch tooltip; re-anchor it
+	// to the held finger so it survives object-model updates during a drag
+	if (touchTooltipPos !== null) {
+		applyTouchTooltip();
+	}
+}
+
+// While a finger is on the chart, chart.js shows the tooltip live from its own touch handling; we
+// only record the position so it can be restored after an update, and clear it on lift so the
+// tooltip stays hidden by default and only appears while touching or dragging
+let touchTooltipPos: { x: number; y: number } | null = null;
+
+function recordTouch(event: TouchEvent) {
+	const touch = event.touches[0];
+	if (!touch || !canvasRef.value) {
+		return;
+	}
+	const rect = canvasRef.value.getBoundingClientRect();
+	touchTooltipPos = { x: touch.clientX - rect.left, y: touch.clientY - rect.top };
+}
+
+// Re-anchor the tooltip to the recorded finger position. `index` interaction picks the sample
+// nearest the touched x, so the tooltip keeps following the finger even after the buffer scrolled
+function applyTouchTooltip() {
+	if (!chart || !touchTooltipPos || sampleTimes.length === 0) {
+		return;
+	}
+	const time = chart.scales.x.getValueForPixel(touchTooltipPos.x);
+	if (time === undefined) {
+		return;
+	}
+	let index = 0, closest = Infinity;
+	for (let i = 0; i < sampleTimes.length; i++) {
+		const distance = Math.abs(sampleTimes[i] - time);
+		if (distance < closest) {
+			closest = distance;
+			index = i;
+		}
+	}
+	const active: Array<{ datasetIndex: number; index: number }> = [];
+	sampleSeries.forEach((dataset, datasetIndex) => {
+		if (dataset.showLine) {
+			active.push({ datasetIndex, index });
+		}
+	});
+	chart.setActiveElements(active);
+	chart.tooltip?.setActiveElements(active, touchTooltipPos);
+	chart.update();
+}
+
+// Touch has no pointer-leave event, so a tapped tooltip would stay on screen indefinitely. Clear
+// it when the finger lifts so the tooltip only shows while touching or dragging across the chart
+function hideTooltip() {
+	touchTooltipPos = null;
+	if (!chart) {
+		return;
+	}
+	chart.setActiveElements([]);
+	chart.tooltip?.setActiveElements([], { x: 0, y: 0 });
+	chart.update();
 }
 
 let unsubscribeSampleListener: (() => void) | null = null;
@@ -343,11 +403,24 @@ onMounted(() => {
 	refresh();
 
 	unsubscribeSampleListener = onSampleAdded(onSample);
+
+	canvasRef.value.addEventListener("touchstart", recordTouch, { passive: true });
+	canvasRef.value.addEventListener("touchmove", recordTouch, { passive: true });
+	canvasRef.value.addEventListener("touchend", hideTooltip);
+	canvasRef.value.addEventListener("touchcancel", hideTooltip);
+
+	// The canvas is created before the surrounding page-fill height is guaranteed to be in place,
+	// so re-measure once the layout has settled to avoid a too-tall first-frame measurement
+	nextTick(() => chart?.resize());
 });
 
 onBeforeUnmount(() => {
 	unsubscribeSampleListener?.();
 	unsubscribeSampleListener = null;
+	canvasRef.value?.removeEventListener("touchstart", recordTouch);
+	canvasRef.value?.removeEventListener("touchmove", recordTouch);
+	canvasRef.value?.removeEventListener("touchend", hideTooltip);
+	canvasRef.value?.removeEventListener("touchcancel", hideTooltip);
 	chart?.destroy();
 	chart = null;
 });
@@ -385,6 +458,4 @@ function downloadCsv() {
 	const blob = new Blob([csv], { type: "text/csv" });
 	saveBlob(`temperatures-${new Date().toISOString().replace(/[:.]/g, "-")}.csv`, blob);
 }
-
-defineExpose({ hasTemperaturesToDisplay, shouldFill });
 </script>
