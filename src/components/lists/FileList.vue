@@ -401,6 +401,12 @@
 				</template>
 				<v-list-item-title>{{ $t("list.fileList.open") }}</v-list-item-title>
 			</v-list-item>
+			<v-list-item v-if="contextMenu.target" @click="copyPathFromContext">
+				<template #prepend>
+					<v-icon>mdi-content-copy</v-icon>
+				</template>
+				<v-list-item-title>{{ $t("list.fileList.copyPath") }}</v-list-item-title>
+			</v-list-item>
 			<v-list-item v-if="!noDownload && selectedEntries.length > 0" @click="startDownload">
 				<template #prepend>
 					<v-icon>mdi-cloud-download</v-icon>
@@ -480,6 +486,7 @@ import { useComponentSettings } from "@/composables/useComponentSettings";
 import i18n from "@/i18n";
 import { useMachineStore } from "@/stores/machine";
 import { ContextMenuType, FileTransferType, LogLevel, useUiStore } from "@/stores/ui";
+import { copyToClipboard } from "@/utils/clipboard";
 import { displaySize } from "@/utils/display";
 import { saveBlob } from "@/utils/download";
 import { getErrorMessage } from "@/utils/errors";
@@ -1509,6 +1516,23 @@ function runMacroFromContext() {
 		return;
 	}
 	emit("fileRunMacro", target, browser.directory.value);
+}
+
+// Copy the item's full path (e.g. "0:/sys/config.g") for pasting into M98/M32 calls and the like.
+// Clipboard writes have no visible effect of their own, so confirm with a notification
+async function copyPathFromContext() {
+	contextMenu.shown = false;
+	const target = contextMenu.target;
+	if (!target) {
+		return;
+	}
+	const path = Path.combine(browser.directory.value, target.name);
+	try {
+		await copyToClipboard(path);
+		uiStore.makeNotification(LogLevel.info, i18n.global.t("list.fileList.pathCopied"), path);
+	} catch (e) {
+		uiStore.notifyError(e, i18n.global.t("list.fileList.copyPath"));
+	}
 }
 
 // Run Macro is offered inside the system tree on files whose name ends in a runnable

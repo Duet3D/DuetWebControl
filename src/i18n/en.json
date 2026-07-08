@@ -596,6 +596,8 @@
 			"edit": "Edit",
 			"fileInfo": "File Info",
 			"runMacro": "Run Macro",
+			"copyPath": "Copy Path",
+			"pathCopied": "Path copied to clipboard",
 			"download": "Download",
 			"downloadZIP": "Download as ZIP",
 			"loading": "Loading files...",
