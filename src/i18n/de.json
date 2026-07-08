@@ -598,6 +598,8 @@
 			"edit": "Bearbeiten",
 			"fileInfo": "Dateiinfo",
 			"runMacro": "Makro ausführen",
+			"copyPath": "Pfad kopieren",
+			"pathCopied": "Pfad in die Zwischenablage kopiert",
 			"download": "Herunterladen",
 			"downloadZIP": "Als ZIP herunterladen",
 			"loading": "Dateien werden geladen...",
