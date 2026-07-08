@@ -325,6 +325,7 @@ import MonacoEditor from "@/components/editor/MonacoEditor.vue";
 import { firmwareInstallControllerKey, useFirmwareInstallController } from "@/composables/useFirmwareInstallController";
 import i18n from "@/i18n";
 import { scrollPageToBottom } from "@/router";
+import { useSettingsStore } from "@/stores/settings";
 import { LogLevel, useUiStore } from "@/stores/ui";
 import { isPrinting } from "@/utils/enums";
 
@@ -345,11 +346,13 @@ interface ExplorerTab {
 	scrollY?: number;
 	/** Tracks unsaved Monaco changes (editor tabs only); drives the close confirm and unload guard */
 	dirty?: boolean;
-	/** Set once a file that warrants a firmware reset (config.g, board.txt) was saved in this tab */
+	/** Set once a file that warrants a firmware reset (config.g, board.txt) was saved in this tab,
+	 * under the "onTabClose" reset-prompt preference, so the prompt can fire when the tab is closed */
 	resetPromptDue?: boolean;
 }
 
 const machineStore = useMachineStore();
+const settingsStore = useSettingsStore();
 const uiStore = useUiStore();
 const { controlDensity } = useLargeButtons();
 const route = useRoute("/Explorer/[[tab]]/[[volume]]/[[...path]]");
@@ -620,11 +623,25 @@ function warrantsResetPrompt(filename: string): boolean {
 	return false;
 }
 
-// Remember the save so the reset prompt can fire when the tab is later closed, rather than
-// interrupting every save. The flag stays set for the life of the tab - the saved file differs
-// from the running configuration until the user resets or re-runs it
+// Offer the firmware reset / config re-run, unless a print is running - the config is in use and a
+// reset would abort the job
+function showResetPrompt() {
+	if (!isPrinting(machineStore.model.state.status)) {
+		sharedFirmwareController.configUpdatedDialog.shown = true;
+	}
+}
+
+// Handle a reset-worthy save according to the user's preference: "onSave" prompts immediately,
+// "onTabClose" defers the prompt to closeTab via resetPromptDue (the flag stays set for the life of
+// the tab - the saved file differs from the running configuration until the user resets or re-runs
+// it), "disabled" never prompts
 function onEditorSaved(tab: ExplorerTab) {
-	if (tab.filename && warrantsResetPrompt(tab.filename)) {
+	if (!tab.filename || !warrantsResetPrompt(tab.filename)) {
+		return;
+	}
+	if (settingsStore.editor.configResetPrompt === "onSave") {
+		showResetPrompt();
+	} else if (settingsStore.editor.configResetPrompt === "onTabClose") {
 		tab.resetPromptDue = true;
 	}
 }
@@ -643,11 +660,10 @@ function closeTab(id: number) {
 	const closed = tabs.value[idx];
 	tabs.value.splice(idx, 1);
 
-	// Closing an editor whose saved file warrants a reset (config.g, board.txt) is when we offer the
-	// firmware reset / config re-run, so the prompt waits until the user is done editing instead of
-	// nagging on save. Suppressed while printing - the config is in use and a reset would abort the job
-	if (closed.resetPromptDue && !isPrinting(machineStore.model.state.status)) {
-		sharedFirmwareController.configUpdatedDialog.shown = true;
+	// resetPromptDue is only set in the "onTabClose" preference, so closing the editor is when its
+	// deferred firmware reset / config re-run prompt fires
+	if (closed.resetPromptDue) {
+		showResetPrompt();
 	}
 
 	// If the user just closed the last tab, spawn a fresh browser tab at the default volume so

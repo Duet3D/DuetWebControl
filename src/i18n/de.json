@@ -1184,7 +1184,14 @@
 			"replaceTabsOnSave": "Tabs beim Speichern durch Leerzeichen ersetzen",
 			"replaceTabsOnSaveHint": "Beim Speichern jedes Tabulatorzeichen in der Datei durch Leerzeichen ersetzen. Wird bei sehr großen Dateien übersprungen.",
 			"replaceTabsSize": "Leerzeichen pro Tab",
-			"replaceTabsSizeHint": "Anzahl der Leerzeichen, durch die jeder Tab beim Speichern ersetzt wird"
+			"replaceTabsSizeHint": "Anzahl der Leerzeichen, durch die jeder Tab beim Speichern ersetzt wird",
+			"configResetPrompt": "Reset-Abfrage für config.g anzeigen",
+			"configResetPromptHint": "Wann nach dem Bearbeiten von config.g angeboten wird, das Mainboard neu zu starten oder die Konfigurationsdatei erneut auszuführen",
+			"configResetPromptOptions": {
+				"onTabClose": "Beim Schließen des Editors",
+				"onSave": "Beim Speichern",
+				"disabled": "Deaktiviert"
+			}
 		},
 		"about": {
 			"dwc": "Duet Web Control",

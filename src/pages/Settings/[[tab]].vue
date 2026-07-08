@@ -522,6 +522,11 @@
 													  v-hint="$t('settings.editor.replaceTabsSizeHint')"
 													  variant="outlined" density="comfortable" hide-details
 													  min="1" max="16" class="mt-2" />
+										<v-select v-model="settingsStore.editor.configResetPrompt"
+												  :items="configResetPromptOptions" item-title="label" item-value="value"
+												  :label="$t('settings.editor.configResetPrompt')"
+												  v-hint="$t('settings.editor.configResetPromptHint')"
+												  variant="outlined" density="comfortable" hide-details class="mt-4" />
 									</v-card-text>
 								</v-card>
 							</v-col>
@@ -1096,6 +1101,12 @@ const wordWrapOptions = computed(() => [
 	{ label: i18n.global.t("settings.editor.wordWrapOptions.off"), value: "off" },
 	{ label: i18n.global.t("settings.editor.wordWrapOptions.on"), value: "on" },
 	{ label: i18n.global.t("settings.editor.wordWrapOptions.bounded"), value: "bounded" },
+]);
+
+const configResetPromptOptions = computed(() => [
+	{ label: i18n.global.t("settings.editor.configResetPromptOptions.onTabClose"), value: "onTabClose" },
+	{ label: i18n.global.t("settings.editor.configResetPromptOptions.onSave"), value: "onSave" },
+	{ label: i18n.global.t("settings.editor.configResetPromptOptions.disabled"), value: "disabled" },
 ]);
 
 const dwcVersion = packageInfo.version;

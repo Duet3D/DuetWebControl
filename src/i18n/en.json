@@ -1186,7 +1186,14 @@
 			"replaceTabsOnSave": "Replace tabs with spaces on save",
 			"replaceTabsOnSaveHint": "Convert every tab character in the file to spaces whenever it is saved. Skipped for very large files.",
 			"replaceTabsSize": "Spaces per tab",
-			"replaceTabsSizeHint": "Number of spaces each tab is replaced by when saving"
+			"replaceTabsSizeHint": "Number of spaces each tab is replaced by when saving",
+			"configResetPrompt": "Show config.g reset prompt",
+			"configResetPromptHint": "When to offer restarting the mainboard or re-running the configuration file after editing config.g",
+			"configResetPromptOptions": {
+				"onTabClose": "When the editor is closed",
+				"onSave": "On save",
+				"disabled": "Disabled"
+			}
 		},
 		"about": {
 			"dwc": "Duet Web Control",

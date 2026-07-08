@@ -463,6 +463,10 @@ export const useSettingsStore = defineStore("settings", {
 			replaceTabsOnSave: false,
 			/** Number of spaces each tab is replaced by when {@link replaceTabsOnSave} is enabled */
 			replaceTabsSize: 4,
+			/** When to offer the firmware reset / config re-run after editing config.g (or board.txt on
+			 * non-Duet mainboards). "onTabClose" waits until the editor is closed, "onSave" prompts right
+			 * after each save, "disabled" never prompts */
+			configResetPrompt: "onTabClose" as "onTabClose" | "onSave" | "disabled",
 		},
 
 		/**
