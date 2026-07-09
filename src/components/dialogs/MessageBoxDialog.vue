@@ -107,6 +107,9 @@ const numberInput = ref(0), stringInput = ref("");
 watch(() => machineStore.isReconnecting, (to) => {
 	if (to) {
 		shown.value = false;
+	} else if (machineStore.model.state.messageBox !== null && machineStore.model.state.messageBox.mode !== null) {
+		// A box still open across a reconnect keeps its reference, so the messageBox watcher won't re-fire it
+		shown.value = true;
 	}
 });
 
@@ -222,25 +225,25 @@ function showSign(value: number) {
 async function ok() {
 	shown.value = false;
 	if ([MessageBoxMode.closeOnly, MessageBoxMode.okOnly, MessageBoxMode.okCancel].includes(messageBox.mode)) {
-		await machineStore.sendCode(`M292 S${messageBox.seq}`);
+		await machineStore.sendCode(`M292 S${messageBox.seq}`, false, false);
 	} else if (messageBox.mode === MessageBoxMode.intInput || messageBox.mode === MessageBoxMode.floatInput) {
-		await machineStore.sendCode(`M292 R{${numberInput.value}} S${messageBox.seq}`);
+		await machineStore.sendCode(`M292 R{${numberInput.value}} S${messageBox.seq}`, false, false);
 	} else if (messageBox.mode === MessageBoxMode.stringInput) {
-		await machineStore.sendCode(`M292 R{"${stringInput.value.replace(/"/g, '""').replace(/'/g, "''")}"} S${messageBox.seq}`);
+		await machineStore.sendCode(`M292 R{"${stringInput.value.replace(/"/g, '""').replace(/'/g, "''")}"} S${messageBox.seq}`, false, false);
 	}
 }
 
 async function accept(choice: number) {
 	shown.value = false;
 	if (messageBox.mode >= MessageBoxMode.multipleChoice) {
-		await machineStore.sendCode(`M292 R{${choice}} S${messageBox.seq}`);
+		await machineStore.sendCode(`M292 R{${choice}} S${messageBox.seq}`, false, false);
 	}
 }
 
 async function cancel() {
 	shown.value = false;
 	if (messageBox.cancelButton) {
-		await machineStore.sendCode(`M292 P1 S${messageBox.seq}`);
+		await machineStore.sendCode(`M292 P1 S${messageBox.seq}`, false, false);
 	}
 }
 </script>
