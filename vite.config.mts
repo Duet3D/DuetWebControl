@@ -102,10 +102,13 @@ export default defineConfig({
 						return "monaco";
 					}
 					if (id.includes("node_modules/@babylonjs/")
-						|| id.includes("node_modules/babylonjs-gltf2interface/")
-						|| id.includes("node_modules/@sindarius/gcodeviewer/")) {
+						|| id.includes("node_modules/babylonjs-gltf2interface/")) {
 						return "babylon";
 					}
+					// @duet3d/gcodeviewer bundles its own Babylon + inlined render worker into a single
+					// ~6 MB ESM file, so it needs no shared-dep grouping - let it fall through to its own
+					// lazy chunk, fetched as one request when the GCodeViewer plugin opens
+
 					if (id === "\0virtual:dwc-vuetify-extras"
 						|| id.includes("node_modules/vuetify/")) {
 						return "vuetify";

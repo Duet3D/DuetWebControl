@@ -181,14 +181,18 @@
 	z-index: 19;
 }
 
-.disable-transition {
-	transition: none !important;
-}
-
 .fsoverlay {
 	position: absolute;
 	pointer-events: none;
 	background-color: transparent;
+}
+
+/* Controls for features the current @duet3d/gcodeviewer build has no method for yet (see the
+   `disabled` bindings). ColorPicker has no disabled prop, so its wrapper carries the greyed-out
+   look manually until the library regains those methods */
+.gcv-disabled {
+	opacity: 0.5;
+	pointer-events: none;
 }
 </style>
 
@@ -213,10 +217,11 @@
 			<FSOverlay v-show="fullscreen && showOverlay" :class="[viewerClass, 'fsoverlay']"
 					   :viewgcode="viewGCode" />
 
+			<!-- Indeterminate: the WASM parse is one synchronous call in the worker, so it can't
+				 report incremental progress mid-parse - a determinate bar would just jump 0 -> 100 -->
 			<div class="loading-progress">
-				<v-progress-linear v-show="loading" :model-value="loadingProgress" class="disable-transition"
-								   height="15" rounded>
-					{{ loadingProgress }}% {{ loadingMessage }}
+				<v-progress-linear v-show="loading" indeterminate height="24" rounded>
+					{{ loadingMessage }}
 				</v-progress-linear>
 			</div>
 
@@ -290,11 +295,11 @@
 									<v-switch v-model="showObjectSelection" :disabled="!canCancelObject"
 											  :label="jobSelectionLabel" color="primary" hide-details />
 									<v-switch v-model="showCursor" :label="$t('plugins.gcodeViewer.showCursor')"
-											  color="primary" hide-details />
+											  color="primary" hide-details disabled />
 									<v-switch v-model="showTravelLines" :label="$t('plugins.gcodeViewer.showTravels')"
 											  color="primary" hide-details />
 									<v-switch v-model="persistTravels" :label="$t('plugins.gcodeViewer.persistTravels')"
-											  color="primary" hide-details />
+											  color="primary" hide-details disabled />
 									<v-switch v-model="viewGCode" :label="$t('plugins.gcodeViewer.viewGCode')"
 											  color="primary" hide-details />
 								</div>
@@ -311,11 +316,11 @@
 							<div class="d-flex flex-column ga-3">
 								<v-select v-model="renderQuality" :items="renderQualityItems"
 										  :label="$t('plugins.gcodeViewer.renderQuality.caption')"
-										  :disabled="loading" density="compact" variant="outlined"
+										  disabled density="compact" variant="outlined"
 										  hide-details />
 								<div class="d-flex flex-column">
 									<v-checkbox v-model="useHQRendering" :label="$t('plugins.gcodeViewer.useHQRendering')"
-												color="primary" hide-details />
+												color="primary" hide-details disabled />
 									<v-checkbox v-model="forceWireMode"
 												:label="$t('plugins.gcodeViewer.forceLineRendering')"
 												color="primary" hide-details />
@@ -328,7 +333,7 @@
 									<v-slider v-if="vertexAlpha" v-model="transparencyPercent" min="1" max="100"
 											  hide-details />
 									<v-checkbox v-model="specular" :label="$t('plugins.gcodeViewer.useSpecular')"
-												color="primary" hide-details />
+												color="primary" hide-details disabled />
 								</div>
 							</div>
 						</v-expansion-panel-text>
@@ -370,21 +375,21 @@
 									<v-btn :disabled="loading" :value="2" block>{{ $t("plugins.gcodeViewer.feature") }}</v-btn>
 								</v-btn-toggle>
 								<v-checkbox v-model="g1AsExtrusion" :label="$t('plugins.gcodeViewer.g1AsExtrusion')"
-											color="primary" hide-details />
+											color="primary" hide-details disabled />
 								<div>
 									<div class="text-title-small mb-1">{{ $t("plugins.gcodeViewer.minFeedrate") }}</div>
-									<v-slider v-model="minColorRate" :max="500" :min="5" thumb-label hide-details />
+									<v-slider v-model="minColorRate" :max="500" :min="5" thumb-label hide-details disabled />
 								</div>
 								<div>
 									<div class="text-title-small mb-1">{{ $t("plugins.gcodeViewer.maxFeedrate") }}</div>
-									<v-slider v-model="maxColorRate" :max="500" :min="5" thumb-label hide-details />
+									<v-slider v-model="maxColorRate" :max="500" :min="5" thumb-label hide-details disabled />
 								</div>
-								<div>
+								<div class="gcv-disabled">
 									<div class="text-title-small mb-2">{{ $t("plugins.gcodeViewer.minFeedrateColor") }}</div>
 									<ColorPicker :editcolor="minFeedColor"
 												 @updatecolor="(value) => updateMinFeedColor(value)" />
 								</div>
-								<div>
+								<div class="gcv-disabled">
 									<div class="text-title-small mb-2">{{ $t("plugins.gcodeViewer.maxFeedrateColor") }}</div>
 									<ColorPicker :editcolor="maxFeedColor"
 												 @updatecolor="(value) => updateMaxFeedColor(value)" />
@@ -454,15 +459,15 @@
 												color="primary" hide-details />
 									<v-checkbox v-model="showWorkplace"
 												:label="$t('plugins.gcodeViewer.showWorkplace')"
-												color="primary" hide-details />
+												color="primary" hide-details disabled />
 									<v-switch v-model="cameraInertia" :label="$t('plugins.gcodeViewer.cameraInertia')"
 											  color="primary" hide-details />
 									<v-switch v-model="zBelt" :label="$t('plugins.gcodeViewer.zBelt')"
-											  color="primary" hide-details />
+											  color="primary" hide-details disabled />
 								</div>
 								<v-text-field v-model.number="zBeltAngle" type="number"
 											  :label="$t('plugins.gcodeViewer.zBeltAngle')"
-											  density="compact" variant="outlined" hide-details />
+											  density="compact" variant="outlined" hide-details disabled />
 							</div>
 						</v-expansion-panel-text>
 					</v-expansion-panel>
@@ -534,18 +539,15 @@
 </template>
 
 <script setup lang="ts">
-import { type Axis, type Job, KinematicsName, type Move, type State } from "@duet3d/objectmodel";
-import { Vector3 } from "@babylonjs/core/Maths/math";
+import { type Job, KinematicsName, type Move, type State } from "@duet3d/objectmodel";
+import { Viewer_Proxy } from "@duet3d/gcodeviewer";
 import { useDisplay } from "vuetify";
-// @ts-ignore - third-party package without bundled types
-import gcodeViewer from "@sindarius/gcodeviewer";
 
 import CodeButton from "@/components/buttons/CodeButton.vue";
 import i18n from "@/i18n";
 import { useCacheStore } from "@/stores/cache";
 import { useMachineStore } from "@/stores/machine";
 import { useSettingsStore } from "@/stores/settings";
-import { LogLevel, useUiStore } from "@/stores/ui";
 import { isPrinting } from "@/utils/enums";
 import Path from "@/utils/path";
 
@@ -559,15 +561,13 @@ interface ObjectInfo {
 	name?: string;
 }
 
-interface PrintBounds {
-	min: Vector3;
-	max: Vector3;
-}
+// The colour render-mode toggle exposes color/feedrate/feature (values 0/1/2), which map onto the
+// library's numeric render modes tool/feed-rate/feature (1/2/0)
+const RENDER_MODE_MAP = [1, 2, 0];
 
 const machineStore = useMachineStore();
 const cacheStore = useCacheStore();
 const settingsStore = useSettingsStore();
-const uiStore = useUiStore();
 const display = useDisplay();
 const route = useRoute();
 
@@ -575,9 +575,13 @@ const route = useRoute();
 // anywhere else (e.g. as a tab in the Job Status view panel) it fills its container instead
 const isEmbedded = computed(() => !route.path.startsWith("/Plugins/GCodeViewer"));
 
-// Intentionally module-scope (not a ref) - Babylon's internals don't survive Vue's reactive
-// proxy walk; the template never reads `viewer` directly so losing reactivity is safe
-let viewer: any = null;
+// Intentionally module-scope (not a ref) - the proxy holds a Worker/OffscreenCanvas that must not
+// be walked by Vue's reactive proxy; the template never reads `viewer` directly
+let viewer: Viewer_Proxy | null = null;
+
+// Last loaded G-code text. The library renders in a worker and no longer exposes the file back, so
+// we keep our own copy to feed the code-stream view and to re-load on "reload"
+let loadedFileText = "";
 
 const primaryContainer = ref<HTMLElement | null>(null);
 const viewerCanvas = ref<HTMLCanvasElement | null>(null);
@@ -620,21 +624,19 @@ const showAxes = ref(true);
 const showObjectLabels = ref(true);
 const fullscreen = ref(false);
 const bedColor = ref("");
-const colorMode = ref(0);
+// Default to feature colouring (colorMode 2 -> library Feature mode), the colourful per-feature view
+const colorMode = ref(2);
 const minColorRate = ref(20);
 const maxColorRate = ref(60);
-const maxFileFeedRate = ref(0);
 const minFeedColor = ref("#0000FF");
 const maxFeedColor = ref("#FF0000");
 const cameraInertia = ref(true);
-const loadingProgress = ref(0);
 const loadingMessage = ref("");
 const showOverlay = ref(true);
 const scrubPosition = ref(0);
 const scrubFileSize = ref(0);
 const scrubPlaying = ref(false);
 const scrubSpeed = ref(1);
-let colorDebounce: ReturnType<typeof setTimeout> | null = null;
 let resizeDebounce: ReturnType<typeof setTimeout> | null = null;
 const fileData = ref("");
 const perimeterOnly = ref(false);
@@ -646,6 +648,18 @@ const progressMode = ref(false);
 // file as finished, so the user can scrub it - they opt into live view via the "load current job"
 // button, which also re-enables per-object cancellation
 const followingJob = ref(false);
+
+// The scene, bed, camera and build-object machinery are created inside the worker's async engine
+// init, so config messages sent before it finishes would hit an undefined scene and be dropped.
+// The library posts a `ready` event when init completes; whenReady() gates the first config + load
+let viewerReady = false;
+let readyWaiters: Array<() => void> = [];
+function whenReady(): Promise<void> {
+	if (viewerReady) {
+		return Promise.resolve();
+	}
+	return new Promise((resolve) => readyWaiters.push(resolve));
+}
 
 // #region OM-derived computeds
 const job = computed<Job>(() => machineStore.model.job);
@@ -668,6 +682,13 @@ const filePosition = computed(() => Number(job.value.filePosition ?? 0));
 const kinematicsName = computed(() => move.value.kinematics.name);
 const isDelta = computed(() => kinematicsName.value === KinematicsName.linearDelta
 	|| kinematicsName.value === KinematicsName.rotaryDelta);
+
+// Axis bounds string that changes whenever an X/Y/Z min or max does, so the build volume can be
+// pushed to the viewer without a deep watch on the whole move object
+const axisBoundsKey = computed(() => move.value.axes
+	.filter((axis) => "XYZ".includes(axis.letter))
+	.map((axis) => `${axis.letter}:${axis.min}:${axis.max}`)
+	.join(","));
 
 const canCancelObject = computed(() => {
 	try {
@@ -715,10 +736,8 @@ const viewGCode = computed<boolean>({
 	get: () => pluginCache.value?.viewGCode ?? false,
 	set: (value) => {
 		cacheStore.setPluginData("GCodeViewer", "viewGCode", value);
-		if (viewer) {
-			fileData.value = value ? viewer.fileData : "";
-		}
-		resize();
+		fileData.value = value ? loadedFileText : "";
+		nextTick(() => pokeViewerResize());
 	},
 });
 
@@ -745,10 +764,7 @@ const showCursor = computed<boolean>({
 // #endregion
 
 // #region Layout-driven class swaps
-const viewerClass = computed(() => {
-	nextTick(() => resize());
-	return viewGCode.value ? "babylon-canvas-codeview" : "babylon-canvas";
-});
+const viewerClass = computed(() => viewGCode.value ? "babylon-canvas-codeview" : "babylon-canvas");
 
 const scrubberClass = computed(() => {
 	if (display.mdAndDown.value) {
@@ -762,47 +778,146 @@ const emergencyButtonClass = computed(() => viewGCode.value
 	? "emergency-button-placement-codeview"
 	: "emergency-button-placement");
 
-const workplaceOffsets = computed(() => {
-	const offsets: number[] = [];
-	try {
-		for (const axis of move.value.axes) {
-			offsets.push(...axis.workplaceOffsets);
-		}
-	} catch {
-		// Defensive - if axes haven't loaded yet, empty list is fine
-	}
-	return offsets;
-});
+// #endregion
 
-const currentWorkplace = computed(() => {
-	return move.value.motionSystems[machineStore.selectedMotionSystem]?.workplaceNumber ?? 0;
-});
+// #region Viewer events
+function handleViewerEvent(e: any) {
+	if (!e || !e.type) {
+		return;
+	}
+	switch (e.type) {
+		case "ready":
+			viewerReady = true;
+			readyWaiters.forEach((resolve) => resolve());
+			readyWaiters = [];
+			break;
+		case "progress":
+			loadingMessage.value = e.label ?? "";
+			break;
+		case "fileloaded":
+			scrubFileSize.value = e.end ?? 0;
+			// Tools + render materials are rebuilt by the load, so (re-)apply the current UI state
+			// now that they exist - doing this before the load would touch an undefined modelMaterial
+			updateTools();
+			applyRenderSettings();
+			viewer?.setAnimationSpeed(scrubSpeed.value);
+			viewer?.requestPrintBounds();
+			// Embedded job view frames the printed geometry; the standalone page frames the whole bed
+			if (isEmbedded.value) {
+				viewer?.frameToPrint();
+			} else {
+				viewer?.resetCamera();
+			}
+			loading.value = false;
+			break;
+		case "printbounds":
+			minHeight.value = e.minHeight ?? 0;
+			maxHeight.value = e.maxHeight ?? 0;
+			sliderHeight.value = maxHeight.value;
+			sliderBottomHeight.value = minHeight.value;
+			break;
+		case "positionupdate":
+			scrubPosition.value = e.position ?? 0;
+			break;
+		case "objectSelected":
+			objectDialogData.info = e.object as ObjectInfo;
+			objectDialogData.showDialog = true;
+			break;
+		case "objectLabel":
+			hoverLabel.value = showObjectSelection.value ? (e.name ?? "") : "";
+			break;
+		case "animationPositionUpdate":
+			if (scrubPlaying.value) {
+				scrubPosition.value = e.position ?? scrubPosition.value;
+			}
+			break;
+		case "animationStopped":
+			scrubPlaying.value = false;
+			break;
+	}
+}
 
 // #endregion
 
-// #region Viewer lifecycle
-async function loadSdFile(path: string) {
-	selectedFile.value = path;
-	followingJob.value = false;
+// #region Viewer configuration
+// Full scene configuration, applied once the worker signals `ready` and whenever a printer setting
+// it depends on changes
+function applyViewerConfig() {
 	if (!viewer) {
 		return;
 	}
-	try {
-		const blob = await machineStore.download({
-			filename: Path.combine(path),
-			type: "text",
-		}, false, false, false);
-		loading.value = true;
-		preLoadSettings();
-		await viewer.processFile(blob);
-		if (viewGCode.value) {
-			fileData.value = viewer.fileData;
+	setBuildVolumeFromAxes();
+	viewer.setDeltaBed(isDelta.value);
+	viewer.setBedRenderMode(bedRenderMode.value);
+	if (bedColor.value) {
+		viewer.setBedColor(bedColor.value);
+	}
+	viewer.setBackgroundColor(backgroundColor.value);
+	viewer.showAxes(showAxes.value);
+	viewer.showObjectLabels(showObjectLabels.value);
+	viewer.setCameraInertia(cameraInertia.value);
+	viewer.resetCamera();
+}
+
+// Render-material settings applied from the `fileloaded` handler, once the materials exist. These
+// only tweak the existing meshes' materials, so they are cheap and never reparse. setPerimeterOnly
+// is deliberately excluded - it reparses the whole file, so it lives on its own watch (user toggle)
+function applyRenderSettings() {
+	if (!viewer) {
+		return;
+	}
+	viewer.setRenderMode(RENDER_MODE_MAP[colorMode.value] ?? 1);
+	viewer.setAlphaMode(vertexAlpha.value);
+	viewer.setProgressMode(progressMode.value);
+	viewer.setMeshMode(forceWireMode.value ? 2 : 0);
+	viewer.setTransparencyValue(transparencyPercent.value / 100);
+	viewer.setProgressColor(progressColor.value);
+	viewer.setShowTravels(showTravelLines.value);
+}
+
+function setBuildVolumeFromAxes() {
+	if (!viewer) {
+		return;
+	}
+	const volume = { x: { min: 0, max: 0 }, y: { min: 0, max: 0 }, z: { min: 0, max: 0 } };
+	for (const axis of move.value.axes) {
+		const letter = axis.letter.toLowerCase();
+		if (letter === "x" || letter === "y" || letter === "z") {
+			volume[letter].min = axis.min ?? 0;
+			volume[letter].max = axis.max ?? 0;
 		}
-		scrubFileSize.value = viewer.fileSize;
-		viewer.gcodeProcessor.setLiveTracking(false);
-		setGCodeValues();
-		applyDefaultOrientation();
-	} finally {
+	}
+	viewer.setBuildVolume(volume);
+}
+
+function updateTools() {
+	viewer?.setTools(toolColors.value.map((color) => ({ color, diameter: 0.4 })));
+}
+
+// #endregion
+
+// #region Loading
+async function loadText(text: string) {
+	loadedFileText = text;
+	fileData.value = viewGCode.value ? text : "";
+	await whenReady();
+	if (!viewer) {
+		return;
+	}
+	loading.value = true;
+	scrubPlaying.value = false;
+	scrubPosition.value = 0;
+	viewer.loadFile(text);
+}
+
+async function loadSdFile(path: string) {
+	selectedFile.value = path;
+	followingJob.value = false;
+	loading.value = true;
+	try {
+		const blob = await machineStore.download({ filename: Path.combine(path), type: "text" }, false, false, false);
+		await loadText(String(blob));
+	} catch {
 		loading.value = false;
 	}
 }
@@ -833,392 +948,6 @@ function loadFromRoute() {
 	}
 }
 
-// Default camera placement: a front view tilted 45 deg down. For an ArcRotateCamera alpha -PI/2
-// faces the front edge and beta PI/4 is the tilt. In the embedded Job Status tab the look-at point
-// and orbit radius frame the printed geometry; the standalone page keeps the whole-bed framing
-function applyDefaultOrientation() {
-	const camera = viewer?.scene?.activeCamera;
-	if (!camera) {
-		return;
-	}
-	const bounds = isEmbedded.value ? getPrintBounds() : null;
-	if (bounds) {
-		camera.target = new Vector3((bounds.min.x + bounds.max.x) / 2, (bounds.min.y + bounds.max.y) / 2,
-			(bounds.min.z + bounds.max.z) / 2);
-	} else {
-		const center = viewer.bed.getCenter();
-		camera.target = new Vector3(center.x, -2, center.y);
-	}
-	camera.alpha = -Math.PI / 2;
-	camera.beta = Math.PI / 4;
-	frameToViewport(framingCorners(bounds));
-	viewer.scene.render(true);
-}
-
-// Axis-aligned bounding box of every extruding move in the loaded file, in Babylon space (x = X,
-// y = print height, z = Y). Returns null when nothing extruding has been parsed yet, so callers
-// fall back to framing the bed. Walked once per load / reset (never per frame), so the linear scan
-// over all rendered segments is cheap relative to the parse that just produced them
-function getPrintBounds(): PrintBounds | null {
-	const lines = viewer?.gcodeProcessor?.renderedLines as
-		Array<{ start: Vector3; end: Vector3; extruding: boolean }> | undefined;
-	if (!lines || lines.length === 0) {
-		return null;
-	}
-	let minX = Infinity, minY = Infinity, minZ = Infinity;
-	let maxX = -Infinity, maxY = -Infinity, maxZ = -Infinity;
-	for (const line of lines) {
-		if (!line.extruding) {
-			continue;
-		}
-		minX = Math.min(minX, line.start.x, line.end.x); maxX = Math.max(maxX, line.start.x, line.end.x);
-		minY = Math.min(minY, line.start.y, line.end.y); maxY = Math.max(maxY, line.start.y, line.end.y);
-		minZ = Math.min(minZ, line.start.z, line.end.z); maxZ = Math.max(maxZ, line.start.z, line.end.z);
-	}
-	if (!Number.isFinite(minX)) {
-		return null;
-	}
-	return { min: new Vector3(minX, minY, minZ), max: new Vector3(maxX, maxY, maxZ) };
-}
-
-// Corners fed to the framing fit: the eight corners of the print bounding box, or - with nothing
-// loaded - the four bed-footprint corners on the bed plane. All in Babylon space (y is height)
-function framingCorners(bounds: PrintBounds | null): Array<[number, number, number]> {
-	if (bounds) {
-		const lo = bounds.min, hi = bounds.max;
-		return [
-			[lo.x, lo.y, lo.z], [hi.x, lo.y, lo.z], [lo.x, lo.y, hi.z], [hi.x, lo.y, hi.z],
-			[lo.x, hi.y, lo.z], [hi.x, hi.y, lo.z], [lo.x, hi.y, hi.z], [hi.x, hi.y, hi.z],
-		];
-	}
-	const center = viewer.bed.getCenter();
-	const size = viewer.bed.getSize();
-	const hx = size.x / 2, hy = size.y / 2;
-	return [
-		[center.x - hx, -2, center.y - hy], [center.x + hx, -2, center.y - hy],
-		[center.x - hx, -2, center.y + hy], [center.x + hx, -2, center.y + hy],
-	];
-}
-
-// Pull the orbit camera back until the supplied bounding-box corners fill the viewport. Each corner
-// is projected with the live view + projection matrices and the radius is rescaled from how much of
-// the clip volume they span, so the fit adapts to the box size, the camera tilt and the viewport
-// aspect ratio. A strip is reserved at the bottom so the playback controls stay clear. Perspective
-// makes a single pass approximate, hence the short converging loops
-function frameToViewport(corners: Array<[number, number, number]>) {
-	const camera = viewer?.scene?.activeCamera;
-	if (!camera || corners.length === 0) {
-		return;
-	}
-
-	let spanMinX = Infinity, spanMaxX = -Infinity;
-	let spanMinY = Infinity, spanMaxY = -Infinity;
-	let spanMinZ = Infinity, spanMaxZ = -Infinity;
-	for (const [x, y, z] of corners) {
-		spanMinX = Math.min(spanMinX, x); spanMaxX = Math.max(spanMaxX, x);
-		spanMinY = Math.min(spanMinY, y); spanMaxY = Math.max(spanMaxY, y);
-		spanMinZ = Math.min(spanMinZ, z); spanMaxZ = Math.max(spanMaxZ, z);
-	}
-	const maxSpan = Math.max(spanMaxX - spanMinX, spanMaxY - spanMinY, spanMaxZ - spanMinZ, 1);
-
-	// Before the canvas has a real size the projection matrix is degenerate; fall back to a
-	// rough radius and let the next call (after layout / a file load) frame it properly
-	const engine = viewer.scene.getEngine();
-	if (engine.getRenderWidth() < 1 || engine.getRenderHeight() < 1) {
-		camera.radius = 2 * maxSpan;
-		return;
-	}
-
-	// Start far enough back that every corner is in front of the camera on the first pass
-	camera.radius = 2 * maxSpan;
-
-	// Zoom so the box fills 95% of the viewport width or 74% of its height, whichever binds
-	// first - the rest stays as breathing room
-	const targetX = 0.95;
-	const targetY = 0.74;
-	for (let pass = 0; pass < 8; pass++) {
-		const view = camera.getViewMatrix(true).m as Float32Array;
-		const proj = camera.getProjectionMatrix(true).m as Float32Array;
-		let minX = Infinity, maxX = -Infinity, minY = Infinity, maxY = -Infinity, behind = false;
-		for (const [x, y, z] of corners) {
-			// World -> view space (the view matrix is affine, so w stays 1)
-			const vx = view[0] * x + view[4] * y + view[8] * z + view[12];
-			const vy = view[1] * x + view[5] * y + view[9] * z + view[13];
-			const vz = view[2] * x + view[6] * y + view[10] * z + view[14];
-			// View -> clip space
-			const cw = proj[3] * vx + proj[7] * vy + proj[11] * vz + proj[15];
-			if (cw <= 0) {
-				behind = true;
-				break;
-			}
-			const ndcX = (proj[0] * vx + proj[4] * vy + proj[8] * vz + proj[12]) / cw;
-			const ndcY = (proj[1] * vx + proj[5] * vy + proj[9] * vz + proj[13]) / cw;
-			minX = Math.min(minX, ndcX); maxX = Math.max(maxX, ndcX);
-			minY = Math.min(minY, ndcY); maxY = Math.max(maxY, ndcY);
-		}
-		if (behind || !Number.isFinite(minX)) {
-			camera.radius *= 2;
-			continue;
-		}
-		// The visible clip range is [-1, 1] on each axis. Rescale by whichever axis overshoots
-		// its target fill fraction the most
-		const xFill = (maxX - minX) / 2;
-		const yFill = (maxY - minY) / 2;
-		if (xFill <= 0 && yFill <= 0) {
-			break;
-		}
-		const nextRadius = camera.radius * Math.max(xFill / targetX, yFill / targetY);
-		const converged = Math.abs(nextRadius - camera.radius) < camera.radius * 0.01;
-		camera.radius = nextRadius;
-		if (converged) {
-			break;
-		}
-	}
-
-	// Centre the box vertically between the top of the playback controls overlay and the top of
-	// the viewport - clip-space y +0.1 is the midpoint of that band. Perspective skews the
-	// projected box, so the look-at point is nudged until the box centre lands; damped empirical
-	// steps converge without depending on the exact FOV
-	const desiredCenter = 0.1;
-	for (let pass = 0; pass < 6; pass++) {
-		const view = camera.getViewMatrix(true).m as Float32Array;
-		const proj = camera.getProjectionMatrix(true).m as Float32Array;
-		let minY = Infinity, maxY = -Infinity;
-		for (const [x, y, z] of corners) {
-			const vx = view[0] * x + view[4] * y + view[8] * z + view[12];
-			const vy = view[1] * x + view[5] * y + view[9] * z + view[13];
-			const vz = view[2] * x + view[6] * y + view[10] * z + view[14];
-			const cw = proj[3] * vx + proj[7] * vy + proj[11] * vz + proj[15];
-			if (cw <= 0) {
-				continue;
-			}
-			const ndcY = (proj[1] * vx + proj[5] * vy + proj[9] * vz + proj[13]) / cw;
-			minY = Math.min(minY, ndcY);
-			maxY = Math.max(maxY, ndcY);
-		}
-		if (!Number.isFinite(minY)) {
-			break;
-		}
-		const deltaNdc = desiredCenter - (minY + maxY) / 2;
-		if (Math.abs(deltaNdc) < 0.01) {
-			break;
-		}
-		// Lowering the target lifts the scene; ~0.6 radius per NDC unit lands close and the
-		// loop mops up the rest
-		const t = camera.target;
-		camera.target = new Vector3(t.x, t.y - deltaNdc * 0.6 * camera.radius, t.z);
-	}
-}
-
-function onKeyUp(e: KeyboardEvent) {
-	const key = e.key;
-	if (key === "Escape" || key === "Esc") {
-		fullscreen.value = false;
-		nextTick(() => viewer?.resize());
-	}
-}
-
-function onWindowResize() {
-	nextTick(() => resize());
-}
-
-onMounted(async () => {
-	if (!viewerCanvas.value) {
-		return;
-	}
-	viewer = new gcodeViewer(viewerCanvas.value);
-	viewer.fileData = "";
-	await viewer.init();
-
-	viewer.simulationMultiplier = 1;
-	viewer.buildObjects.objectCallback = (selected: ObjectInfo) => {
-		objectDialogData.showDialog = true;
-		objectDialogData.info = selected;
-	};
-	viewer.buildObjects.labelCallback = (label: string) => {
-		hoverLabel.value = showObjectSelection.value ? label : "";
-	};
-	showObjectLabels.value = viewer.buildObjects.showLabel;
-
-	for (const axis of move.value.axes) {
-		if ("XYZ".includes(axis.letter)) {
-			const letter = axis.letter.toLowerCase() as "x" | "y" | "z";
-			viewer.bed.buildVolume[letter].min = axis.min;
-			viewer.bed.buildVolume[letter].max = axis.max;
-		}
-	}
-	viewer.bed.commitBedSize();
-
-	cameraInertia.value = viewer.cameraInertia;
-	viewer.bed.setDelta(isDelta.value);
-	bedRenderMode.value = viewer.bed.renderMode;
-	bedColor.value = viewer.bed.getBedColor();
-	showAxes.value = viewer.axes.visible;
-	viewer.gcodeProcessor.useSpecularColor(specular.value);
-
-	colorMode.value = viewer.gcodeProcessor.colorMode;
-	minFeedColor.value = viewer.gcodeProcessor.minFeedColorString;
-	maxFeedColor.value = viewer.gcodeProcessor.maxFeedColorString;
-	minColorRate.value = viewer.gcodeProcessor.minColorRate / 60;
-	maxColorRate.value = viewer.gcodeProcessor.maxColorRate / 60;
-	forceWireMode.value = viewer.gcodeProcessor.forceWireMode;
-	if (viewer.lastLoadFailed()) {
-		renderQuality.value = 1;
-		viewer.updateRenderQuality(1);
-		uiStore.makeNotification(LogLevel.warning,
-			i18n.global.t("plugins.gcodeViewer.caption"),
-			i18n.global.t("plugins.gcodeViewer.renderFailed"), 5000);
-		viewer.clearLoadFlag();
-	}
-	viewer.setCursorVisiblity(showCursor.value);
-	renderQuality.value = viewer.renderQuality;
-	backgroundColor.value = viewer.getBackgroundColor();
-	progressColor.value = viewer.getProgressColor();
-	viewer.gcodeProcessor.useHighQualityExtrusion(useHQRendering.value);
-	viewer.gcodeProcessor.loadingProgressCallback = (progress: number, message: string | undefined) => {
-		loadingProgress.value = Math.ceil(progress * 100);
-		loadingMessage.value = message ?? "";
-	};
-	viewer.simulationUpdatePosition = (position: number) => {
-		scrubPosition.value = position - 2;
-	};
-	viewer.simulationStopped = () => {
-		scrubPlaying.value = false;
-	};
-
-	nextTick(() => {
-		updateTools();
-		updateWorkplaces();
-	});
-
-	window.addEventListener("keyup", onKeyUp);
-	window.addEventListener("resize", onWindowResize);
-
-	applyDefaultOrientation();
-
-	// A file deep-linked into the route (Jobs list "View 3D" navigation arrives this way) loads
-	// immediately; at the bare path the viewer falls back to the running job instead
-	loadFromRoute();
-});
-
-// Re-entering the kept-alive page, or navigating to a different file while it stays mounted,
-// re-resolves what the route asks for
-onActivated(() => {
-	loadFromRoute();
-});
-watch(sdPathFromRoute, loadFromRoute);
-
-onBeforeUnmount(() => {
-	window.removeEventListener("keyup", onKeyUp);
-	window.removeEventListener("resize", onWindowResize);
-	if (colorDebounce) {
-		clearTimeout(colorDebounce);
-	}
-	if (resizeDebounce) {
-		clearTimeout(resizeDebounce);
-	}
-	viewer = null;
-});
-
-// #endregion
-
-// #region Methods
-function simulatePlay() {
-	if (!viewer) {
-		return;
-	}
-	if (scrubPlaying.value) {
-		viewer.stopSimulation();
-	} else {
-		viewer.startSimulation();
-	}
-	scrubPlaying.value = viewer.simulation;
-}
-
-function scrubPositionChanged(value: number) {
-	if (!viewer) {
-		return;
-	}
-	const viewerState = viewer.simulation;
-	viewer.simulation = false;
-	nextTick(() => {
-		scrubPosition.value = value;
-		viewer.gcodeProcessor.updateFilePosition(value);
-		viewer.simulateToolPosition();
-		viewer.simulation = viewerState;
-	});
-}
-
-function updateColor(index: number, value: string) {
-	if (!viewer) {
-		return;
-	}
-	const next = toolColors.value.slice();
-	next[index] = value;
-	viewer.gcodeProcessor.updateTool(value, 0.4, index);
-	if (colorDebounce) {
-		clearTimeout(colorDebounce);
-	}
-	colorDebounce = setTimeout(() => {
-		cacheStore.setPluginData("GCodeViewer", "toolColors", next);
-		viewer?.gcodeProcessor.forceRedraw();
-	}, 200);
-}
-
-function updateBackground(value: string) {
-	backgroundColor.value = value;
-	viewer?.setBackgroundColor(value);
-}
-
-function updateProgressColor(value: string) {
-	progressColor.value = value;
-	viewer?.setProgressColor(value);
-}
-
-function updateMinFeedColor(value: string) {
-	viewer?.gcodeProcessor.updateMinFeedColor(value);
-}
-
-function updateMaxFeedColor(value: string) {
-	viewer?.gcodeProcessor.updateMaxFeedColor(value);
-}
-
-function updateBedColor(value: string) {
-	bedColor.value = value;
-	viewer?.bed.setBedColor(value);
-}
-
-function resize() {
-	if (resizeDebounce) {
-		clearTimeout(resizeDebounce);
-	}
-	resizeDebounce = setTimeout(() => {
-		if (!primaryContainer.value) {
-			return;
-		}
-		// On the standalone page the container has no bounded height of its own, so size it to the
-		// viewport minus the appbar + container padding (floored so a cramped window stays usable).
-		// xs/sm: layout strips its outer padding, but the viewer adds an 8px breathing margin
-		// (top + bottom = 16) on top of the appbar. md+ uses the layout's 16px top/bottom
-		// padding (32) and the viewer sits flush with that frame. Embedded, the host panel bounds
-		// the height, so leave the CSS height: 100% in charge and only resync the canvas
-		if (!isEmbedded.value) {
-			const mainElement = document.querySelector(".v-main");
-			const appBarHeight = mainElement
-				? parseInt(getComputedStyle(mainElement).getPropertyValue("--v-layout-top")) || 64
-				: 64;
-			const chrome = appBarHeight + (display.mdAndUp.value ? 32 : 16);
-			const viewerHeight = Math.max(window.innerHeight - chrome, 400);
-			primaryContainer.value.style.height = `${viewerHeight}px`;
-		}
-		viewer?.resize();
-	}, 500);
-}
-
-function reset() {
-	applyDefaultOrientation();
-}
-
 // Loads the job currently being processed, but only when the viewer is idle and empty - an
 // explicit file selection or an in-progress load is left untouched. The embedded Job Status tab
 // follows the live print head; the standalone page renders the whole file as finished instead
@@ -1229,93 +958,146 @@ function autoLoadRunningJob() {
 }
 
 async function loadRunningJob(live = true) {
-	if (!viewer || !job.value.file) {
+	if (!job.value.file) {
 		return;
-	}
-	viewer.simulation = false;
-	if (selectedFile.value !== job.value.file.fileName) {
-		selectedFile.value = "";
-		viewer.gcodeProcessor.setLiveTracking(false);
-		viewer.clearScene(true);
 	}
 	selectedFile.value = job.value.file.fileName;
 	followingJob.value = live;
-
+	loading.value = true;
 	try {
-		const blob = await machineStore.download({
-			filename: job.value.file.fileName,
-			type: "text",
-		}, false, false, false);
-		loading.value = true;
-		viewer.gcodeProcessor.setLiveTracking(live);
-		viewer.gcodeProcessor.updateForceWireMode(forceWireMode.value);
-		viewer.gcodeProcessor.useHighQualityExtrusion(useHQRendering.value);
-		preLoadSettings();
-		await viewer.processFile(blob);
-		if (viewGCode.value) {
-			fileData.value = viewer.fileData;
-		}
-		scrubFileSize.value = viewer.fileSize;
-		setGCodeValues();
-		applyDefaultOrientation();
-		viewer.buildObjects.loadObjectBoundaries(job.value.build?.objects ?? []);
-	} finally {
+		const blob = await machineStore.download({ filename: job.value.file.fileName, type: "text" }, false, false, false);
+		await loadText(String(blob));
+		await whenReady();
+		viewer?.loadObjectBoundaries(plainObjects(job.value.build?.objects));
 		if (live) {
-			viewer.gcodeProcessor.updateFilePosition(0);
-		} else {
-			viewer.gcodeProcessor.doFinalPass();
+			viewer?.updateFilePosition(filePosition.value);
 		}
-		viewer.gcodeProcessor.forceRedraw();
+	} catch {
 		loading.value = false;
 	}
 }
 
-function resetExtruderColors() {
-	toolColors.value = ["#00FFFF", "#FF00FF", "#FFFF00", "#000000", "#FFFFFF"];
-	updateTools();
-	viewer?.gcodeProcessor.forceRedraw();
+async function fileSelected(e: Event) {
+	const input = e.target as HTMLInputElement;
+	const file = input.files?.[0];
+	input.value = "";
+	if (!file) {
+		return;
+	}
+	selectedFile.value = "";
+	followingJob.value = false;
+	loading.value = true;
+	await loadText(await file.text());
 }
 
 async function reloadviewer() {
-	if (loading.value || !viewer) {
+	if (loading.value || !loadedFileText) {
 		return;
 	}
-	loading.value = true;
-	preLoadSettings();
-	if (viewer.fileData.length > 0) {
-		await viewer.reload();
-	}
-	loading.value = false;
-
-	viewer.setCursorVisiblity(showCursor.value);
-	viewer.toggleTravels(showTravelLines.value);
-	setGCodeValues();
-	viewer.gcodeProcessor.forceRedraw();
-	viewer.gcodeProcessor.updateFilePosition(scrubPosition.value);
-
-	try {
-		viewer.buildObjects.loadObjectBoundaries(job.value.build?.objects ?? []);
-	} catch {
-		// No build objects - benign
-	}
+	await loadText(loadedFileText);
 }
 
 function clearScene() {
 	selectedFile.value = "";
-	viewer?.clearScene(true);
+	loadedFileText = "";
+	fileData.value = "";
+	scrubFileSize.value = 0;
+	scrubPosition.value = 0;
+	viewer?.reset();
+	viewer?.loadObjectBoundaries([]);
 }
 
-// Reveal the whole file once live tracking ends. doFinalPass() only flips the processor's internal
-// flag - it never pushes the file position to the render instances, which clip geometry purely by
-// their last currentFilePosition. When a job ends the object model can reset job.filePosition to 0
-// in a patch that arrives while followingJob is still true, clipping the finished print away to
-// nothing; pushing the end position back in restores it
-function showCompletedPrint() {
+function cancelLoad() {
+	viewer?.cancel();
+	loading.value = false;
+}
+
+function chooseFile() {
+	if (!loading.value) {
+		fileInput.value?.click();
+	}
+}
+
+// #endregion
+
+// #region Playback + scrubbing
+function scrubPositionChanged(value: number) {
+	scrubPosition.value = value;
+	viewer?.updateFilePosition(value);
+}
+
+function simulatePlay() {
 	if (!viewer) {
 		return;
 	}
-	viewer.gcodeProcessor.updateFilePosition(Number.MAX_VALUE);
-	viewer.gcodeProcessor.doFinalPass();
+	if (scrubPlaying.value) {
+		viewer.stopNozzleAnimation();
+		scrubPlaying.value = false;
+	} else {
+		viewer.startNozzleAnimation();
+		scrubPlaying.value = true;
+	}
+}
+
+function fastForward() {
+	if (!viewer) {
+		return;
+	}
+	viewer.stopNozzleAnimation();
+	scrubPlaying.value = false;
+	scrubPosition.value = scrubFileSize.value;
+	viewer.updateFilePosition(scrubFileSize.value);
+}
+
+// #endregion
+
+// #region Colours + camera
+function updateColor(index: number, value: string) {
+	const next = toolColors.value.slice();
+	next[index] = value;
+	toolColors.value = next;
+}
+
+function resetExtruderColors() {
+	toolColors.value = ["#00FFFF", "#FF00FF", "#FFFF00", "#000000", "#FFFFFF"];
+}
+
+function updateBackground(value: string) {
+	backgroundColor.value = value;
+	viewer?.setBackgroundColor(value);
+}
+
+function updateBedColor(value: string) {
+	bedColor.value = value;
+	viewer?.setBedColor(value);
+}
+
+function updateProgressColor(value: string) {
+	progressColor.value = value;
+	viewer?.setProgressColor(value);
+}
+
+// Feed-rate colouring has no library method yet; the pickers are shown greyed-out. The setters keep
+// the bound value in sync so the choice survives until support returns
+function updateMinFeedColor(value: string) {
+	minFeedColor.value = value;
+}
+
+function updateMaxFeedColor(value: string) {
+	maxFeedColor.value = value;
+}
+
+function reset() {
+	viewer?.resetCamera();
+}
+
+// #endregion
+
+// #region Object cancellation
+// Build objects are reactive OM proxies; the render worker receives them via postMessage (structured
+// clone), which rejects a Proxy, so hand over a plain deep copy
+function plainObjects(objects: any[] | undefined): any[] {
+	return JSON.parse(JSON.stringify(objects ?? []));
 }
 
 async function objectDialogCancelObject() {
@@ -1325,317 +1107,207 @@ async function objectDialogCancelObject() {
 	objectDialogData.info = {} as ObjectInfo;
 }
 
-function chooseFile() {
-	if (!loading.value) {
-		fileInput.value?.click();
-	}
-}
+// #endregion
 
-function setGCodeValues() {
-	if (!viewer) {
+// #region Layout + resize
+function applyContainerHeight() {
+	if (!primaryContainer.value || isEmbedded.value) {
 		return;
 	}
-	if (!g1AsExtrusion.value) {
-		maxHeight.value = zBelt.value ? 500 : viewer.getMaxHeight();
-		minHeight.value = viewer.getMinHeight();
-	} else {
-		maxHeight.value = 100000;
-		minHeight.value = -100000;
-	}
-	sliderHeight.value = maxHeight.value;
-	loading.value = false;
-	maxFileFeedRate.value = viewer.gcodeProcessor.maxFeedRate;
-	sliderBottomHeight.value = minHeight.value < 0 ? minHeight.value : 0;
+	// On the standalone page the container has no bounded height of its own, so size it to the
+	// viewport minus the appbar + container padding (floored so a cramped window stays usable).
+	// xs/sm: layout strips its outer padding, but the viewer adds an 8px breathing margin
+	// (top + bottom = 16) on top of the appbar. md+ uses the layout's 16px top/bottom padding (32)
+	const mainElement = document.querySelector(".v-main");
+	const appBarHeight = mainElement
+		? parseInt(getComputedStyle(mainElement).getPropertyValue("--v-layout-top")) || 64
+		: 64;
+	const chrome = appBarHeight + (display.mdAndUp.value ? 32 : 16);
+	const viewerHeight = Math.max(window.innerHeight - chrome, 400);
+	primaryContainer.value.style.height = `${viewerHeight}px`;
 }
 
-function preLoadSettings() {
-	if (!viewer) {
+// The proxy re-reads the offscreen canvas size from its own window `resize` handler, so a
+// dispatched resize is the way to tell the worker about layout changes it can't observe on its own
+// (fullscreen, the code-view split). Guarded so our own window-resize listener below doesn't recurse
+let suppressWindowResize = false;
+function pokeViewerResize() {
+	suppressWindowResize = true;
+	window.dispatchEvent(new Event("resize"));
+	suppressWindowResize = false;
+}
+
+function onWindowResize() {
+	if (suppressWindowResize) {
 		return;
 	}
-	viewer.gcodeProcessor.updateForceWireMode(forceWireMode.value);
-	viewer.gcodeProcessor.setLiveTracking(followingJob.value);
-	viewer.gcodeProcessor.useHighQualityExtrusion(useHQRendering.value);
-	viewer.gcodeProcessor.perimeterOnly = perimeterOnly.value;
-	viewer.gcodeProcessor.currentWorkplace = currentWorkplace.value;
-	viewer.gcodeProcessor.progressMode = progressMode.value;
-	viewer.gcodeProcessor.persistTravels = persistTravels.value;
-	viewer.setZBelt(zBelt.value, zBeltAngle.value);
-	if (g1AsExtrusion.value) {
-		renderQuality.value = 5;
-		viewer.updateRenderQuality(5);
-		viewer.gcodeProcessor.g1AsExtrusion = true;
-		viewer.setZClipPlane(10000000, -10000000);
+	if (resizeDebounce) {
+		clearTimeout(resizeDebounce);
 	}
-}
-
-async function fileSelected(e: Event) {
-	const reader = new FileReader();
-	reader.addEventListener("load", async (event) => {
-		preLoadSettings();
-		const blob = event.target!.result;
-		await viewer?.processFile(blob);
-		if (viewGCode.value && viewer) {
-			fileData.value = viewer.fileData;
-		}
-		scrubFileSize.value = viewer?.fileSize ?? 0;
-		setGCodeValues();
-		applyDefaultOrientation();
-	});
-	loading.value = true;
-	const input = e.target as HTMLInputElement;
-	if (input.files?.[0]) {
-		reader.readAsText(input.files[0]);
-	}
-	input.value = "";
+	resizeDebounce = setTimeout(() => {
+		applyContainerHeight();
+		pokeViewerResize();
+	}, 150);
 }
 
 function toggleFullScreen() {
 	fullscreen.value = !fullscreen.value;
-	nextTick(() => viewer?.resize());
+	nextTick(() => pokeViewerResize());
 }
 
-function cancelLoad() {
-	if (viewer) {
-		viewer.gcodeProcessor.cancelLoad = true;
-	}
-}
-
-function fastForward() {
-	if (!viewer) {
-		return;
-	}
-	viewer.stopSimulation();
-	scrubPlaying.value = false;
-	scrubPosition.value = scrubFileSize.value;
-	viewer.gcodeProcessor.updateFilePosition(scrubFileSize.value);
-}
-
-function updateWorkplaces() {
-	if (!viewer) {
-		return;
-	}
-	const axesLetterIdx: Record<string, number> = {};
-	for (let i = 0; i < move.value.axes.length; i++) {
-		axesLetterIdx[move.value.axes[i].letter] = i;
-	}
-	viewer.gcodeProcessor.workplaceOffsets = [];
-	for (let idx = 0; idx < 9; idx++) {
-		try {
-			const x = move.value.axes[axesLetterIdx["X"]].workplaceOffsets[idx];
-			const y = move.value.axes[axesLetterIdx["Y"]].workplaceOffsets[idx];
-			const z = move.value.axes[axesLetterIdx["Z"]].workplaceOffsets[idx];
-			viewer.gcodeProcessor.workplaceOffsets.push(new Vector3(x, y, z));
-		} catch {
-			// Axis not yet defined - skip this workplace slot
-		}
-	}
-	viewer.setWorkplaceVisiblity(showWorkplace.value);
-}
-
-function updateTools() {
-	if (!viewer) {
-		return;
-	}
-	viewer.gcodeProcessor.resetTools();
-	for (const color of toolColors.value) {
-		viewer.gcodeProcessor.addTool(color, 0.4);
+function onKeyUp(e: KeyboardEvent) {
+	if (e.key === "Escape" || e.key === "Esc") {
+		fullscreen.value = false;
+		nextTick(() => pokeViewerResize());
 	}
 }
 
 // #endregion
 
+// #region Lifecycle
+// onActivated also fires on the initial mount when this component sits inside a kept-alive tree
+// (the Job Status view panel), so the initial load is driven from onMounted alone and onActivated
+// only re-resolves the route on a genuine re-activation (navigating back to the page)
+let initialLoadDone = false;
+
+onMounted(async () => {
+	if (!viewerCanvas.value) {
+		return;
+	}
+	viewer = new Viewer_Proxy(viewerCanvas.value);
+	viewer.passThru = handleViewerEvent;
+	try {
+		await viewer.enableWasmProcessing();
+	} catch {
+		// WASM is an optional fast path; the TypeScript parser still renders without it
+	}
+
+	window.addEventListener("keyup", onKeyUp);
+	window.addEventListener("resize", onWindowResize);
+
+	await whenReady();
+	applyViewerConfig();
+	nextTick(() => {
+		applyContainerHeight();
+		pokeViewerResize();
+	});
+
+	// A file deep-linked into the route (Jobs list "View 3D" navigation arrives this way) loads
+	// immediately; at the bare path the viewer falls back to the running job instead
+	initialLoadDone = true;
+	loadFromRoute();
+});
+
+onActivated(() => {
+	if (initialLoadDone) {
+		loadFromRoute();
+	}
+});
+watch(sdPathFromRoute, loadFromRoute);
+
+onBeforeUnmount(() => {
+	window.removeEventListener("keyup", onKeyUp);
+	window.removeEventListener("resize", onWindowResize);
+	// The proxy installs its own window.onresize; drop it so it stops posting to the terminated worker
+	window.onresize = null;
+	if (resizeDebounce) {
+		clearTimeout(resizeDebounce);
+	}
+	viewer?.unload();
+	viewer = null;
+});
+
+// #endregion
+
 // #region Watches
-watch(move, (newValue) => {
+watch(colorMode, (to) => viewer?.setRenderMode(RENDER_MODE_MAP[to] ?? 1));
+// setPerimeterOnly reparses the whole file, so surface the loading bar; `fileloaded` clears it
+watch(perimeterOnly, (to) => {
 	if (!viewer) {
 		return;
 	}
-	const newPosition = newValue.axes.map((axis: Axis) => ({
-		axes: axis.letter,
-		position: (axis.userPosition ?? 0) + axis.workplaceOffsets[currentWorkplace.value],
-	}));
-	viewer.updateToolPosition(newPosition);
-}, { deep: true });
-
-watch(showCursor, (newValue) => {
-	viewer?.setCursorVisiblity(newValue);
+	loading.value = true;
+	viewer.setPerimeterOnly(to);
 });
+watch(progressMode, (to) => viewer?.setProgressMode(to));
+watch(vertexAlpha, (to) => viewer?.setAlphaMode(to));
+watch(transparencyPercent, (to) => viewer?.setTransparencyValue(to / 100));
+watch(scrubSpeed, (to) => viewer?.setAnimationSpeed(to));
+watch(showTravelLines, (to) => viewer?.setShowTravels(to));
+watch(forceWireMode, (to) => viewer?.setMeshMode(to ? 2 : 0));
+watch(cameraInertia, (to) => viewer?.setCameraInertia(to));
 
-watch(showTravelLines, (newValue) => viewer?.toggleTravels(newValue));
-
-watch(persistTravels, (newValue) => {
-	showTravelLines.value = true;
-	if (!viewer) {
-		return;
-	}
-	viewer.gcodeProcessor.setTravelPersistence(newValue);
-	viewer.gcodeProcessor.forceRedraw();
-});
-
-watch(visualizingCurrentJob, (newValue) => {
-	if (!newValue) {
-		followingJob.value = false;
-		showCompletedPrint();
-	}
-});
-
-watch(filePosition, (newValue) => {
-	if (followingJob.value) {
-		scrubPosition.value = newValue;
-		viewer?.gcodeProcessor.updateFilePosition(newValue + 1);
-	}
-});
-
-watch(scrubSpeed, (to) => {
-	if (viewer) {
-		viewer.simulationMultiplier = to;
-	}
-});
-
-watch(renderQuality, (newValue) => {
-	if (viewer && viewer.renderQuality !== newValue) {
-		viewer.updateRenderQuality(newValue);
-		if (!loading.value) {
-			reloadviewer();
-		}
-	}
-});
-
+// Top/bottom Z clipping. Keep the two thumbs from crossing, then push the plane heights to the worker
 watch(sliderHeight, (newValue) => {
 	if (sliderBottomHeight.value > newValue) {
 		sliderBottomHeight.value = newValue - 1;
 	}
-	if (!g1AsExtrusion.value) {
-		viewer?.setZClipPlane(newValue + 1, sliderBottomHeight.value);
-	}
+	viewer?.setZClipPlane(newValue + 1, sliderBottomHeight.value);
 });
-
 watch(sliderBottomHeight, (newValue) => {
 	if (sliderHeight.value < newValue) {
 		sliderHeight.value = newValue + 1;
 	}
-	if (!g1AsExtrusion.value) {
-		viewer?.setZClipPlane(sliderHeight.value, newValue - 1);
-	}
+	viewer?.setZClipPlane(sliderHeight.value, newValue - 1);
 });
+watch(bedRenderMode, (to) => viewer?.setBedRenderMode(to));
+watch(showAxes, (to) => viewer?.showAxes(to));
+watch(showObjectLabels, (to) => viewer?.showObjectLabels(to));
+watch(toolColors, () => updateTools(), { deep: true });
+watch(axisBoundsKey, () => setBuildVolumeFromAxes());
 
-watch(vertexAlpha, (newValue) => {
-	if (!viewer) {
-		return;
-	}
-	viewer.gcodeProcessor.setAlpha(newValue);
-	reloadviewer();
+watch(isDelta, (to) => {
+	viewer?.setDeltaBed(to);
+	viewer?.resetCamera();
 });
-
-watch(() => job.value.build?.objects, (newValue) => {
-	if (viewer?.buildObjects && newValue) {
-		viewer.buildObjects.loadObjectBoundaries(newValue);
-	}
-}, { deep: true });
 
 watch(showObjectSelection, (newValue) => {
 	if (!viewer) {
 		return;
 	}
 	if (canCancelObject.value) {
-		viewer.buildObjects.loadObjectBoundaries(job.value.build?.objects ?? []);
-		viewer.buildObjects.showObjectSelection(newValue);
+		viewer.loadObjectBoundaries(plainObjects(job.value.build?.objects));
+		viewer.showObjectSelection(newValue);
 	} else {
 		showObjectSelection.value = false;
 		hoverLabel.value = "";
 	}
 });
 
-watch(isJobRunning, (newValue) => {
-	if (!viewer) {
-		return;
+watch(() => job.value.build?.objects, (newValue) => {
+	if (viewer && newValue) {
+		viewer.loadObjectBoundaries(plainObjects(newValue));
 	}
+}, { deep: true });
+
+// Live job following: mirror the print head's file position into the viewer while tracking is on
+watch(filePosition, (newValue) => {
+	if (followingJob.value) {
+		scrubPosition.value = newValue;
+		viewer?.updateFilePosition(newValue);
+	}
+});
+
+watch(visualizingCurrentJob, (newValue) => {
 	if (!newValue) {
 		followingJob.value = false;
-		showCompletedPrint();
 	}
-	viewer.gcodeProcessor.setLiveTracking(followingJob.value);
+});
+
+watch(isJobRunning, (newValue) => {
+	if (!newValue) {
+		followingJob.value = false;
+	}
 });
 
 watch(selectedFile, () => {
 	showObjectSelection.value = false;
-	viewer?.gcodeProcessor.updateFilePosition(0);
 });
-
-watch(bedRenderMode, (newValue) => viewer?.bed.setRenderMode(newValue));
-
-watch(isDelta, (newValue) => {
-	viewer?.bed.setDelta(newValue);
-	viewer?.resetCamera();
-});
-
-watch(showAxes, (newValue) => viewer?.axes.show(newValue));
-watch(showObjectLabels, (newValue) => viewer?.buildObjects.showLabels(newValue));
-
-watch(forceWireMode, (newValue) => {
-	viewer?.gcodeProcessor.updateForceWireMode(newValue);
-	reloadviewer();
-});
-
-watch(useHQRendering, (to) => viewer?.gcodeProcessor.useHighQualityExtrusion(to));
-
-watch(colorMode, async (to) => {
-	if (!viewer) {
-		return;
-	}
-	viewer.gcodeProcessor.setColorMode(to);
-	await reloadviewer();
-});
-
-watch(minColorRate, (to) => viewer?.gcodeProcessor.updateColorRate(to * 60, maxColorRate.value * 60));
-watch(maxColorRate, (to) => viewer?.gcodeProcessor.updateColorRate(minColorRate.value * 60, to * 60));
-watch(cameraInertia, (to) => viewer?.setCameraInertia(to));
 
 watch(loading, (to) => {
 	if (!to) {
-		loadingProgress.value = 0;
+		loadingMessage.value = "";
 	}
-});
-
-watch(specular, (to) => viewer?.gcodeProcessor.useSpecularColor(to));
-
-watch(g1AsExtrusion, async (to) => {
-	if (!viewer) {
-		return;
-	}
-	viewer.gcodeProcessor.g1AsExtrusion = to;
-	await reloadviewer();
-});
-
-watch(zBelt, (to) => viewer?.setZBelt(to, zBeltAngle.value));
-
-watch(zBeltAngle, (to) => {
-	if (to < 0 || to > 90) {
-		cacheStore.setPluginData("GCodeViewer", "zBeltAngle", 45);
-		return;
-	}
-	viewer?.setZBelt(zBelt.value, to);
-});
-
-watch(workplaceOffsets, () => updateWorkplaces(), { deep: true });
-watch(currentWorkplace, (to) => {
-	if (viewer) {
-		viewer.gcodeProcessor.currentWorkplace = to;
-	}
-});
-watch(showWorkplace, () => updateWorkplaces());
-
-watch(toolColors, () => updateTools(), { deep: true });
-
-watch(transparencyPercent, (to) => {
-	if (!viewer) {
-		return;
-	}
-	viewer.gcodeProcessor.setTransparencyValue(to / 100);
-	viewer.gcodeProcessor.forceRedraw();
-});
-
-watch(progressMode, async () => {
-	await reloadviewer();
 });
 
 // #endregion
