@@ -384,7 +384,8 @@
 			"ambiguousTitle": "Upload not possible",
 			"ambiguous": "The dropped files were not recognised as G-code or update packages. Open the File Explorer to upload them manually.",
 			"notConnectedTitle": "Not connected",
-			"notConnected": "Connect to a machine before uploading files."
+			"notConnected": "Connect to a machine before uploading files.",
+			"startSingleFile": "Only a single G-code file can be uploaded and started at a time."
 		}
 	},
 	"error": {
@@ -483,18 +484,6 @@
 			"caption": "Upload",
 			"start": {
 				"caption": "Upload & Start"
-			},
-			"gcodes": {
-				"caption": "Upload G-Code Files"
-			},
-			"macros": {
-				"caption": "Upload Macros"
-			},
-			"filaments": {
-				"caption": "Upload Filaments"
-			},
-			"firmware": {
-				"caption": "Upload System / Firmware"
 			}
 		},
 		"newFile": {

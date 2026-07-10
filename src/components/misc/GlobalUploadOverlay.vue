@@ -48,8 +48,11 @@
 </template>
 
 <script setup lang="ts">
+import { MachineStatus } from "@duet3d/objectmodel";
+
 import ConfigUpdatedDialog from "@/components/dialogs/ConfigUpdatedDialog.vue";
 import FirmwareUpdateDialog from "@/components/dialogs/FirmwareUpdateDialog.vue";
+import { showConfirmDialog } from "@/composables/useConfirmDialog";
 import { useFileDrag } from "@/composables/useFileDrag";
 import { useFirmwareInstallController } from "@/composables/useFirmwareInstallController";
 import i18n from "@/i18n";
@@ -176,6 +179,27 @@ async function uploadToDirectory(directory: string, files: Array<File>) {
 	} catch (e) {
 		console.warn(e);
 		uiStore.notifyError(e, i18n.global.t("button.upload.caption"));
+		return;
+	}
+	await confirmStartJob(directory, files);
+}
+
+// A single job dropped on an idle machine is most likely meant to be printed right away, so offer
+// to start it. Other destinations, multi-file drops and a machine that is doing something else are
+// left alone
+async function confirmStartJob(directory: string, files: Array<File>) {
+	if (files.length !== 1 || directory !== machineStore.model.directories.gCodes
+		|| machineStore.model.state.status !== MachineStatus.idle) {
+		return;
+	}
+
+	const filename = files[0].name;
+	if (await showConfirmDialog(i18n.global.t("dialog.startJob.title", [filename]), i18n.global.t("dialog.startJob.prompt", [filename]), "mdi-play")) {
+		try {
+			await machineStore.sendCode(`M32 "${Path.escapeFilename(Path.combine(directory, filename))}"`);
+		} catch (e) {
+			console.warn(e);
+		}
 	}
 }
 

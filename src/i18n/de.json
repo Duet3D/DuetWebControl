@@ -385,7 +385,8 @@
 			"ambiguousTitle": "Hochladen nicht möglich",
 			"ambiguous": "Die abgelegten Dateien wurden nicht als G-Code oder Update-Paket erkannt. Öffnen Sie den Datei-Explorer, um sie manuell hochzuladen.",
 			"notConnectedTitle": "Nicht verbunden",
-			"notConnected": "Stellen Sie eine Verbindung zu einer Maschine her, bevor Sie Dateien hochladen."
+			"notConnected": "Stellen Sie eine Verbindung zu einer Maschine her, bevor Sie Dateien hochladen.",
+			"startSingleFile": "Es kann nur eine einzelne G-Code-Datei hochgeladen und gestartet werden."
 		},
 		"startupError": "Fehler in Startdatei {0} Zeile {1}: {2}"
 	},
@@ -485,18 +486,6 @@
 			"caption": "Hochladen",
 			"start": {
 				"caption": "Hochladen & Starten"
-			},
-			"gcodes": {
-				"caption": "G-Code-Dateien hochladen"
-			},
-			"macros": {
-				"caption": "Makros hochladen"
-			},
-			"filaments": {
-				"caption": "Filamente hochladen"
-			},
-			"firmware": {
-				"caption": "System / Firmware hochladen"
 			}
 		},
 		"newFile": {
