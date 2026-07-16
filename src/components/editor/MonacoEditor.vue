@@ -225,12 +225,25 @@ const languageIcon = computed(() => {
 	}
 });
 
+// Focus the editor so typing and Ctrl+S work right away. No-op while the editor's tab is hidden
+// (display:none swallows focus calls), which also keeps a background tab from stealing the caret
+function focusEditor() {
+	if (useMonaco.value) {
+		editor?.focus();
+	} else {
+		textarea.value?.focus();
+	}
+}
+
 // Once the file finishes loading the editor swaps in at full height; scroll the page down so it
 // sits flush at the viewport's bottom. Tied to the load completing rather than to navigation
 // because an editor tab can be opened or switched to without a route change
 watch(loading, (now) => {
 	if (!now) {
 		scrollPageToBottom();
+		// The watcher runs pre-render: the editor pane is still display:none and the textarea ref
+		// unset until the patch lands, so focusing must wait a tick
+		nextTick(focusEditor);
 	}
 });
 
@@ -324,10 +337,17 @@ async function bootstrap() {
 			dirty.value = editor!.getModel()?.getAlternativeVersionId() !== savedVersionId;
 		});
 
-		// Ctrl/Cmd+S triggers the toolbar save. addCommand also preventDefaults the browser's
-		// own "Save Page As" dialog that Ctrl+S would otherwise pop up
-		editor.addCommand(monaco!.KeyMod.CtrlCmd | monaco!.KeyCode.KeyS, () => {
-			save();
+		// Ctrl/Cmd+S triggers the toolbar save and preventDefaults the browser's own "Save Page As"
+		// dialog. addAction rather than addCommand: addCommand registers its keybinding globally
+		// with no when-clause and never disposes it, so the newest editor's binding shadows every
+		// other editor's - even after that editor is disposed, leaving Ctrl+S saving the wrong file
+		// or dead once a second editor tab has existed. addAction scopes the keybinding to this
+		// instance via its editorId context key
+		editor.addAction({
+			id: "dwc.saveFile",
+			label: i18n.global.t("dialog.fileEdit.save"),
+			keybindings: [monaco!.KeyMod.CtrlCmd | monaco!.KeyCode.KeyS],
+			run: () => { save(); },
 		});
 
 		if (isGCode.value) {
@@ -564,7 +584,7 @@ function replaceTabs() {
 }
 
 // Lets the Explorer trigger a save when closing a tab with unsaved changes
-defineExpose({ save });
+defineExpose({ save, focus: focusEditor });
 
 // #region Helpers
 

@@ -452,6 +452,7 @@ watch(activeTab, (toId, fromId) => {
 	const incoming = tabs.value.find((t) => t.id === toId);
 	if (incoming?.kind === "editor") {
 		scrollPageToBottom();
+		nextTick(() => editorRefs.get(toId)?.focus());
 	} else {
 		nextTick(() => window.scrollTo({ top: incoming?.scrollY ?? 0, behavior: "instant" }));
 	}
@@ -459,10 +460,14 @@ watch(activeTab, (toId, fromId) => {
 
 // The Explorer is kept alive, so leaving for another page (e.g. the Dashboard) and coming back
 // neither remounts the editor nor fires the activeTab watch - re-scroll an open editor tab to the
-// bottom so it returns to its load-time position. Browser tabs are left to the router's scrollBehavior
+// bottom so it returns to its load-time position, and refocus it: deactivation detached the DOM
+// and blurred Monaco's input, so Ctrl+S would otherwise fall through to the browser's save dialog.
+// Browser tabs are left to the router's scrollBehavior
 onActivated(() => {
-	if (tabs.value.find((t) => t.id === activeTab.value)?.kind === "editor") {
+	const active = tabs.value.find((t) => t.id === activeTab.value);
+	if (active?.kind === "editor") {
 		scrollPageToBottom();
+		editorRefs.get(active.id)?.focus();
 	}
 });
 
@@ -700,12 +705,16 @@ const discardDialog = reactive<{ shown: boolean; pendingId: number | null; filen
 });
 
 // Editor instances by tab id, populated via the template ref so the close-tab prompt can
-// trigger a save on the right editor
-const editorRefs = new Map<number, { save: () => Promise<boolean> }>();
+// trigger a save on the right editor and tab/page activation can restore keyboard focus
+interface EditorRef {
+	save: () => Promise<boolean>;
+	focus: () => void;
+}
+const editorRefs = new Map<number, EditorRef>();
 
 function setEditorRef(id: number, el: unknown) {
 	if (el) {
-		editorRefs.set(id, el as { save: () => Promise<boolean> });
+		editorRefs.set(id, el as EditorRef);
 	} else {
 		editorRefs.delete(id);
 	}
