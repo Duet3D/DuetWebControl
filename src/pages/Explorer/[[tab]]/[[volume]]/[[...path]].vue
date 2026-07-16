@@ -53,7 +53,10 @@
 			<v-toolbar v-if="tabs.length > 1" density="compact" color="surface" class="flex-shrink-0">
 				<v-tabs v-model="activeTab" align-tabs="start" show-arrows density="compact" class="flex-grow-1">
 					<v-tab v-for="tab in tabs" :key="tab.id" :value="tab.id" class="text-none"
-						   :color="isTabDirty(tab) ? 'warning' : undefined"
+						   :color="isTabDirty(tab) ? 'warning' : undefined" draggable="true"
+						   @mousedown.middle.prevent="onTabMiddleClick(tab)"
+						   @dragstart="onTabDragStart($event, tab)"
+						   @dragend="onTabDragEnd"
 						   @dragover="onTabDragOver($event, tab)"
 						   @dragleave="onTabDragLeave"
 						   @drop="onTabDrop($event, tab)">
@@ -719,6 +722,14 @@ function requestCloseTab(id: number) {
 	closeTab(id);
 }
 
+// Middle-click closes a tab just like its close icon, including the guard the icon expresses
+// via :disabled - a middle click has no disabled state of its own
+function onTabMiddleClick(tab: ExplorerTab) {
+	if (!isLastBrowserTab(tab)) {
+		requestCloseTab(tab.id);
+	}
+}
+
 function closeDiscardDialog() {
 	discardDialog.shown = false;
 	discardDialog.pendingId = null;
@@ -821,9 +832,51 @@ async function onFileSimulate(item: FileBrowserItem, directory: string) {
 	await machineStore.sendCode(`M37 P"${Path.escapeFilename(Path.combine(directory, item.name))}"`);
 }
 
-// #region Cross-tab drop
-// Accept FileList row drags (same `application/json` payload shape as FileList itself) on a
-// sibling tab's tab strip - lets the user move files between tabs without typing paths
+// #region Tab drag & drop
+// The tab strip accepts two kinds of drags: FileList row drags (same `application/json` payload
+// shape as FileList itself) move files into a sibling tab's directory, and drags of the tabs
+// themselves reorder the strip
+
+const tabReorderType = "application/x-dwc-tab";
+let draggedTabId: number | null = null;
+
+function onTabDragStart(event: DragEvent, tab: ExplorerTab) {
+	if (!event.dataTransfer) {
+		return;
+	}
+	// Browsers refuse to start a drag without payload data, but dragover can only inspect the
+	// type list - the dragged id itself travels via draggedTabId
+	event.dataTransfer.setData(tabReorderType, String(tab.id));
+	event.dataTransfer.effectAllowed = "move";
+	draggedTabId = tab.id;
+}
+
+function onTabDragEnd() {
+	draggedTabId = null;
+}
+
+function isTabReorderDrag(event: DragEvent): boolean {
+	return draggedTabId !== null && event.dataTransfer !== null && Array.from(event.dataTransfer.types).includes(tabReorderType);
+}
+
+function reorderTab(sourceId: number, targetId: number) {
+	const fromIdx = tabs.value.findIndex((t) => t.id === sourceId);
+	const toIdx = tabs.value.findIndex((t) => t.id === targetId);
+	if (fromIdx === -1 || toIdx === -1 || fromIdx === toIdx) {
+		return;
+	}
+	const activeIdxBefore = tabs.value.findIndex((t) => t.id === activeTab.value);
+	const [moved] = tabs.value.splice(fromIdx, 1);
+	tabs.value.splice(toIdx, 0, moved);
+
+	// A reorder isn't a navigation - when it shifts the active browser tab's ordinal, the URL
+	// watcher fires, and its push must overwrite the current history entry instead of appending
+	const activeIdxAfter = tabs.value.findIndex((t) => t.id === activeTab.value);
+	if (activeIdxAfter !== activeIdxBefore && tabs.value[activeIdxAfter]?.kind === "browser") {
+		replaceNextUrlChange = true;
+	}
+}
+
 interface ExplorerDragPayload {
 	type: "dwcFiles";
 	directory: string;
@@ -853,7 +906,18 @@ function isTabDropEligible(tab: ExplorerTab): boolean {
 }
 
 function onTabDragOver(event: DragEvent, tab: ExplorerTab) {
-	if (!event.dataTransfer || !isTabDropEligible(tab)) {
+	if (!event.dataTransfer) {
+		return;
+	}
+	if (isTabReorderDrag(event)) {
+		if (tab.id !== draggedTabId) {
+			event.preventDefault();
+			event.dataTransfer.dropEffect = "move";
+			(event.currentTarget as HTMLElement | null)?.classList.add("explorer-tab--drop-target");
+		}
+		return;
+	}
+	if (!isTabDropEligible(tab)) {
 		return;
 	}
 	if (!Array.from(event.dataTransfer.types).includes("application/json")) {
@@ -870,6 +934,13 @@ function onTabDragLeave(event: DragEvent) {
 
 async function onTabDrop(event: DragEvent, tab: ExplorerTab) {
 	(event.currentTarget as HTMLElement | null)?.classList.remove("explorer-tab--drop-target");
+	if (isTabReorderDrag(event)) {
+		event.preventDefault();
+		event.stopPropagation();
+		reorderTab(draggedTabId!, tab.id);
+		draggedTabId = null;
+		return;
+	}
 	if (!isTabDropEligible(tab)) {
 		return;
 	}

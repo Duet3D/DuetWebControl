@@ -89,7 +89,8 @@ export function useFirmwareInstallController(): FirmwareInstallController {
 			}
 
 			if (plan.files.length > 0) {
-				await machineStore.upload(plan.files);
+				// Auto-dismiss the transfer progress dialog when a follow-up prompt is about to replace it
+				await machineStore.upload(plan.files, true, true, true, firmwareInstall.hasPendingUpdates(plan) || plan.configReplaced);
 			}
 
 			if (firmwareInstall.hasPendingUpdates(plan)) {
