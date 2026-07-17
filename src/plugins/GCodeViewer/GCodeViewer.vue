@@ -286,7 +286,7 @@
 									   color="primary" prepend-icon="mdi-file" @click="chooseFile">
 									{{ $t("plugins.gcodeViewer.loadLocalGCode.caption") }}
 								</v-btn>
-								<input ref="fileInput" type="file" accept=".g,.gcode,.gc,.gco,.nc,.ngc,.tap" hidden multiple
+								<input ref="fileInput" type="file" accept=".g,.gcode,.gc,.gco,.nc,.ngc,.tap" hidden
 									   @change="fileSelected" />
 
 								<v-divider class="my-1" />
@@ -802,12 +802,22 @@ function handleViewerEvent(e: any) {
 			applyRenderSettings();
 			viewer?.setAnimationSpeed(scrubSpeed.value);
 			viewer?.requestPrintBounds();
+			// While following a live job, disable click-to-seek and snap the head to the printer's
+			// current position (the fresh load renders the whole file as finished until we do)
+			viewer?.setAllowSeek(!followingJob.value);
+			if (followingJob.value) {
+				viewer?.updateFilePosition(filePosition.value);
+			}
 			// Embedded job view frames the printed geometry; the standalone page frames the whole bed
 			if (isEmbedded.value) {
 				viewer?.frameToPrint();
 			} else {
 				viewer?.resetCamera();
 			}
+			loading.value = false;
+			break;
+		case "loaderror":
+		case "loadcancelled":
 			loading.value = false;
 			break;
 		case "printbounds":
@@ -860,8 +870,7 @@ function applyViewerConfig() {
 }
 
 // Render-material settings applied from the `fileloaded` handler, once the materials exist. These
-// only tweak the existing meshes' materials, so they are cheap and never reparse. setPerimeterOnly
-// is deliberately excluded - it reparses the whole file, so it lives on its own watch (user toggle)
+// only tweak the existing meshes' materials, so they are cheap and never reparse
 function applyRenderSettings() {
 	if (!viewer) {
 		return;
@@ -873,6 +882,7 @@ function applyRenderSettings() {
 	viewer.setTransparencyValue(transparencyPercent.value / 100);
 	viewer.setProgressColor(progressColor.value);
 	viewer.setShowTravels(showTravelLines.value);
+	viewer.setPerimeterOnly(perimeterOnly.value);
 }
 
 function setBuildVolumeFromAxes() {
@@ -1034,6 +1044,11 @@ function simulatePlay() {
 		viewer.stopNozzleAnimation();
 		scrubPlaying.value = false;
 	} else {
+		// Parked at the end (finished playback or fast-forward): rewind before replaying
+		if (scrubPosition.value >= scrubFileSize.value) {
+			scrubPosition.value = 0;
+			viewer.updateFilePosition(0);
+		}
 		viewer.startNozzleAnimation();
 		scrubPlaying.value = true;
 	}
@@ -1208,8 +1223,6 @@ watch(sdPathFromRoute, loadFromRoute);
 onBeforeUnmount(() => {
 	window.removeEventListener("keyup", onKeyUp);
 	window.removeEventListener("resize", onWindowResize);
-	// The proxy installs its own window.onresize; drop it so it stops posting to the terminated worker
-	window.onresize = null;
 	if (resizeDebounce) {
 		clearTimeout(resizeDebounce);
 	}
@@ -1221,14 +1234,7 @@ onBeforeUnmount(() => {
 
 // #region Watches
 watch(colorMode, (to) => viewer?.setRenderMode(RENDER_MODE_MAP[to] ?? 1));
-// setPerimeterOnly reparses the whole file, so surface the loading bar; `fileloaded` clears it
-watch(perimeterOnly, (to) => {
-	if (!viewer) {
-		return;
-	}
-	loading.value = true;
-	viewer.setPerimeterOnly(to);
-});
+watch(perimeterOnly, (to) => viewer?.setPerimeterOnly(to));
 watch(progressMode, (to) => viewer?.setProgressMode(to));
 watch(vertexAlpha, (to) => viewer?.setAlphaMode(to));
 watch(transparencyPercent, (to) => viewer?.setTransparencyValue(to / 100));
@@ -1236,19 +1242,24 @@ watch(scrubSpeed, (to) => viewer?.setAnimationSpeed(to));
 watch(showTravelLines, (to) => viewer?.setShowTravels(to));
 watch(forceWireMode, (to) => viewer?.setMeshMode(to ? 2 : 0));
 watch(cameraInertia, (to) => viewer?.setCameraInertia(to));
+watch(followingJob, (to) => viewer?.setAllowSeek(!to));
 
-// Top/bottom Z clipping. Keep the two thumbs from crossing, then push the plane heights to the worker
+// Top/bottom Z clipping. Keep the two thumbs from crossing, then push both plane heights (with a
+// one-layer margin on each end) regardless of which thumb moved
+function applyZClip() {
+	viewer?.setZClipPlane(sliderHeight.value + 1, sliderBottomHeight.value - 1);
+}
 watch(sliderHeight, (newValue) => {
 	if (sliderBottomHeight.value > newValue) {
 		sliderBottomHeight.value = newValue - 1;
 	}
-	viewer?.setZClipPlane(newValue + 1, sliderBottomHeight.value);
+	applyZClip();
 });
 watch(sliderBottomHeight, (newValue) => {
 	if (sliderHeight.value < newValue) {
 		sliderHeight.value = newValue + 1;
 	}
-	viewer?.setZClipPlane(sliderHeight.value, newValue - 1);
+	applyZClip();
 });
 watch(bedRenderMode, (to) => viewer?.setBedRenderMode(to));
 watch(showAxes, (to) => viewer?.showAxes(to));
