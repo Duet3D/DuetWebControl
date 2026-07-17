@@ -16,14 +16,14 @@
     "build-plugin-pkg": "node scripts/build-plugin-pkg.js"
   },
   "dependencies": {
-    "@babylonjs/core": "^7.54.3",
-    "@babylonjs/gui": "^7.54.3",
-    "@babylonjs/materials": "^7.54.3",
+    "@babylonjs/core": "^9.17.0",
+    "@babylonjs/gui": "^9.17.0",
+    "@babylonjs/materials": "^9.17.0",
     "@duet3d/connectors": "~3.7.0-alpha.10",
     "@duet3d/gcodeviewer": "~3.7.0-alpha.1",
-    "@duet3d/monacotokens": "~3.7.0-alpha.16",
+    "@duet3d/monacotokens": "~3.7.0-beta.1",
     "@duet3d/motionanalysis": "~3.6.0",
-    "@duet3d/objectmodel": "~3.7.0-alpha.14",
+    "@duet3d/objectmodel": "~3.7.0-beta.2",
     "@fontsource/roboto": "^5.2.10",
     "@mdi/font": "7.4.47",
     "chart.js": "^4.5.1",
@@ -33,31 +33,34 @@
     "mitt": "^3.0.1",
     "monaco-editor-core": "^0.55.1",
     "piecon": "^0.5.0",
-    "pinia": "^3.0.4",
+    "pinia": "^4.0.2",
     "qoijs": "^1.0.0",
-    "vue": "^3.5.30",
+    "vue": "^3.5.40",
     "vue-i18n": "^11.3.0",
-    "vue-router": "^5.0.3",
-    "vuetify": "^4.1.0"
+    "vue-router": "^5.2.0",
+    "vuetify": "^4.1.5"
   },
   "devDependencies": {
-    "@babel/types": "^7.29.0",
+    "@babel/types": "^8.0.4",
     "@types/d3": "^7.4.3",
-    "@types/node": "^25.2.3",
-    "@vitejs/plugin-vue": "^6.0.5",
+    "@types/node": "^26.1.1",
+    "@vitejs/plugin-vue": "^6.0.8",
     "jszip": "^3.10.1",
     "sass-embedded": "^1.98.0",
     "typescript": "^6.0.3",
     "unplugin-auto-import": "^21.0.0",
     "unplugin-fonts": "^2.0.0",
     "unplugin-vue-components": "^32.0.0",
-    "vite": "^8.0.0",
+    "vite": "^8.1.5",
     "vite-plugin-pwa": "^1.3.0",
     "vite-plugin-vue-layouts-next": "^2.1.0",
     "vite-plugin-vuetify": "^2.1.3",
-    "vue-tsc": "^3.2.5"
+    "vue-tsc": "^3.3.7"
   },
   "overrides": {
+    "monaco-editor-core": {
+      "dompurify": "^3.4.12"
+    },
     "unplugin-fonts": {
       "vite": "^8.0.0"
     }

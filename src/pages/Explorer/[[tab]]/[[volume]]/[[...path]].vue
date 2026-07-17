@@ -62,6 +62,9 @@
 						   @drop="onTabDrop($event, tab)">
 						<v-icon size="small" class="mr-2">{{ tabIcon(tab) }}</v-icon>
 						<span class="explorer-tab-label text-truncate">{{ tabLabel(tab) }}{{ isTabDirty(tab) ? " *" : "" }}</span>
+						<v-chip v-if="tabParentLabel(tab)" size="x-small" variant="tonal"
+								:color="tabPillColor(tab)" :title="tabParentTitle(tab)"
+								class="ml-2 explorer-tab-pill">{{ tabParentLabel(tab) }}</v-chip>
 						<v-btn v-if="tabs.length > 1" variant="text" size="small" density="comfortable"
 							   icon class="ml-2" :title="$t('list.explorer.closeTab')"
 							   :disabled="isLastBrowserTab(tab)"
@@ -584,6 +587,55 @@ function tabLabel(tab: ExplorerTab): string {
 	// Show only the final segment - "sys/macros/setup" would otherwise overflow the tab strip
 	const leaf = inVolume.substring(inVolume.lastIndexOf("/") + 1);
 	return leaf;
+}
+
+// Distinct hues for the parent-directory pills. Rendered as tonal chips (tinted background, hued
+// text) so they stay readable in both light and dark themes
+const tabPillPalette = ["#5C6BC0", "#26A69A", "#FF7043", "#AB47BC", "#42A5F5", "#66BB6A", "#EC407A", "#FFA726", "#26C6DA", "#8D6E63"];
+
+// Editor filenames (leaf) open in more than one tab. Their leaf-only label is ambiguous, so those
+// tabs get a parent-directory pill to tell e.g. two config.g apart
+const duplicateEditorNames = computed<Set<string>>(() => {
+	const counts = new Map<string, number>();
+	for (const tab of tabs.value) {
+		if (tab.kind === "editor" && tab.filename) {
+			const name = Path.extractFileName(tab.filename);
+			counts.set(name, (counts.get(name) ?? 0) + 1);
+		}
+	}
+	return new Set([...counts].filter(([, count]) => count > 1).map(([name]) => name));
+});
+
+// One palette color per distinct parent directory of the ambiguous tabs, assigned in tab order so
+// the mapping is stable and identical directories always share a color
+const tabPillColors = computed<Map<string, string>>(() => {
+	const map = new Map<string, string>();
+	for (const tab of tabs.value) {
+		if (tab.kind === "editor" && tab.filename && duplicateEditorNames.value.has(Path.extractFileName(tab.filename))) {
+			const dir = Path.extractDirectory(tab.filename);
+			if (!map.has(dir)) {
+				map.set(dir, tabPillPalette[map.size % tabPillPalette.length]);
+			}
+		}
+	}
+	return map;
+});
+
+function tabParentLabel(tab: ExplorerTab): string {
+	if (tab.kind !== "editor" || !tab.filename || !duplicateEditorNames.value.has(Path.extractFileName(tab.filename))) {
+		return "";
+	}
+	const dir = Path.extractDirectory(tab.filename);
+	const inVolume = dir.replace(/^\d+:\//, "").replace(/\/+$/, "");
+	return inVolume.length === 0 ? volumeCaption(Path.getVolume(dir)) : inVolume.substring(inVolume.lastIndexOf("/") + 1);
+}
+
+function tabPillColor(tab: ExplorerTab): string | undefined {
+	return (tab.kind === "editor" && tab.filename) ? tabPillColors.value.get(Path.extractDirectory(tab.filename)) : undefined;
+}
+
+function tabParentTitle(tab: ExplorerTab): string {
+	return (tab.kind === "editor" && tab.filename) ? Path.extractDirectory(tab.filename) : "";
 }
 
 function addTab(volume: number) {
