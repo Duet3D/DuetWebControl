@@ -89,7 +89,10 @@ export default class HeightMapViewer {
 
 	init(): Promise<void> {
 		return new Promise((resolve) => {
-			this.engine = new Engine(this.canvas, true);
+			// adaptToDeviceRatio renders at native device resolution (canvas backing store scaled by
+			// devicePixelRatio); without it the browser upscales the framebuffer and destroys both
+			// MSAA and the grid shader's line antialiasing
+			this.engine = new Engine(this.canvas, true, undefined, true);
 
 			this.scene = new Scene(this.engine);
 			this.scene.clearColor = new Color4(0, 0, 0, 1);
@@ -215,13 +218,14 @@ export default class HeightMapViewer {
 			points.push(xpts);
 		}
 
+		// The ribbons are single-sided on purpose: the reversed copy below provides the underside,
+		// and DOUBLESIDE geometry would z-fight with it
 		const flatColors = ([] as Color4[]).concat(...colors);
 		this.ribbonMesh = MeshBuilder.CreateRibbon(
 			"ribbon",
 			{
 				pathArray: points,
-				colors: flatColors.concat(flatColors),
-				sideOrientation: Mesh.DOUBLESIDE
+				colors: flatColors
 			},
 			this.scene
 		);
@@ -238,8 +242,7 @@ export default class HeightMapViewer {
 			"ribbon",
 			{
 				pathArray: points,
-				colors: flatColorsReverse.concat(flatColorsReverse),
-				sideOrientation: Mesh.DOUBLESIDE
+				colors: flatColorsReverse
 			},
 			this.scene
 		);
@@ -334,15 +337,18 @@ export default class HeightMapViewer {
 
 		this.axes.render(new Vector3(this.buildVolume.x.min - 10, 0, this.buildVolume.y.min - 10));
 
+		// The bed plane must stay single-sided: backFaceCulling is off on the grid material, so
+		// DOUBLESIDE geometry would composite the semi-transparent grid twice per pixel, hardening
+		// the antialiased lines and washing out meshes below the plane
 		if (this.isDelta) {
 			const radius = Math.abs(this.buildVolume.x.max - this.buildVolume.x.min) / 2;
-			this.bedMesh = MeshBuilder.CreateDisc("BuildPlate", { radius: radius, sideOrientation: Mesh.DOUBLESIDE }, this.scene);
+			this.bedMesh = MeshBuilder.CreateDisc("BuildPlate", { radius: radius }, this.scene);
 			this.bedMesh.rotationQuaternion = Quaternion.RotationAxis(new Vector3(1, 0, 0), Math.PI / 2);
 			this.bedMesh.material = this.gridMaterial;
 		} else {
 			const width = bedSize.x;
 			const depth = bedSize.y;
-			this.bedMesh = MeshBuilder.CreatePlane("BuildPlate", { width: width, height: depth, sideOrientation: Mesh.DOUBLESIDE }, this.scene);
+			this.bedMesh = MeshBuilder.CreatePlane("BuildPlate", { width: width, height: depth }, this.scene);
 			this.bedMesh.material = this.gridMaterial;
 			this.bedMesh.rotationQuaternion = Quaternion.RotationAxis(new Vector3(1, 0, 0), Math.PI / 2);
 			this.bedMesh.translate(new Vector3(bedCenter.x, 0, bedCenter.y), 1, Space.WORLD);
@@ -404,6 +410,12 @@ export default class HeightMapViewer {
 		gridMaterial.mainColor = new Color3(1, 1, 1);
 		gridMaterial.lineColor = Color3.FromHexString("#FFFFFF");
 		gridMaterial.gridRatio = 1;
+		// Since Babylon 9 the transparent background is opt-in via linesOnly, no longer implied by opacity < 1.
+		// The linesOnly setter also force-enables needDepthPrePass (meant for Gaussian splat occlusion),
+		// which makes the antialiased grid lines write depth and hard-clip meshes behind the bed plane,
+		// so it must be reset after setting linesOnly
+		gridMaterial.linesOnly = true;
+		gridMaterial.needDepthPrePass = false;
 		gridMaterial.opacity = 0.8;
 		gridMaterial.majorUnitFrequency = this.gridSize;
 		gridMaterial.minorUnitVisibility = 0.25;

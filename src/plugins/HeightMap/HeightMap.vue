@@ -23,6 +23,7 @@
 
 .canvas-container > canvas {
 	position: absolute;
+	outline: none;
 }
 
 .canvas-container > .legend {
@@ -304,8 +305,10 @@ function resize(): { width: number; height: number } | undefined {
 	container.value.style.height = `${height}px`;
 	legend.value.style.left = `${width}px`;
 	legend.value.height = height;
-	canvas.value.width = width;
-	canvas.value.height = height;
+	// Pin the layout size via CSS and leave the backing store to engine.resize(), which scales it
+	// by devicePixelRatio (adaptToDeviceRatio)
+	canvas.value.style.width = `${width}px`;
+	canvas.value.style.height = `${height}px`;
 
 	if (heightMapViewer) {
 		heightMapViewer.resize();

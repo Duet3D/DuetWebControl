@@ -1,6 +1,8 @@
 import { DynamicTexture } from '@babylonjs/core/Materials/Textures/dynamicTexture'
 import { StandardMaterial } from '@babylonjs/core/Materials/standardMaterial'
 import { Mesh } from '@babylonjs/core/Meshes/mesh'
+import { CreateLines } from '@babylonjs/core/Meshes/Builders/linesBuilder'
+import { CreatePlane } from '@babylonjs/core/Meshes/Builders/planeBuilder'
 import { Color3 } from '@babylonjs/core/Maths/math.color'
 import { Vector3 } from '@babylonjs/core/Maths/math.vector'
 import { Scene } from '@babylonjs/core/scene'
@@ -40,7 +42,7 @@ export default class Axes {
 		const dynamicTexture = new DynamicTexture('DynamicTexture', 50, this.scene, true);
 		dynamicTexture.hasAlpha = true;
 		dynamicTexture.drawText(text, 5, 40, 'bold 36px Arial', color, 'transparent', true);
-		const plane = Mesh.CreatePlane('TextPlane', size, this.scene, true);
+		const plane = CreatePlane('TextPlane', { size, updatable: true }, this.scene);
 		const mat = new StandardMaterial('TextPlaneMaterial', this.scene);
 		mat.backFaceCulling = false;
 		mat.specularColor = new Color3(0, 0, 0);
@@ -69,21 +71,21 @@ export default class Axes {
 		this.axesMesh = new Mesh('axis', this.scene);
 		this.registerClipIgnore(this.axesMesh);
 
-		const axisX = Mesh.CreateLines('axisX', [Vector3.Zero(), new Vector3(this.size, 0, 0), new Vector3(this.size * 0.95, 0.05 * this.size, 0), new Vector3(this.size, 0, 0), new Vector3(this.size * 0.95, -0.05 * this.size, 0)], this.scene, false);
+		const axisX = CreateLines('axisX', { points: [Vector3.Zero(), new Vector3(this.size, 0, 0), new Vector3(this.size * 0.95, 0.05 * this.size, 0), new Vector3(this.size, 0, 0), new Vector3(this.size * 0.95, -0.05 * this.size, 0)] }, this.scene);
 		axisX.color = new Color3(1, 0, 0);
 		axisX.parent = this.axesMesh;
 		const xChar = this.makeTextPlane('X', 'red', this.size / 10);
 		xChar.position = new Vector3(0.9 * this.size, 0.05 * this.size, 0);
 		xChar.parent = this.axesMesh;
 
-		const axisY = Mesh.CreateLines('axisZ', [Vector3.Zero(), new Vector3(0, 0, this.size), new Vector3(0, -0.05 * this.size, this.size * 0.95), new Vector3(0, 0, this.size), new Vector3(0, 0.05 * this.size, this.size * 0.95)], this.scene, false);
+		const axisY = CreateLines('axisZ', { points: [Vector3.Zero(), new Vector3(0, 0, this.size), new Vector3(0, -0.05 * this.size, this.size * 0.95), new Vector3(0, 0, this.size), new Vector3(0, 0.05 * this.size, this.size * 0.95)] }, this.scene);
 		axisY.color = new Color3(0, 1, 0);
 		axisY.parent = this.axesMesh;
 		const yChar = this.makeTextPlane('Y', 'green', this.size / 10);
 		yChar.position = new Vector3(0, 0.05 * this.size, 0.9 * this.size);
 		yChar.parent = this.axesMesh;
 
-		const axisZ = Mesh.CreateLines('axisY', [Vector3.Zero(), new Vector3(0, this.size, 0), new Vector3(-0.05 * this.size, this.size * 0.95, 0), new Vector3(0, this.size, 0), new Vector3(0.05 * this.size, this.size * 0.95, 0)], this.scene, false);
+		const axisZ = CreateLines('axisY', { points: [Vector3.Zero(), new Vector3(0, this.size, 0), new Vector3(-0.05 * this.size, this.size * 0.95, 0), new Vector3(0, this.size, 0), new Vector3(0.05 * this.size, this.size * 0.95, 0)] }, this.scene);
 		axisZ.color = new Color3(0, 0, 1);
 		axisZ.parent = this.axesMesh;
 		const zChar = this.makeTextPlane('Z', 'blue', this.size / 10);
