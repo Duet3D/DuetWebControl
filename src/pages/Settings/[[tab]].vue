@@ -131,10 +131,10 @@
 										<v-icon class="mr-2">mdi-lan</v-icon>
 										{{ $t("settings.communication.caption") }}
 									</v-card-title>
-									<v-alert v-if="!isPollConnector && !isRestConnector" type="info" variant="tonal" tile>
+									<v-alert v-if="!machineStore.isStandaloneMode && !machineStore.isSbcMode" type="info" variant="tonal" tile>
 										{{ $t("settings.communication.unavailable") }}
 									</v-alert>
-									<v-card-text v-else-if="isRestConnector" class="pt-4">
+									<v-card-text v-else-if="machineStore.isSbcMode" class="pt-4">
 										<v-row density="compact">
 											<v-col cols="12" sm="6">
 												<v-text-field v-model.number="settingsStore.pingInterval" type="number"
@@ -828,6 +828,42 @@
 						</v-card-text>
 					</v-card>
 
+					<v-card v-if="machineStore.isSbcMode" class="mt-3">
+						<v-card-title>
+							<v-icon class="mr-2">mdi-power</v-icon>
+							{{ $t("settings.about.powerCaption") }}
+						</v-card-title>
+						<v-card-text>
+							<v-alert v-if="!machineStore.isDuetPiManagementPluginRunning" type="info"
+									 variant="tonal" density="comfortable" class="mb-3">
+								{{ $t("settings.about.powerPluginRequired") }}
+							</v-alert>
+							<div class="d-flex align-center">
+								<div class="flex-grow-1 text-body-small text-medium-emphasis">
+									{{ $t("settings.about.rebootHint") }}
+								</div>
+								<v-btn class="ms-2" color="warning" variant="tonal" :disabled="!sbcPowerEnabled"
+									   @click="rebootSbc">
+									<v-icon class="mr-1">mdi-restart</v-icon>
+									{{ $t("settings.about.reboot") }}
+								</v-btn>
+							</div>
+
+							<v-divider class="my-3" />
+
+							<div class="d-flex align-center">
+								<div class="flex-grow-1 text-body-small text-medium-emphasis">
+									{{ $t("settings.about.shutdownHint") }}
+								</div>
+								<v-btn class="ms-2" color="error" variant="tonal" :disabled="!sbcPowerEnabled"
+									   @click="shutdownSbc">
+									<v-icon class="mr-1">mdi-power</v-icon>
+									{{ $t("settings.about.shutdown") }}
+								</v-btn>
+							</div>
+						</v-card-text>
+					</v-card>
+
 					<v-card v-if="machineStore.isLocal && machineStore.isDuetPiManagementPluginRunning" class="mt-3">
 						<v-card-title>
 							<v-icon class="mr-2">mdi-close-box</v-icon>
@@ -866,7 +902,6 @@
 </template>
 
 <script setup lang="ts">
-import { PollConnector, RestConnector } from "@duet3d/connectors";
 import { NetworkInterfaceType } from "@duet3d/objectmodel";
 
 import { useDisplay } from "vuetify";
@@ -1126,11 +1161,35 @@ async function closeDwc() {
 	}
 }
 
-const isPollConnector = computed(() => machineStore.connector instanceof PollConnector);
-const isRestConnector = computed(() => machineStore.connector instanceof RestConnector);
+// M999 B-1 is intercepted by the DuetPi Management Plugin, which runs `systemctl reboot`
+// (or `poweroff` with P"OFF") on the SBC, so both buttons stay disabled while it isn't running
+const sbcPowerEnabled = computed(() => machineStore.isConnected && machineStore.isDuetPiManagementPluginRunning && !uiStore.uiFrozen);
+
+async function rebootSbc() {
+	if (!(await showConfirmDialog(i18n.global.t("settings.about.rebootTitle"), i18n.global.t("settings.about.rebootPrompt"), "mdi-restart"))) {
+		return;
+	}
+	try {
+		await machineStore.sendCode("M999 B-1", false, false);
+	} catch (e) {
+		uiStore.notifyError(e, i18n.global.t("settings.about.powerError"));
+	}
+}
+
+async function shutdownSbc() {
+	if (!(await showConfirmDialog(i18n.global.t("settings.about.shutdownTitle"), i18n.global.t("settings.about.shutdownPrompt"), "mdi-power"))) {
+		return;
+	}
+	try {
+		await machineStore.sendCode('M999 B-1 P"OFF"', false, false);
+	} catch (e) {
+		uiStore.notifyError(e, i18n.global.t("settings.about.powerError"));
+	}
+}
+
 
 const connectorLabel = computed(() => {
-	if (isRestConnector.value) {
+	if (machineStore.isSbcMode) {
 		// Distribution is reported by DSF (DuetPi, Debian, Raspbian, ...). Fall back to a
 		// generic "SBC" only when DSF can't name it - hard-coding "DuetPi" everywhere is wrong
 		// for the non-DuetPi installs
@@ -1138,7 +1197,7 @@ const connectorLabel = computed(() => {
 		const bits = machineStore.model.sbc?.dsf?.is64Bit ? "64" : "32";
 		return i18n.global.t("settings.about.connectorRest", { distro, bits });
 	}
-	if (isPollConnector.value) {
+	if (machineStore.isStandaloneMode) {
 		return i18n.global.t("settings.about.connectorPoll");
 	}
 	return i18n.global.t("generic.noValue");

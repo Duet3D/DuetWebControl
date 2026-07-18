@@ -1,4 +1,4 @@
-import { BaseConnector, CancellationToken, CodeBufferError, connect, DisconnectedError, FileListItem, FileNotFoundError, InvalidPasswordError, OnProgressCallback, OperationFailedError } from "@duet3d/connectors";
+import { BaseConnector, CancellationToken, CodeBufferError, connect, DisconnectedError, FileListItem, FileNotFoundError, InvalidPasswordError, OnProgressCallback, OperationFailedError, PollConnector, RestConnector } from "@duet3d/connectors";
 import ObjectModel, { CodeChannel, GCodeFileInfo, initObject, MachineStatus, MessageType, Plugin } from "@duet3d/objectmodel";
 import type JSZip from "jszip";
 import { defineStore } from "pinia";
@@ -168,6 +168,22 @@ export const useMachineStore = defineStore("machine", {
 		 * @returns Whether the DuetPi Management Plugin is running
 		 */
 		isDuetPiManagementPluginRunning: state => (state.model.plugins.get("DuetPiManagementPlugin")?.pid ?? 0) > 0,
+
+		/**
+		 * Whether DWC is connected in SBC mode. The REST connector is only used against DSF, so its
+		 * type is the authoritative signal for SBC mode
+		 * @param state Store state
+		 * @returns Whether the machine is connected in SBC mode
+		 */
+		isSbcMode: state => state.connector instanceof RestConnector,
+
+		/**
+		 * Whether DWC is connected in standalone mode. The poll connector talks directly to RRF's
+		 * HTTP interface, so its type is the authoritative signal for standalone mode
+		 * @param state Store state
+		 * @returns Whether the machine is connected in standalone mode
+		 */
+		isStandaloneMode: state => state.connector instanceof PollConnector,
 
 		/**
 		 * Currently selected tool
