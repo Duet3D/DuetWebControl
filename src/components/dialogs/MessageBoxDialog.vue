@@ -19,12 +19,12 @@
 					<!-- Decreasing movements -->
 					<v-col>
 						<v-row no-gutters>
-							<v-col v-for="index in settingsStore.moveSteps[axis.letter].length" :key="index"
-								   :class="getMoveCellClass(index - 1)">
+							<v-col v-for="index in numMoveSteps" :key="index" :class="getMoveCellClass(index - 1, true)">
 								<CodeButton :code="getMoveCode(axis, index - 1, true)" :disabled="!canMove(axis)"
-											no-wait block tile class="move-btn">
+											no-wait block tile class="move-btn"
+											@contextmenu.prevent="showMoveStepDialog(axis.letter, index - 1)">
 									<v-icon>mdi-chevron-left</v-icon>
-									{{ axis.letter + showSign(-settingsStore.moveSteps[axis.letter][index - 1]) }}
+									{{ axis.letter + showSign(-moveSteps(axis.letter)[index - 1]) }}
 								</CodeButton>
 							</v-col>
 						</v-row>
@@ -40,11 +40,11 @@
 					<!-- Increasing movements -->
 					<v-col>
 						<v-row no-gutters>
-							<v-col v-for="index in settingsStore.moveSteps[axis.letter].length" :key="index"
-								   :class="getMoveCellClass(settingsStore.moveSteps[axis.letter].length - index)">
-								<CodeButton :code="getMoveCode(axis, settingsStore.moveSteps[axis.letter].length - index, false)"
-											:disabled="!canMove(axis)" no-wait block tile class="move-btn">
-									{{ axis.letter + showSign(settingsStore.moveSteps[axis.letter][settingsStore.moveSteps[axis.letter].length - index]) }}
+							<v-col v-for="index in numMoveSteps" :key="index" :class="getMoveCellClass(numMoveSteps - index, true)">
+								<CodeButton :code="getMoveCode(axis, numMoveSteps - index, false)" :disabled="!canMove(axis)"
+											no-wait block tile class="move-btn"
+											@contextmenu.prevent="showMoveStepDialog(axis.letter, numMoveSteps - index)">
+									{{ axis.letter + showSign(moveSteps(axis.letter)[numMoveSteps - index]) }}
 									<v-icon>mdi-chevron-right</v-icon>
 								</CodeButton>
 							</v-col>
@@ -89,6 +89,8 @@
 <script setup lang="ts">
 import { Axis, AxisLetter, MessageBox, MessageBoxMode } from "@duet3d/objectmodel";
 
+import { useComponentSettings } from "@/composables/useComponentSettings";
+import { defaultMoveSteps, getMoveCellClass, type MoveStepMap, useMoveSteps } from "@/composables/useMoveSteps";
 import { useMachineStore } from "@/stores/machine";
 import { useSettingsStore } from "@/stores/settings";
 
@@ -98,6 +100,10 @@ import { axisGCodeLetter } from "@/utils/gcode";
 import { isNumber } from "@/utils/numbers";
 
 const machineStore = useMachineStore(), settingsStore = useSettingsStore();
+
+// The dialog lives outside any page, so its settings id must be pinned instead of derived from the route
+const settings = useComponentSettings<{ moveSteps: MoveStepMap }>({ moveSteps: defaultMoveSteps() }, { id: "MessageBoxDialog" });
+const { numMoveSteps, moveSteps, showMoveStepDialog } = useMoveSteps(settings);
 
 // Message box data
 const messageBox = reactive(new MessageBox()), shown = ref(false);
@@ -123,17 +129,6 @@ watch(() => machineStore.model.state.messageBox, (to) => {
 		shown.value = false;
 	}
 }, { deep: true });
-
-// UI helpers
-function getMoveCellClass(index: number): string {
-	if (index === 0 || index === 5) {
-		return "d-none d-xxl-block";
-	}
-	if (index > 1 && index < 4 && index % 2 === 1) {
-		return "d-none d-xl-block";
-	}
-	return "";
-}
 
 const displayedAxes = computed(() => {
 	const axisControls = (messageBox.axisControls !== null) ? messageBox.axisControls : 0;
@@ -215,7 +210,7 @@ const moveFeedrate = 6000;
 
 function getMoveCode(axis: Axis, index: number, decrementing: boolean): string {
 	const sign = decrementing ? "-" : "";
-	return `M120\nG91\nG1 ${axisGCodeLetter(axis.letter)}${sign}${settingsStore.moveSteps[axis.letter][index]} F${moveFeedrate}\nM121`;
+	return `M120\nG91\nG1 ${axisGCodeLetter(axis.letter)}${sign}${moveSteps(axis.letter)[index]} F${moveFeedrate}\nM121`;
 }
 
 function showSign(value: number) {

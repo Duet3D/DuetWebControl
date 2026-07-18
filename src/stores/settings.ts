@@ -1,5 +1,4 @@
 import { FileNotFoundError } from "@duet3d/connectors";
-import { AxisLetter } from "@duet3d/objectmodel";
 import { defineStore } from "pinia";
 
 import i18n, { getBrowserLocale, type Locale } from "@/i18n";
@@ -24,7 +23,7 @@ let settingsBaseline: any = null;
 const SETTINGS_UNION_PATHS: ReadonlySet<string> = new Set(["enabledPlugins"]);
 
 // Deep-assign a plain-object source onto a target. Arrays are scalar (replaced wholesale) so
-// user reorderings (e.g. moveSteps) survive. Used by load() and by the post-merge re-apply path
+// user reorderings (e.g. hiddenMenuItems) survive. Used by load() and by the post-merge re-apply path
 function deepAssign(target: any, source: any) {
 	for (const key of Object.keys(source)) {
 		const src = source[key];
@@ -39,7 +38,7 @@ function deepAssign(target: any, source: any) {
 }
 
 // Re-apply a merged-from-remote settings blob onto the live store. Mirrors the special-case
-// handling in load() (componentSettings, moveSteps, plugins, locale side-effect) so panels and
+// handling in load() (componentSettings, plugins, locale side-effect) so panels and
 // vue-i18n stay consistent after a cross-session merge
 function applyMergedSettings(store: any, merged: any) {
 	const remaining = { ...merged };
@@ -47,16 +46,6 @@ function applyMergedSettings(store: any, merged: any) {
 	if (remaining.plugins instanceof Object) {
 		store.plugins = remaining.plugins;
 		delete remaining.plugins;
-	}
-
-	if (remaining.moveSteps instanceof Object) {
-		for (const axis in remaining.moveSteps) {
-			const axisMoveSteps = remaining.moveSteps[axis];
-			if (Array.isArray(axisMoveSteps) && axisMoveSteps.length === store.moveSteps.default.length) {
-				store.moveSteps[axis] = axisMoveSteps;
-			}
-		}
-		delete remaining.moveSteps;
 	}
 
 	if (remaining.componentSettings instanceof Object) {
@@ -84,22 +73,6 @@ function applyMergedSettings(store: any, merged: any) {
 export interface ComponentSettingsRecord {
 	schemaVersion: number;
 	data: unknown;
-}
-
-export type CustomChartAxis = "left" | "right";
-
-export interface CustomChartItem {
-	id: string;
-	name: string;
-	value: string;
-	unit: string;
-	visible: boolean;
-	axis: CustomChartAxis;
-}
-
-export interface CustomChartRightAxis {
-	min: number;
-	max: number;
 }
 
 export enum DashboardMode {
@@ -136,7 +109,7 @@ export enum AutoScrollMode {
 // step to {@link settingsUpgrades} whenever the shape changes incompatibly; the load path
 // chains upgrades from the persisted version up to the current one. Mirrors the pattern used by
 // useComponentSettings for per-component records
-const SETTINGS_SCHEMA_VERSION = 3;
+const SETTINGS_SCHEMA_VERSION = 4;
 
 /**
  * One per upgrade step. Index N runs when migrating from version N to N+1. Each step receives
@@ -183,6 +156,24 @@ const settingsUpgrades: ReadonlyArray<(blob: any) => any> = [
 					if (matches) {
 						item.name = matches[1];
 					}
+				}
+			}
+		}
+		return blob;
+	},
+
+	// 3 -> 4: move steps, extrusion presets and the custom chart series became per-component
+	// settings, so e.g. the movement panel and the axis controls of M291 message boxes can use
+	// different move steps. The old values are not carried over - each component starts from its
+	// own defaults. displayedExtruders/-Fans/-ExtraTemperatures are dropped as well; the panels
+	// have been using their own entity-visibility overlays for a while
+	(blob: any) => {
+		const retired = ["moveSteps", "extruderAmounts", "extruderFeedrates", "customChartData",
+			"customChartRightAxis", "displayedExtruders", "displayedFans", "displayedExtraTemperatures"];
+		for (const container of [blob, blob?.main, blob?.machine]) {
+			if (container && typeof container === "object") {
+				for (const key of retired) {
+					delete container[key];
 				}
 			}
 		}
@@ -567,41 +558,6 @@ export const useSettingsStore = defineStore("settings", {
 		checkVersions: true,
 
 		/**
-		 * List of displayed extra temperature sensors to show
-		 */
-		displayedExtraTemperatures: [] as Array<number>,
-
-		/**
-		 * List of displayed extruder controls (extrusion mulitpliers)
-		 */
-		displayedExtruders: [0, 1, 2, 3, 4, 5],
-
-		/**
-		 * List of displayed fan controls
-		 */
-		displayedFans: [-1, 0, 1, 2],
-
-		/**
-		 * Map of axes vs. move steps (in mm)
-		 */
-		moveSteps: {
-			X: [100, 50, 10, 1, 0.1],
-			Y: [100, 50, 10, 1, 0.1],
-			Z: [50, 25, 5, 0.5, 0.05],
-			default: [100, 50, 10, 1, 0.1],
-		} as Record<string, Array<number>>,
-
-		/**
-		 * Extrusion amounts for custom extrude/retract (in mm)
-		 */
-		extruderAmounts: [100, 50, 20, 10, 5, 1],
-
-		/**
-		 * Extrusion feedrate selections for custom extrude/retracy (in mm/s)
-		 */
-		extruderFeedrates: [50, 10, 5, 2, 1],
-
-		/**
 		 * Temperature presets
 		 */
 		temperatures: {
@@ -646,16 +602,6 @@ export const useSettingsStore = defineStore("settings", {
 		 */
 		spindleRPM: [10000, 75000, 5000, 2500, 1000, 0],
 
-		/**
-		 * User-defined calculated series for the temperature chart, evaluated against the object model
-		 */
-		customChartData: [] as Array<CustomChartItem>,
-
-		/**
-		 * Min/max of the temperature chart's secondary (right-hand) axis, used by custom series that
-		 * opt into the right scale
-		 */
-		customChartRightAxis: { min: 0, max: 100 } as CustomChartRightAxis,
 		// #endregion
 
 		// #region Per-component settings (driven by the `useComponentSettings` composable)
@@ -701,33 +647,6 @@ export const useSettingsStore = defineStore("settings", {
 		applySbcWebcamDefaults() {
 			this.webcam.url = "http://[HOSTNAME]:8081/0/stream";
 			this.webcam.updateInterval = 0;
-		},
-
-		/**
-		 * Add a custom temperature-chart series
-		 */
-		addCustomChartItem(item: CustomChartItem) {
-			this.customChartData.push(item);
-		},
-
-		/**
-		 * Patch an existing custom temperature-chart series by id
-		 */
-		updateCustomChartItem(id: string, patch: Partial<Omit<CustomChartItem, "id">>) {
-			const item = this.customChartData.find(entry => entry.id === id);
-			if (item) {
-				Object.assign(item, patch);
-			}
-		},
-
-		/**
-		 * Remove a custom temperature-chart series by id
-		 */
-		removeCustomChartItem(id: string) {
-			const index = this.customChartData.findIndex(entry => entry.id === id);
-			if (index !== -1) {
-				this.customChartData.splice(index, 1);
-			}
 		},
 
 		/**
@@ -783,15 +702,6 @@ export const useSettingsStore = defineStore("settings", {
 				if (settingsToLoad.plugins instanceof Object) {
 					that.plugins = settingsToLoad.plugins;
 					delete settingsToLoad.plugins;
-				}
-				if (settingsToLoad.moveSteps instanceof Object) {
-					for (const axis in settingsToLoad.moveSteps) {
-						const axisMoveSteps = settingsToLoad.moveSteps[axis];
-						if (axisMoveSteps instanceof Array && axisMoveSteps.length === that.moveSteps.default.length) {
-							that.moveSteps[axis] = axisMoveSteps;
-						}
-					}
-					delete settingsToLoad.moveSteps;
 				}
 				// Merge componentSettings rather than replace: components that mounted before the load
 				// (e.g. the dashboard's FansPanel rendered during the connect dialog) have already
@@ -1033,69 +943,6 @@ export const useSettingsStore = defineStore("settings", {
 				document.documentElement.lang = locale;
 			}
 			this.locale = locale;
-		},
-
-		/**
-		 * Set a move step for an axis
-		 * @param axis Axis letter
-		 * @param index Move step index
-		 * @param value Move step value
-		 */
-		setMoveStep(axis: AxisLetter, index: number, value: number) {
-			if (this.moveSteps[axis] === undefined) {
-				this.moveSteps[axis] = this.moveSteps.default.slice();
-			}
-			this.moveSteps[axis][index] = value;
-		},
-
-		/**
-		 * Update one of the saved extrusion amounts (mm) shown as preset buttons in the extrude panel
-		 */
-		setExtrusionAmount(index: number, value: number) {
-			this.extruderAmounts[index] = value;
-		},
-
-		/**
-		 * Update one of the saved extrusion feedrates (mm/s) shown as preset buttons in the extrude panel
-		 */
-		setExtrusionFeedrate(index: number, value: number) {
-			this.extruderFeedrates[index] = value;
-		},
-
-		/**
-		 * Toggle whether an extra sensor is shown in the chart
-		 * @param sensor Sensor number
-		 */
-		toggleExtraVisibility(sensor: number) {
-			if (this.displayedExtraTemperatures.indexOf(sensor) === -1) {
-				this.displayedExtraTemperatures.push(sensor);
-			} else {
-				this.displayedExtraTemperatures = this.displayedExtraTemperatures.filter(heater => heater !== sensor);
-			}
-		},
-
-		/**
-		 * Toggle whether an extruder is shown in the extruder controls
-		 * @param extruder Extruder number
-		 */
-		toggleExtruderVisibility(extruder: number) {
-			if (this.displayedExtruders.indexOf(extruder) === -1) {
-				this.displayedExtruders.push(extruder);
-			} else {
-				this.displayedExtruders = this.displayedExtruders.filter(item => item !== extruder);
-			}
-		},
-
-		/**
-		 * Toggle whether a fan is shown in the fan controls
-		 * @param fan Fan number
-		 */
-		toggleFanVisibility(fan: number) {
-			if (this.displayedFans.indexOf(fan) === -1) {
-				this.displayedFans.push(fan);
-			} else {
-				this.displayedFans = this.displayedFans.filter(item => item !== fan);
-			}
 		},
 
 		/**

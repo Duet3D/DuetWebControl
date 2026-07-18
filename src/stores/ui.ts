@@ -354,17 +354,6 @@ export const useUiStore = defineStore("ui", {
 		activeLayoutOptions(): RegisterLayoutOptions | null {
 			return this.activeLayout?.options ?? null;
 		},
-
-		/**
-		 * Indicates if there are any sensor values that can be displayed
-		 */
-		hasTemperaturesToDisplay: () => {
-			const machineStore = useMachineStore(); const settingsStore = useSettingsStore();
-			machineStore.model.sensors.analog.some((sensor, sensorIndex) => {
-				return (machineStore.model.heat.heaters.some(heater => heater && heater.sensor === sensorIndex) ||
-					settingsStore.displayedExtraTemperatures.indexOf(sensorIndex) !== -1);
-			})
-		},
 	},
 	actions: {
 		/**

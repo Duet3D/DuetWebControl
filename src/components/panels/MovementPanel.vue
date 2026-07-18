@@ -139,7 +139,7 @@
 					<v-col cols="6" md="5" class="order-3 order-md-2">
 						<v-row density="compact">
 							<v-col v-for="index in numMoveSteps" :key="index"
-								   :class="[getMoveCellClass(index - 1), (index === numMoveSteps ? 'd-none d-md-block' : '')]">
+								   :class="[getMoveCellClass(index - 1, cnc), (index === numMoveSteps ? 'd-none d-md-block' : '')]">
 								<CodeButton :code="getMoveCode(axis, index - 1, true)" no-wait block tile class="move-btn"
 											@contextmenu.prevent="showMoveStepDialog(axis.letter, index - 1)">
 									<v-icon>mdi-chevron-left</v-icon>
@@ -153,7 +153,7 @@
 					<v-col cols="6" md="5" class="order-4 order-md-3">
 						<v-row density="compact">
 							<v-col v-for="index in numMoveSteps" :key="index"
-								   :class="[getMoveCellClass(numMoveSteps - index), (index === 1 ? 'd-none d-md-block' : '')]">
+								   :class="[getMoveCellClass(numMoveSteps - index, cnc), (index === 1 ? 'd-none d-md-block' : '')]">
 								<CodeButton :code="getMoveCode(axis, numMoveSteps - index, false)" no-wait block tile
 											class="move-btn"
 											@contextmenu.prevent="showMoveStepDialog(axis.letter, numMoveSteps - index)">
@@ -294,7 +294,7 @@
 					<!-- Decreasing movements -->
 					<v-col>
 						<v-row no-gutters>
-							<v-col v-for="index in numMoveSteps" :key="index" :class="getMoveCellClass(index - 1)">
+							<v-col v-for="index in numMoveSteps" :key="index" :class="getMoveCellClass(index - 1, cnc)">
 								<CodeButton :code="getMoveCode(axis, index - 1, true)" :disabled="!canMove(axis)" no-wait
 											:size="largeBtnSize" block tile class="move-btn"
 											@contextmenu.prevent="showMoveStepDialog(axis.letter, index - 1)">
@@ -308,7 +308,7 @@
 					<!-- Increasing movements -->
 					<v-col>
 						<v-row no-gutters>
-							<v-col v-for="index in numMoveSteps" :key="index" :class="getMoveCellClass(numMoveSteps - index)">
+							<v-col v-for="index in numMoveSteps" :key="index" :class="getMoveCellClass(numMoveSteps - index, cnc)">
 								<CodeButton :code="getMoveCode(axis, numMoveSteps - index, false)" :disabled="!canMove(axis)"
 											no-wait :size="largeBtnSize" block tile class="move-btn"
 											@contextmenu.prevent="showMoveStepDialog(axis.letter, numMoveSteps - index)">
@@ -366,17 +366,16 @@
 </template>
 
 <script setup lang="ts">
-import { Axis, AxisLetter, KinematicsName, MachineStatus, MoveCompensationType } from "@duet3d/objectmodel";
+import { Axis, KinematicsName, MachineStatus, MoveCompensationType } from "@duet3d/objectmodel";
 import { useDisplay } from "vuetify";
 
 import CodeButton from "@/components/buttons/CodeButton.vue";
-import { getNumericInput } from "@/composables/useInputDialog";
 import MeshEditDialog from "@/components/dialogs/MeshEditDialog.vue";
 import { useComponentSettings } from "@/composables/useComponentSettings";
 import { useLargeButtons } from "@/composables/useLargeButtons";
+import { defaultMoveSteps, getMoveCellClass, type MoveStepMap, useMoveSteps } from "@/composables/useMoveSteps";
 import i18n from "@/i18n";
 import { useMachineStore } from "@/stores/machine";
-import { useSettingsStore } from "@/stores/settings";
 import { useUiStore } from "@/stores/ui";
 import { axisGCodeLetter } from "@/utils/gcode";
 
@@ -386,7 +385,6 @@ const props = defineProps<{
 }>();
 
 const machineStore = useMachineStore();
-const settingsStore = useSettingsStore();
 const uiStore = useUiStore();
 const { xs: isXs } = useDisplay();
 // Large-buttons mode lifts every jog / home / compensation button to v-btn size="large"
@@ -405,6 +403,7 @@ interface MovementPanelSettings {
 	compensationItems: Array<CompensationMenuItem>;
 	// Feedrate sent with the manual move buttons (G1 F[value]), in mm/min
 	moveFeedrate: number;
+	moveSteps: MoveStepMap;
 }
 
 // disableBedCompensation only exists in the CNC layout, so the FFF default omits it - leaving it
@@ -414,6 +413,7 @@ const settings = useComponentSettings<MovementPanelSettings>({
 	showHomeAllButton: true,
 	showAxisHomeButtons: true,
 	moveFeedrate: 6000,
+	moveSteps: defaultMoveSteps(),
 	compensationItems: props.cnc
 		? ["runBed", "disableBedCompensation", "runMesh", "editMesh", "loadMesh", "disableMeshCompensation"]
 		: ["runBed", "runMesh", "editMesh", "loadMesh", "disableMeshCompensation"],
@@ -474,18 +474,12 @@ const canHome = computed(() => {
 	const status = machineStore.model.state.status;
 	return status !== MachineStatus.pausing && status !== MachineStatus.processing && status !== MachineStatus.resuming;
 });
-// Driven by the per-axis move-step settings: the array length is fixed at five today, but reading
-// it back from the settings store leaves room for future per-axis customisation
-const numMoveSteps = computed(() => settingsStore.moveSteps.default.length);
+const { numMoveSteps, moveSteps, showMoveStepDialog } = useMoveSteps(settings);
 const workCoordinates = computed(() => [...Array(9).keys()].map(i => i + 1));
 const workplaceNumber = computed(() => {
 	const system = machineStore.model.move.motionSystems[machineStore.selectedMotionSystem];
 	return system ? system.workplaceNumber : 0;
 });
-
-function moveSteps(axis: AxisLetter): Array<number> {
-	return settingsStore.moveSteps[axis] ?? settingsStore.moveSteps.default;
-}
 
 function canMove(axis: Axis): boolean {
 	return canHome.value && (axis.homed || !machineStore.model.move.noMovesBeforeHoming);
@@ -501,31 +495,8 @@ function getMoveCode(axis: Axis, index: number, decrementing: boolean) {
 	return `M120\nG91\nG1 ${axisGCodeLetter(axis.letter)}${sign}${step} F${settings.value.moveFeedrate}\nM121`;
 }
 
-// Progressive disclosure tuned for Vuetify 4's breakpoint defaults (sm 600 / md 840 / xl 1545 /
-// xxl 2138). The outermost steps (index 0 and 5) only appear at xxl; the odd middle steps appear
-// from sm in FFF mode and from xl in CNC mode, whose buttons are wider. Use d-{bp}-block (not
-// d-{bp}-flex): d-flex on a single-child v-col shrinks the button to its intrinsic width and
-// leaves gaps; d-block matches v-col's natural display so `block` fills the cell
-function getMoveCellClass(index: number): string {
-	if (index === 0 || index === 5) {
-		return "d-none d-xxl-block";
-	}
-	if (index > 1 && index < 4 && index % 2 === 1) {
-		return props.cnc ? "d-none d-xl-block" : "d-none d-sm-block";
-	}
-	return "";
-}
-
 function showSign(value: number): string {
 	return value > 0 ? `+${value}` : value.toString();
-}
-
-async function showMoveStepDialog(axis: AxisLetter, index: number) {
-	const value = await getNumericInput(i18n.global.t("dialog.changeMoveStep.title"), i18n.global.t("dialog.changeMoveStep.prompt"), moveSteps(axis)[index]);
-	if (value === null) {
-		return;
-	}
-	settingsStore.setMoveStep(axis, index, value);
 }
 
 async function setWorkplaceZero() {

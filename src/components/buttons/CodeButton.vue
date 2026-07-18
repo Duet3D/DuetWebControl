@@ -1,7 +1,6 @@
 <template>
 	<v-btn :color="color" :variant="variant" :size="size" :disabled="$props.disabled || uiStore.uiFrozen"
-		   :elevation="1" :loading="waitingForCode"
-		   @click="click" @contextmenu="$emit('contextmenu', $event)">
+		   :elevation="1" :loading="waitingForCode" @click="click">
 		<slot></slot>
 	</v-btn>
 </template>

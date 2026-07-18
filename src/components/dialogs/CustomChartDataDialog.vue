@@ -47,8 +47,8 @@
 <script setup lang="ts">
 import { VForm } from "vuetify/components";
 
+import { type CustomChartAxis, type CustomChartItem } from "@/composables/useTemperatureSamples";
 import i18n from "@/i18n";
-import { type CustomChartAxis, useSettingsStore } from "@/stores/settings";
 import { validateExpression } from "@/utils/expression";
 import { generateUuid } from "@/utils/uuid";
 
@@ -57,7 +57,7 @@ const props = defineProps<{
 }>();
 
 const shown = defineModel<boolean>("shown", { required: true });
-const settingsStore = useSettingsStore();
+const items = defineModel<Array<CustomChartItem>>("items", { required: true });
 
 const form = ref<InstanceType<typeof VForm> | null>(null);
 
@@ -86,9 +86,9 @@ async function apply() {
 
 	const data = { name: name.value, value: value.value, unit: unit.value, visible: visible.value, axis: axis.value };
 	if (props.editId) {
-		settingsStore.updateCustomChartItem(props.editId, data);
+		items.value = items.value.map(item => (item.id === props.editId) ? { ...item, ...data } : item);
 	} else {
-		settingsStore.addCustomChartItem({ id: generateUuid(), ...data });
+		items.value = [...items.value, { id: generateUuid(), ...data }];
 	}
 	hide();
 }
@@ -101,7 +101,7 @@ watch(shown, (to) => {
 	if (!to) {
 		return;
 	}
-	const item = props.editId ? settingsStore.customChartData.find(entry => entry.id === props.editId) : null;
+	const item = props.editId ? items.value.find(entry => entry.id === props.editId) : null;
 	name.value = item?.name ?? "";
 	value.value = item?.value ?? "";
 	unit.value = item?.unit ?? "";

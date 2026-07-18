@@ -38,13 +38,13 @@
 
 			<!-- Custom calculated series -->
 			<div class="d-flex align-center mt-4">
-				<v-autocomplete :model-value="customChartIds" :items="settingsStore.customChartData"
+				<v-autocomplete :model-value="customChartIds" :items="settings.customChartData"
 								item-title="name" item-value="id" :label="$t('chart.temperature.custom.label')"
 								variant="outlined" density="comfortable" hide-details chips multiple readonly
 								class="flex-grow-1">
 					<template #chip="{ item }">
 						<v-chip closable @click.stop="openEdit(customItemOf(item).id)"
-								@click:close="settingsStore.removeCustomChartItem(customItemOf(item).id)">
+								@click:close="removeCustomItem(customItemOf(item).id)">
 							{{ customItemOf(item).name }}
 						</v-chip>
 					</template>
@@ -55,12 +55,12 @@
 
 			<v-row v-if="hasRightAxisCustom" no-gutters class="mt-4">
 				<v-col cols="6" class="pe-2">
-					<v-text-field v-model.number="settingsStore.customChartRightAxis.min" type="number"
+					<v-text-field v-model.number="settings.customChartRightAxis.min" type="number"
 								  :label="$t('chart.temperature.custom.rightAxisMin')" variant="outlined"
 								  density="comfortable" hide-details />
 				</v-col>
 				<v-col cols="6" class="ps-2">
-					<v-text-field v-model.number="settingsStore.customChartRightAxis.max" type="number"
+					<v-text-field v-model.number="settings.customChartRightAxis.max" type="number"
 								  :label="$t('chart.temperature.custom.rightAxisMax')" variant="outlined"
 								  density="comfortable" hide-details />
 				</v-col>
@@ -68,7 +68,8 @@
 		</template>
 	</PanelCard>
 
-	<CustomChartDataDialog v-model:shown="customDialogShown" :edit-id="customEditId" />
+	<CustomChartDataDialog v-model:shown="customDialogShown" v-model:items="settings.customChartData"
+						   :edit-id="customEditId" />
 </template>
 
 <script setup lang="ts">
@@ -78,12 +79,12 @@ import { Chart, Filler, Legend, LineController, LineElement, LinearScale, PointE
 import "chartjs-adapter-date-fns";
 import { enUS } from "date-fns/locale/en-US";
 
-import { initTemperatureSampling, maxSampleTime, onSampleAdded, sampleSeries, sampleTimes, type TempChartDataset } from "@/composables/useTemperatureSamples";
+import { type CustomChartItem, type CustomChartRightAxis, initTemperatureSampling, maxSampleTime, onSampleAdded, registerCustomChartItems, sampleSeries, sampleTimes, type TempChartDataset } from "@/composables/useTemperatureSamples";
 import CustomChartDataDialog from "@/components/dialogs/CustomChartDataDialog.vue";
-import { useComponentSettings } from "@/composables/useComponentSettings";
+import { resolveComponentId, useComponentSettings } from "@/composables/useComponentSettings";
 import i18n from "@/i18n";
 import { useMachineStore } from "@/stores/machine";
-import { type CustomChartItem, useSettingsStore } from "@/stores/settings";
+import { useSettingsStore } from "@/stores/settings";
 import { saveBlob } from "@/utils/download";
 
 // Chart.js v4 requires explicit component registration; do it once at module load
@@ -106,13 +107,21 @@ initTemperatureSampling();
 // source of visibility
 const settings = useComponentSettings({
 	displayedHeaters: null as Array<number> | null,
-	displayedExtraSensors: [] as Array<number> | null
+	displayedExtraSensors: [] as Array<number> | null,
+	customChartData: [] as Array<CustomChartItem>,
+	customChartRightAxis: { min: 0, max: 100 } as CustomChartRightAxis
 });
 
-// Custom calculated series are stored globally so they sample continuously (see useTemperatureSamples)
-const customChartIds = computed(() => settingsStore.customChartData.map(item => item.id));
+// Sampling of the custom series is driven by the shared sampler, not by this instance being mounted
+registerCustomChartItems(resolveComponentId(), () => settings.value.customChartData);
+
+const customChartIds = computed(() => settings.value.customChartData.map(item => item.id));
 const hasRightAxisCustom = computed(() =>
-	settingsStore.customChartData.some(item => item.visible && item.axis === "right"));
+	settings.value.customChartData.some(item => item.visible && item.axis === "right"));
+
+function removeCustomItem(id: string) {
+	settings.value.customChartData = settings.value.customChartData.filter(item => item.id !== id);
+}
 
 const customDialogShown = ref(false);
 const customEditId = ref<string | null>(null);
@@ -228,8 +237,8 @@ function refresh() {
 
 	const y2 = chart.options!.scales!.y2!;
 	y2.display = hasRightAxisCustom.value;
-	y2.min = settingsStore.customChartRightAxis.min;
-	y2.max = settingsStore.customChartRightAxis.max;
+	y2.min = settings.value.customChartRightAxis.min;
+	y2.max = settings.value.customChartRightAxis.max;
 
 	chart.update();
 	lastUpdate = now;
@@ -240,7 +249,7 @@ function refresh() {
 function applyVisibility() {
 	const heaters = settings.value.displayedHeaters;
 	const extras = settings.value.displayedExtraSensors;
-	const customById = new Map(settingsStore.customChartData.map(item => [item.id, item]));
+	const customById = new Map(settings.value.customChartData.map(item => [item.id, item]));
 	for (const dataset of sampleSeries) {
 		if (dataset.custom) {
 			const item = dataset.customId ? customById.get(dataset.customId) : undefined;
@@ -387,8 +396,8 @@ onMounted(() => {
 					display: false,
 					grid: { display: false },
 					ticks: { font: { family: "Roboto,sans-serif" } },
-					min: settingsStore.customChartRightAxis.min,
-					max: settingsStore.customChartRightAxis.max
+					min: settings.value.customChartRightAxis.min,
+					max: settings.value.customChartRightAxis.max
 				}
 			}
 		},
@@ -427,16 +436,9 @@ onBeforeUnmount(() => {
 
 watch(() => settingsStore.darkTheme, () => applyChartTheme());
 
-// Editing the displayed-series settings takes effect immediately rather than waiting for the
-// next sample tick
+// Apply settings edits at once, bypassing refresh()'s 1s throttle, so series visibility and the
+// right-axis range aren't delayed until the next sample tick
 watch(settings, () => {
-	applyVisibility();
-	chart?.update();
-}, { deep: true });
-
-// Custom-data definitions and the right-axis range live in the global settings store; apply edits
-// at once (bypassing refresh()'s 1s throttle) so axis/visibility changes aren't delayed
-watch(() => [settingsStore.customChartData, settingsStore.customChartRightAxis], () => {
 	applyVisibility();
 	lastUpdate = 0;
 	refresh();

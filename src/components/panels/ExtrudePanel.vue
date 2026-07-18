@@ -20,7 +20,7 @@
 					<p class="mb-1">{{ $t("panel.extrude.amount", [amountUnit]) }}</p>
 					<v-btn-toggle v-model="amount" mandatory variant="outlined" color="primary" divided
 								  :size="largeBtnSize" class="d-flex">
-						<v-btn v-for="(savedAmount, index) in settingsStore.extruderAmounts" :key="index"
+						<v-btn v-for="(savedAmount, index) in settings.extruderAmounts" :key="index"
 							   :value="savedAmount" :disabled="uiStore.uiFrozen" class="flex-grow-1"
 							   @contextmenu.prevent="editAmount(index)">
 							{{ savedAmount }}
@@ -32,7 +32,7 @@
 					<p class="mb-1">{{ $t("panel.extrude.feedrate", [feedrateUnit]) }}</p>
 					<v-btn-toggle v-model="feedrate" mandatory variant="outlined" color="primary" divided
 								  :size="largeBtnSize" class="d-flex">
-						<v-btn v-for="(savedFeedrate, index) in settingsStore.extruderFeedrates" :key="index"
+						<v-btn v-for="(savedFeedrate, index) in settings.extruderFeedrates" :key="index"
 							   :value="savedFeedrate" :disabled="uiStore.uiFrozen" class="flex-grow-1"
 							   @contextmenu.prevent="editFeedrate(index)">
 							{{ savedFeedrate }}
@@ -72,17 +72,25 @@ import { useComponentSettings } from "@/composables/useComponentSettings";
 import { useLargeButtons } from "@/composables/useLargeButtons";
 import i18n from "@/i18n";
 import { useMachineStore } from "@/stores/machine";
-import { useSettingsStore } from "@/stores/settings";
 import { useUiStore } from "@/stores/ui";
 
 const machineStore = useMachineStore();
-const settingsStore = useSettingsStore();
 const uiStore = useUiStore();
 const { btnSize: largeBtnSize } = useLargeButtons();
 
-// Whether to show the per-drive mixing controls for multi-extruder tools; used to be a global setting
-const settings = useComponentSettings<{ showMixingControls: boolean }>({
+interface ExtrudePanelSettings {
+	// Show the per-drive mixing controls for multi-extruder tools
+	showMixingControls: boolean;
+	// Extrusion amounts (in mm) offered as preset buttons
+	extruderAmounts: Array<number>;
+	// Extrusion feedrates (in mm/s) offered as preset buttons
+	extruderFeedrates: Array<number>;
+}
+
+const settings = useComponentSettings<ExtrudePanelSettings>({
 	showMixingControls: true,
+	extruderAmounts: [100, 50, 20, 10, 5, 1],
+	extruderFeedrates: [50, 10, 5, 2, 1],
 });
 
 const busy = ref(false);
@@ -170,26 +178,26 @@ async function buttonClicked(extrude: boolean) {
 }
 
 async function editAmount(index: number) {
-	const value = await getNumericInput(i18n.global.t("dialog.editExtrusionAmount.title"), i18n.global.t("dialog.editExtrusionAmount.prompt"), settingsStore.extruderAmounts[index]);
+	const value = await getNumericInput(i18n.global.t("dialog.editExtrusionAmount.title"), i18n.global.t("dialog.editExtrusionAmount.prompt"), settings.value.extruderAmounts[index]);
 	if (value === null) {
 		return;
 	}
-	settingsStore.setExtrusionAmount(index, value);
+	settings.value.extruderAmounts[index] = value;
 	amount.value = value;
 }
 
 async function editFeedrate(index: number) {
-	const value = await getNumericInput(i18n.global.t("dialog.editExtrusionFeedrate.title"), i18n.global.t("dialog.editExtrusionFeedrate.prompt"), settingsStore.extruderFeedrates[index]);
+	const value = await getNumericInput(i18n.global.t("dialog.editExtrusionFeedrate.title"), i18n.global.t("dialog.editExtrusionFeedrate.prompt"), settings.value.extruderFeedrates[index]);
 	if (value === null) {
 		return;
 	}
-	settingsStore.setExtrusionFeedrate(index, value);
+	settings.value.extruderFeedrates[index] = value;
 	feedrate.value = value;
 }
 
 onMounted(() => {
-	amount.value = settingsStore.extruderAmounts[3];
-	feedrate.value = settingsStore.extruderFeedrates[3];
+	amount.value = settings.value.extruderAmounts[3];
+	feedrate.value = settings.value.extruderFeedrates[3];
 });
 
 watch(currentTool, (to) => {
@@ -198,10 +206,10 @@ watch(currentTool, (to) => {
 	}
 });
 
-watch(() => settingsStore.extruderAmounts, () => {
-	amount.value = settingsStore.extruderAmounts[3];
+watch(() => settings.value.extruderAmounts, () => {
+	amount.value = settings.value.extruderAmounts[3];
 });
-watch(() => settingsStore.extruderFeedrates, () => {
-	feedrate.value = settingsStore.extruderFeedrates[3];
+watch(() => settings.value.extruderFeedrates, () => {
+	feedrate.value = settings.value.extruderFeedrates[3];
 });
 </script>

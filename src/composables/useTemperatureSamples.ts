@@ -3,10 +3,34 @@ import { AnalogSensorType, MachineStatus, type AnalogSensor } from "@duet3d/obje
 
 import i18n from "@/i18n";
 import { useMachineStore } from "@/stores/machine";
-import { useSettingsStore, type CustomChartItem } from "@/stores/settings";
 import { parseNameWithUnit } from "@/utils/display";
 import { evaluateExpression } from "@/utils/expression";
 import Events from "@/utils/events";
+
+/**
+ * Scale a custom series is plotted against
+ */
+export type CustomChartAxis = "left" | "right";
+
+/**
+ * User-defined chart series evaluating an object-model expression
+ */
+export interface CustomChartItem {
+	id: string;
+	name: string;
+	value: string;
+	unit: string;
+	visible: boolean;
+	axis: CustomChartAxis;
+}
+
+/**
+ * Range of the secondary (right-hand) axis custom series can opt into
+ */
+export interface CustomChartRightAxis {
+	min: number;
+	max: number;
+}
 
 // Sample-recording cadence and the rolling-window length (10 min). Higher cadences eat memory;
 // every consumer that draws from these samples should debounce / cap its own redraw rate
@@ -132,10 +156,35 @@ function pushSeriesData(index: number, extra: boolean, sensor: AnalogSensor) {
 	dataset.data!.push(sensor.lastReading !== null ? sensor.lastReading : NaN);
 }
 
+// Custom series belong to the chart component that displays them, but sampling has to keep running
+// for all of them no matter which chart is currently rendered. Chart instances register a getter
+// during setup and never unregister, keyed by their settings id so a remount replaces its own entry
+const customItemProviders = new Map<string, () => ReadonlyArray<CustomChartItem>>();
+
+/**
+ * Register the custom series of a chart component for continuous sampling
+ * @param id Settings id of the registering component
+ * @param provider Returns the definitions currently configured on that component
+ */
+export function registerCustomChartItems(id: string, provider: () => ReadonlyArray<CustomChartItem>): void {
+	customItemProviders.set(id, provider);
+}
+
+// Union of every registered chart's definitions, keyed by id so two charts sharing a series sample it once
+function collectCustomItems(): Array<CustomChartItem> {
+	const items = new Map<string, CustomChartItem>();
+	for (const provider of customItemProviders.values()) {
+		for (const item of provider()) {
+			items.set(item.id, item);
+		}
+	}
+	return [...items.values()];
+}
+
 // Reconcile the custom datasets with the current definitions and append one evaluated value to each.
 // Runs in the same tick as the sensor samples (before the trim) so all series stay length-aligned
 function recordCustomSamples(model: Record<string, unknown>) {
-	const items = useSettingsStore().customChartData;
+	const items = collectCustomItems();
 
 	// Drop datasets whose definition no longer exists
 	for (let i = sampleSeries.length - 1; i >= 0; i--) {
