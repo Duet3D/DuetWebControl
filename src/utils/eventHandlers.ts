@@ -111,6 +111,7 @@ Events.on("dwcPluginsLoading", () => {
 		i18n.global.t("notification.pluginLoad.message"),
 		0,
 		null,
+		false,
 		"mdi-connection",
 		pluginsLoaded
 	);

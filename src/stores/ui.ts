@@ -2,7 +2,7 @@ import { CancellationToken, OnProgressCallback } from "@duet3d/connectors";
 import { MachineMode } from "@duet3d/objectmodel";
 import { defineStore } from "pinia";
 
-import i18n from "@/i18n";
+import vuetify from "@/vue-plugins/vuetify";
 import type { EmbeddableComponent } from "@/plugins";
 import type { RegisteredLayout, RegisterLayoutOptions } from "@/plugins/layout";
 import { getErrorMessage } from "@/utils/errors";
@@ -111,6 +111,8 @@ export interface GeneralNotification {
 	/** When set, the snackbar shows a "view" action that navigates to this route */
 	route: string | null;
 	icon: string | null;
+	/** Renders a distinct "Output truncated, see Console" line under the message */
+	truncated?: boolean;
 	/**
 	 * Optional promise driving auto-dismissal: v-snackbar-queue replaces the displayed item with
 	 * a 1 ms-timeout one when this resolves. Use when the notification represents an async
@@ -140,6 +142,28 @@ export interface FileTransferNotification {
 	cancel: () => void;
 	/** Remove the notification from the UI without cancelling */
 	close: () => void;
+}
+
+// Clip a code reply down to a notification-sized preview: at most `maxLines` lines, each capped at
+// `maxChars` characters. Trailing whitespace is stripped first so a reply's terminating newline
+// doesn't count as an extra (empty) line. `truncated` tells the caller whether to point the reader
+// at the Console for the remainder
+function truncateNotificationText(text: string, maxLines: number, maxChars: number): { text: string; truncated: boolean } {
+	let truncated = false;
+
+	let lines = text.trimEnd().split("\n");
+	if (lines.length > maxLines) {
+		lines = lines.slice(0, maxLines);
+		truncated = true;
+	}
+	lines = lines.map((line) => {
+		if (line.length > maxChars) {
+			truncated = true;
+			return line.slice(0, maxChars).trimEnd();
+		}
+		return line;
+	});
+	return { text: lines.join("\n"), truncated };
 }
 
 export const useUiStore = defineStore("ui", {
@@ -419,18 +443,24 @@ export const useUiStore = defineStore("ui", {
 			}
 
 			// Log it
-			const responseLines = toLog.split('\n');
 			if (!this.hideCodeReplyNotifications) {
-				let title = code || ""; let message = toLog;
-				if (responseLines.length > 3 || toLog.length > 160) {
-					title = (!code) ? i18n.global.t("notification.responseTooLong") : code;
-					message = (!code) ? "" : i18n.global.t("notification.responseTooLong");
-				} else if (!code) {
-					title = responseLines[0];
-					message = responseLines.slice(1).join("\n");
+				// Notifications only carry a compact preview; the Console keeps the full reply. The
+				// limit is tighter on small screens where the toast has far less room. When clipped,
+				// the component renders a distinct "see Console" line below the preview
+				const [maxLines, maxChars] = vuetify.display.smAndDown.value ? [2, 80] : [3, 160];
+				const { text: preview, truncated } = truncateNotificationText(toLog, maxLines, maxChars);
+
+				let title: string, message: string;
+				if (code) {
+					title = code;
+					message = preview;
+				} else {
+					const previewLines = preview.split("\n");
+					title = previewLines[0];
+					message = previewLines.slice(1).join("\n");
 				}
 
-				this.makeNotification(type, title, message, null, "/Console");
+				this.makeNotification(type, title, message, null, "/Console", truncated);
 			}
 			this.logMessage(type, code ?? "", reply);
 		},
@@ -499,13 +529,14 @@ export const useUiStore = defineStore("ui", {
 		 * @param message Optional message body
 		 * @param timeout Auto-dismiss after N ms; 0 (or negative) = persistent. Defaults to the user's settings
 		 * @param route Optional route - the snackbar shows a "view" action that navigates here
+		 * @param truncated Whether to render a "see Console" line under the message
 		 * @param icon Optional MDI icon name; falls back to one keyed off {@link type}
 		 * @param promise Optional promise driving dismissal - v-snackbar-queue auto-clears the
 		 *                item when it resolves. Use for async-bound notifications instead of
 		 *                tracking the id and calling dismissNotification later
 		 * @returns The new notification's id (pass to {@link dismissNotification} to dismiss it programmatically)
 		 */
-		makeNotification(type: LogLevel, title: string, message: string | null = null, timeout: number | null = null, route: string | null = null, icon: string | null = null, promise: Promise<unknown> | null = null): string {
+		makeNotification(type: LogLevel, title: string, message: string | null = null, timeout: number | null = null, route: string | null = null, truncated: boolean = false, icon: string | null = null, promise: Promise<unknown> | null = null): string {
 			if (timeout === null) {
 				const settingsStore = useSettingsStore();
 				timeout = (type === LogLevel.error && settingsStore.notifications.errorsPersistent) ? 0 : settingsStore.notifications.timeout;
@@ -541,7 +572,7 @@ export const useUiStore = defineStore("ui", {
 				dismissResolvers.set(id, resolve);
 			});
 			const combinedPromise = promise ? Promise.race([promise, internalDismiss]) : internalDismiss;
-			const entry: GeneralNotification = { id, type, title, message, timeout, route, icon, promise: combinedPromise };
+			const entry: GeneralNotification = { id, type, title, message, timeout, route, icon, truncated, promise: combinedPromise };
 			this.activeNotifications.set(id, entry);
 
 			// Persistent notifications (timeout 0 / negative) get their own channel; v-snackbar-queue takes

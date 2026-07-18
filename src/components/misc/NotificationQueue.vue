@@ -13,6 +13,13 @@
 .dwc-snackbar-text {
 	white-space: pre-wrap;
 }
+.dwc-snackbar-truncated {
+	display: flex;
+	align-items: center;
+	font-weight: 600;
+	font-style: italic;
+	opacity: 0.85;
+}
 .dwc-snackbar-timer {
 	position: absolute;
 	top: 0;
@@ -53,6 +60,10 @@
 					 @click="onNotificationClick(item as QueueMessage)">
 					<strong v-if="(item as QueueMessage).headline">{{ (item as QueueMessage).headline }}</strong>
 					<span v-if="(item as QueueMessage).text" class="dwc-snackbar-text">{{ (item as QueueMessage).text }}</span>
+					<div v-if="(item as QueueMessage).truncated" class="dwc-snackbar-truncated mt-1">
+						<v-icon size="small" class="mr-1">mdi-arrow-right</v-icon>
+						{{ $t("notification.outputTruncated") }}
+					</div>
 				</div>
 			</template>
 		</template>
@@ -88,6 +99,7 @@ interface QueueMessage {
 	timeout: number;
 	route: string | null;
 	closable: boolean;
+	truncated?: boolean;
 	loading?: boolean;
 	promise?: Promise<unknown>;
 	onDismiss?: () => void;
@@ -113,6 +125,7 @@ function toQueueMessage(notification: GeneralNotification): QueueMessage {
 		timeout: notification.timeout > 0 ? notification.timeout : -1,
 		route: notification.route,
 		closable: true,
+		truncated: notification.truncated,
 		// Override v-snackbar-queue's automatic `loading: true` whenever a promise is provided.
 		// We use promises purely as a dismissal hook (every notification has an internal one for
 		// programmatic dismissal); the snackbar shouldn't render a spinner for ordinary replies

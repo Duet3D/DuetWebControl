@@ -365,7 +365,7 @@
 			"errorTitle": "Konnte Filament nicht umbenennen",
 			"errorStillLoaded": "Dieses Filament ist noch geladen. Bitte erst entladen bevor Sie fortfahren"
 		},
-		"responseTooLong": "Nachricht zu lang, siehe Konsole",
+		"outputTruncated": "Ausgabe gekürzt, siehe Konsole",
 		"install": {},
 		"pluginLoad": {
 			"message": "Bitte warten Sie, während Plugins geladen werden...",

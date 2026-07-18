@@ -375,7 +375,7 @@
 			"errorTitle": "Failed to rename filament",
 			"errorStillLoaded": "This filament is still loaded. Please unload it before you proceed"
 		},
-		"responseTooLong": "Response too long, see Console",
+		"outputTruncated": "Output truncated, see Console",
 		"freeSpaceWarning": {
 			"title": "Disk almost full",
 			"message": "There is barely any space left on the first volume. Delete some files to avoid problems during file uploads."
