@@ -25,6 +25,8 @@
 </template>
 
 <script setup lang="ts">
+import { DisconnectedError } from "@duet3d/connectors";
+
 import i18n from "@/i18n";
 import { useMachineStore } from "@/stores/machine";
 import { useUiStore } from "@/stores/ui";
@@ -43,8 +45,10 @@ async function reset() {
 	try {
 		await machineStore.sendCode("M999");
 	} catch (e) {
-		console.warn(e);
-		uiStore.notifyError(e, i18n.global.t("generic.error"));
+		if (!(e instanceof DisconnectedError)) {
+			console.warn(e);
+			uiStore.notifyError(e, i18n.global.t("generic.error"));
+		}
 	}
 }
 

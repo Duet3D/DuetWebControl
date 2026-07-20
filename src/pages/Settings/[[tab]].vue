@@ -902,6 +902,7 @@
 </template>
 
 <script setup lang="ts">
+import { DisconnectedError } from "@duet3d/connectors";
 import { NetworkInterfaceType } from "@duet3d/objectmodel";
 
 import { useDisplay } from "vuetify";
@@ -1172,7 +1173,9 @@ async function rebootSbc() {
 	try {
 		await machineStore.sendCode("M999 B-1", false, false);
 	} catch (e) {
-		uiStore.notifyError(e, i18n.global.t("settings.about.powerError"));
+		if (!(e instanceof DisconnectedError)) {
+			uiStore.notifyError(e, i18n.global.t("settings.about.powerError"));
+		}
 	}
 }
 
@@ -1183,7 +1186,9 @@ async function shutdownSbc() {
 	try {
 		await machineStore.sendCode('M999 B-1 P"OFF"', false, false);
 	} catch (e) {
-		uiStore.notifyError(e, i18n.global.t("settings.about.powerError"));
+		if (!(e instanceof DisconnectedError)) {
+			uiStore.notifyError(e, i18n.global.t("settings.about.powerError"));
+		}
 	}
 }
 
