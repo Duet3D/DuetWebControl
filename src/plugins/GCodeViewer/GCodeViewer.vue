@@ -120,9 +120,11 @@
 }
 
 /* 16px, not 12px: a v-slider thumb parked at its maximum puts its 42px touch target 13px past the
-   slider's own box, which a tighter padding turns into a horizontal scrollbar */
+   slider's own box. The padding absorbs most of it, and overflow-x settles the rest - the panel has
+   a fixed width and nothing in it is ever meant to scroll sideways */
 .gcv-settings-body {
 	padding: 16px;
+	overflow-x: hidden;
 	overflow-y: auto;
 }
 
@@ -233,13 +235,6 @@
 	background-color: transparent;
 }
 
-/* Controls for features the current @duet3d/gcodeviewer build has no method for yet (see the
-   `disabled` bindings). ColorPicker has no disabled prop, so its wrapper carries the greyed-out
-   look manually until the library regains those methods */
-.gcv-disabled {
-	opacity: 0.5;
-	pointer-events: none;
-}
 </style>
 
 <template>
@@ -256,7 +251,7 @@
 				</CodeButton>
 			</div>
 
-			<CodeStream :shown="viewGCode" :is-simulating="scrubPlaying" :document="fileData"
+			<CodeStream v-if="!isEmbedded" :shown="viewGCode" :is-simulating="scrubPlaying" :document="fileData"
 						:class="codeViewClass" :currentline="scrubPosition" @changed="scrubPositionChanged" />
 
 			<canvas ref="viewerCanvas" :title="hoverLabel" :class="viewerClass" />
@@ -355,14 +350,26 @@
 
 								<div class="d-flex flex-column">
 									<v-switch v-model="showObjectSelection" :disabled="!canCancelObject"
+											  :title="$t('plugins.gcodeViewer.showObjectSelection.title')"
 											  :label="jobSelectionLabel" color="primary" hide-details />
-									<v-switch v-model="showCursor" :label="$t('plugins.gcodeViewer.showCursor')"
-											  color="primary" hide-details disabled />
+									<v-switch v-if="showObjectSelection" v-model="showObjectLabels"
+											  :label="$t('plugins.gcodeViewer.showObjectLabels')"
+											  color="primary" hide-details class="ml-13" />
+									<v-switch v-model="showTool" :label="$t('plugins.gcodeViewer.showTool')"
+											  color="primary" hide-details />
 									<v-switch v-model="showTravelLines" :label="$t('plugins.gcodeViewer.showTravels')"
 											  color="primary" hide-details />
-									<v-switch v-model="persistTravels" :label="$t('plugins.gcodeViewer.persistTravels')"
-											  color="primary" hide-details disabled />
-									<v-switch v-model="viewGCode" :label="$t('plugins.gcodeViewer.viewGCode')"
+									<v-switch v-if="showTravelLines" v-model="persistTravels"
+											  :label="$t('plugins.gcodeViewer.persistTravels')"
+											  color="primary" hide-details class="ml-13" />
+									<v-switch v-if="!isEmbedded" v-model="viewGCode"
+											  :label="$t('plugins.gcodeViewer.viewGCode')"
+											  color="primary" hide-details />
+									<v-switch v-model="g1AsExtrusion" :disabled="loading"
+											  :label="$t('plugins.gcodeViewer.g1AsExtrusion')"
+											  :title="$t('plugins.gcodeViewer.g1AsExtrusionHint')"
+											  color="primary" hide-details />
+									<v-switch v-model="cameraInertia" :label="$t('plugins.gcodeViewer.cameraInertia')"
 											  color="primary" hide-details />
 								</div>
 							</div>
@@ -370,131 +377,170 @@
 
 						<template v-else-if="openCategory === 'quality'">
 							<div class="d-flex flex-column ga-3">
-								<v-select v-model="renderQuality" :items="renderQualityItems"
-										  :label="$t('plugins.gcodeViewer.renderQuality.caption')"
-										  disabled density="compact" variant="outlined"
+								<v-select v-model="geometryMode" :items="geometryModeItems"
+										  :label="$t('plugins.gcodeViewer.geometry.caption')"
+										  :title="$t('plugins.gcodeViewer.geometry.title')"
+										  density="compact" variant="outlined"
 										  hide-details class="mt-2" />
 								<div class="d-flex flex-column">
 									<v-switch v-model="useHQRendering" :label="$t('plugins.gcodeViewer.useHQRendering')"
-											  color="primary" hide-details disabled />
-									<v-switch v-model="forceWireMode" :label="$t('plugins.gcodeViewer.forceLineRendering')"
+											  :title="$t('plugins.gcodeViewer.useHQRenderingHint')"
 											  color="primary" hide-details />
+									<v-text-field v-if="useHQRendering" v-model.number="nozzleDiameter" type="number"
+												  :label="$t('plugins.gcodeViewer.nozzleDiameter')"
+												  :title="$t('plugins.gcodeViewer.nozzleDiameterHint')"
+												  :placeholder="$t('plugins.gcodeViewer.nozzleDiameterAuto')"
+												  min="0" max="5" step="0.05" density="compact"
+												  variant="outlined" hide-details class="mt-2 ml-6" />
 									<v-switch v-model="perimeterOnly" :label="$t('plugins.gcodeViewer.perimeterOnly')"
 											  color="primary" hide-details />
-									<v-switch v-model="progressMode" :label="$t('plugins.gcodeViewer.progressMode')"
-											  color="primary" hide-details />
-									<v-switch v-model="vertexAlpha" :label="$t('plugins.gcodeViewer.transparency')"
-											  color="primary" hide-details />
-									<v-slider v-if="vertexAlpha" v-model="transparencyPercent" min="1" max="100"
-											  hide-details />
 									<v-switch v-model="specular" :label="$t('plugins.gcodeViewer.useSpecular')"
-											  color="primary" hide-details disabled />
+											  color="primary" hide-details />
 								</div>
 							</div>
 						</template>
 
-						<template v-else-if="openCategory === 'extruders'">
-							<div class="d-flex flex-column ga-3">
-								<v-btn v-if="hasGCode" :disabled="loading" :title="$t('plugins.gcodeViewer.reloadView.title')"
-									   block color="primary" prepend-icon="mdi-reload-alert" @click="reloadviewer">
-									{{ $t("plugins.gcodeViewer.reloadView.caption") }}
-								</v-btn>
-								<div v-for="(extruder, index) in toolColors" :key="index">
-									<div class="text-title-small mb-2">{{ $t("plugins.gcodeViewer.tool", [index]) }}</div>
-									<ColorPicker :editcolor="extruder"
-												 @updatecolor="(value) => updateColor(index, value)" />
-								</div>
-								<v-btn block color="warning" prepend-icon="mdi-restore" @click="resetExtruderColors">
-									{{ $t("plugins.gcodeViewer.resetColor", toolColors.length) }}
-								</v-btn>
-							</div>
-						</template>
-
-						<template v-else-if="openCategory === 'renderMode'">
+						<template v-else-if="openCategory === 'colors'">
 							<div class="d-flex flex-column ga-3">
 								<v-select v-model="colorMode" :items="colorModeItems" :disabled="loading"
 										  :label="$t('plugins.gcodeViewer.renderMode.caption', 1)"
 										  density="compact" variant="outlined" hide-details class="mt-2" />
-								<v-switch v-model="g1AsExtrusion" :label="$t('plugins.gcodeViewer.g1AsExtrusion')"
-										  color="primary" hide-details disabled />
-								<div>
-									<div class="text-title-small mb-1">{{ $t("plugins.gcodeViewer.minFeedrate") }}</div>
-									<v-slider v-model="minColorRate" :max="500" :min="5" thumb-label hide-details disabled />
-								</div>
-								<div>
-									<div class="text-title-small mb-1">{{ $t("plugins.gcodeViewer.maxFeedrate") }}</div>
-									<v-slider v-model="maxColorRate" :max="500" :min="5" thumb-label hide-details disabled />
-								</div>
-								<div class="gcv-disabled">
-									<div class="text-title-small mb-2">{{ $t("plugins.gcodeViewer.minFeedrateColor") }}</div>
-									<ColorPicker :editcolor="minFeedColor"
-												 @updatecolor="(value) => updateMinFeedColor(value)" />
-								</div>
-								<div class="gcv-disabled">
-									<div class="text-title-small mb-2">{{ $t("plugins.gcodeViewer.maxFeedrateColor") }}</div>
-									<ColorPicker :editcolor="maxFeedColor"
-												 @updatecolor="(value) => updateMaxFeedColor(value)" />
-								</div>
-								<v-btn v-if="hasGCode" :disabled="loading" :title="$t('plugins.gcodeViewer.reloadView.title')"
-									   block color="primary" prepend-icon="mdi-reload-alert" @click="reloadviewer">
-									{{ $t("plugins.gcodeViewer.reloadView.caption") }}
-								</v-btn>
-							</div>
-						</template>
 
-						<template v-else-if="openCategory === 'progress'">
-							<div class="d-flex flex-column ga-3">
-								<div>
-									<div class="text-title-small mb-1">{{ $t("plugins.gcodeViewer.topClipping") }}</div>
-									<v-slider v-model="sliderHeight" :max="maxHeight" :min="minHeight" step="0.1"
-											  thumb-label hide-details />
-								</div>
-								<div>
-									<div class="text-title-small mb-1">{{ $t("plugins.gcodeViewer.bottomClipping") }}</div>
-									<v-slider v-model="sliderBottomHeight" :max="maxHeight" :min="minHeight" step="0.1"
-											  thumb-label hide-details />
-								</div>
-								<div>
-									<div class="text-title-small mb-2">{{ $t("plugins.gcodeViewer.progressColor") }}</div>
-									<ColorPicker :editcolor="progressColor"
-												 @updatecolor="(value) => updateProgressColor(value)" />
-								</div>
-							</div>
-						</template>
+								<v-expansion-panels v-model="openRenderModePanel" variant="accordion">
+									<v-expansion-panel value="tool">
+										<v-expansion-panel-title :title="$t('plugins.gcodeViewer.extruders.title')">
+											<v-icon class="mr-2">mdi-printer-3d-nozzle</v-icon>
+											<strong>{{ $t("plugins.gcodeViewer.extruders.caption") }}</strong>
+										</v-expansion-panel-title>
+										<v-expansion-panel-text>
+											<div class="d-flex flex-column ga-3">
+												<div v-for="(extruder, index) in toolColors" :key="index">
+													<div class="text-title-small mb-2">{{ $t("plugins.gcodeViewer.tool", [index]) }}</div>
+													<ColorPicker :editcolor="extruder"
+																 @updatecolor="(value) => updateColor(index, value)" />
+												</div>
+												<div class="d-flex ga-2">
+													<v-btn class="flex-grow-1" color="primary" prepend-icon="mdi-plus"
+														   :disabled="toolColors.length >= MAX_TOOL_COLORS"
+														   @click="addExtruder">
+														{{ $t("plugins.gcodeViewer.extruders.add") }}
+													</v-btn>
+													<v-btn class="flex-grow-1" color="primary" prepend-icon="mdi-minus"
+														   :disabled="toolColors.length <= 1" @click="removeLastExtruder">
+														{{ $t("plugins.gcodeViewer.extruders.removeLast") }}
+													</v-btn>
+												</div>
+												<v-btn block color="warning" prepend-icon="mdi-restore" @click="resetExtruderColors">
+													{{ $t("plugins.gcodeViewer.resetColor", toolColors.length) }}
+												</v-btn>
+											</div>
+										</v-expansion-panel-text>
+									</v-expansion-panel>
 
-						<template v-else-if="openCategory === 'settings'">
-							<div class="d-flex flex-column ga-3">
-								<div>
-									<div class="text-title-small mb-2">{{ $t("plugins.gcodeViewer.background") }}</div>
-									<ColorPicker :editcolor="backgroundColor"
-												 @updatecolor="(value) => updateBackground(value)" />
-								</div>
+									<v-expansion-panel value="feedrate">
+										<v-expansion-panel-title>
+											<v-icon class="mr-2">mdi-speedometer</v-icon>
+											<strong>{{ $t("plugins.gcodeViewer.feedrate") }}</strong>
+										</v-expansion-panel-title>
+										<v-expansion-panel-text>
+											<div class="d-flex flex-column ga-3">
+												<div>
+													<div class="text-title-small mb-1">{{ $t("plugins.gcodeViewer.minFeedrate") }}</div>
+													<v-slider v-model="minColorRate" :max="500" :min="5" thumb-label hide-details />
+												</div>
+												<div>
+													<div class="text-title-small mb-1">{{ $t("plugins.gcodeViewer.maxFeedrate") }}</div>
+													<v-slider v-model="maxColorRate" :max="500" :min="5" thumb-label hide-details />
+												</div>
+												<div>
+													<div class="text-title-small mb-2">{{ $t("plugins.gcodeViewer.minFeedrateColor") }}</div>
+													<ColorPicker :editcolor="minFeedColor"
+																 @updatecolor="(value) => updateMinFeedColor(value)" />
+												</div>
+												<div>
+													<div class="text-title-small mb-2">{{ $t("plugins.gcodeViewer.maxFeedrateColor") }}</div>
+													<ColorPicker :editcolor="maxFeedColor"
+																 @updatecolor="(value) => updateMaxFeedColor(value)" />
+												</div>
+											</div>
+										</v-expansion-panel-text>
+									</v-expansion-panel>
+								</v-expansion-panels>
+
 								<div>
 									<div class="text-title-small mb-2">{{ $t("plugins.gcodeViewer.bedRenderMode") }}</div>
 									<v-btn-toggle v-model="bedRenderMode" mandatory class="d-flex mb-3">
 										<v-btn :value="0" class="flex-grow-1">{{ $t("plugins.gcodeViewer.bed") }}</v-btn>
 										<v-btn :value="1" class="flex-grow-1">{{ $t("plugins.gcodeViewer.volume") }}</v-btn>
 									</v-btn-toggle>
+									<div class="text-title-small mb-2">
+										{{ bedRenderMode === 0 ? $t("plugins.gcodeViewer.gridColor") : $t("plugins.gcodeViewer.borderColor") }}
+									</div>
 									<ColorPicker :editcolor="bedColor"
 												 @updatecolor="(value) => updateBedColor(value)" />
 								</div>
+								<div>
+									<div class="text-title-small mb-2">{{ $t("plugins.gcodeViewer.background") }}</div>
+									<ColorPicker :editcolor="backgroundColor"
+												 @updatecolor="(value) => updateBackground(value)" />
+								</div>
+							</div>
+						</template>
+
+						<template v-else-if="openCategory === 'inspection'">
+							<div class="d-flex flex-column ga-3">
+								<v-select v-model="unprintedMode" :items="unprintedModeItems"
+										  :label="$t('plugins.gcodeViewer.unprinted.caption')"
+										  :title="$t('plugins.gcodeViewer.unprinted.title')"
+										  density="compact" variant="outlined" hide-details class="mt-2" />
+								<div v-if="unprintedMode === 2" class="ml-6">
+									<div class="text-title-small mb-2">{{ $t("plugins.gcodeViewer.progressColor") }}</div>
+									<ColorPicker :editcolor="progressColor"
+												 @updatecolor="(value) => updateProgressColor(value)" />
+								</div>
+								<div v-if="unprintedMode !== 0" class="ml-6">
+									<div class="text-title-small mb-1">{{ $t("plugins.gcodeViewer.opacity") }}</div>
+									<v-slider v-model="opacityPercent" min="1" max="100" thumb-label hide-details />
+								</div>
+								<div>
+									<div class="text-title-small mb-1">{{ $t("plugins.gcodeViewer.topClipping") }}</div>
+									<v-slider v-model="sliderHeight" :disabled="!hasGCode" :max="maxHeight"
+											  :min="minHeight" step="0.1" thumb-label hide-details />
+								</div>
+								<div>
+									<div class="text-title-small mb-1">{{ $t("plugins.gcodeViewer.bottomClipping") }}</div>
+									<v-slider v-model="sliderBottomHeight" :disabled="!hasGCode" :max="maxHeight"
+											  :min="minHeight" step="0.1" thumb-label hide-details />
+								</div>
+							</div>
+						</template>
+
+						<template v-else-if="openCategory === 'settings'">
+							<div class="d-flex flex-column ga-3">
+								<v-switch v-model="zBelt" :label="$t('plugins.gcodeViewer.zBelt')"
+										  :title="$t('plugins.gcodeViewer.zBeltHint')"
+										  color="primary" hide-details class="mt-2" />
+								<v-select v-if="zBelt" v-model="zBeltAngle" :items="zBeltAngleItems"
+										  :label="$t('plugins.gcodeViewer.zBeltAngle')"
+										  :title="$t('plugins.gcodeViewer.zBeltAngleHint')"
+										  density="compact" variant="outlined" hide-details class="ml-6" />
+
+								<v-divider class="my-1" />
+
 								<div class="d-flex flex-column">
-									<v-switch v-model="showOverlay" :label="$t('plugins.gcodeViewer.showFSOverlay')"
-											  color="primary" hide-details />
 									<v-switch v-model="showAxes" :label="$t('plugins.gcodeViewer.showAxes')"
 											  color="primary" hide-details />
-									<v-switch v-model="showObjectLabels" :label="$t('plugins.gcodeViewer.showObjectLabels')"
-											  color="primary" hide-details />
 									<v-switch v-model="showWorkplace" :label="$t('plugins.gcodeViewer.showWorkplace')"
-											  color="primary" hide-details disabled />
-									<v-switch v-model="cameraInertia" :label="$t('plugins.gcodeViewer.cameraInertia')"
+											  :title="$t('plugins.gcodeViewer.showWorkplaceHint')"
 											  color="primary" hide-details />
-									<v-switch v-model="zBelt" :label="$t('plugins.gcodeViewer.zBelt')"
-											  color="primary" hide-details disabled />
+									<v-switch v-model="showOverlay" :label="$t('plugins.gcodeViewer.showFSOverlay')"
+											  color="primary" hide-details />
 								</div>
-								<v-text-field v-model.number="zBeltAngle" type="number"
-											  :label="$t('plugins.gcodeViewer.zBeltAngle')"
-											  density="compact" variant="outlined" hide-details disabled />
+
+								<v-btn block color="warning" prepend-icon="mdi-restore"
+									   :title="$t('plugins.gcodeViewer.resetSettings.title')" @click="resetSettings">
+									{{ $t("plugins.gcodeViewer.resetSettings.caption") }}
+								</v-btn>
 							</div>
 						</template>
 					</div>
@@ -509,18 +555,14 @@
 								  :max="scrubFileSize" min="0" density="compact" persistent-hint hide-details
 								  @update:model-value="scrubPositionChanged" />
 					</v-col>
-					<v-col cols="2">
-						<v-row density="compact">
-							<v-col cols="12">
-								<v-btn @click="simulatePlay">
-									<v-icon v-if="scrubPlaying">mdi-stop</v-icon>
-									<v-icon v-else>mdi-play</v-icon>
-								</v-btn>
-								<v-btn @click="fastForward">
-									<v-icon>mdi-fast-forward</v-icon>
-								</v-btn>
-							</v-col>
-						</v-row>
+					<v-col cols="2" class="d-flex flex-nowrap justify-center ga-1">
+						<v-btn icon size="small" :title="scrubPlaying ? $t('plugins.gcodeViewer.stop') : $t('plugins.gcodeViewer.play')"
+							   @click="simulatePlay">
+							<v-icon>{{ scrubPlaying ? "mdi-stop" : "mdi-play" }}</v-icon>
+						</v-btn>
+						<v-btn icon size="small" :title="$t('plugins.gcodeViewer.fastForward')" @click="fastForward">
+							<v-icon>mdi-fast-forward</v-icon>
+						</v-btn>
 					</v-col>
 					<v-col cols="12" md="5">
 						<v-btn-toggle v-model="scrubSpeed" mandatory rounded color="secondary" class="w-100">
@@ -565,7 +607,7 @@
 </template>
 
 <script setup lang="ts">
-import { type Job, KinematicsName, type Move, type State } from "@duet3d/objectmodel";
+import { type Job, KinematicsName, MachineMode, type Move, type State } from "@duet3d/objectmodel";
 import { Viewer_Proxy } from "@duet3d/gcodeviewer";
 import { useDisplay } from "vuetify";
 
@@ -573,11 +615,14 @@ import CodeButton from "@/components/buttons/CodeButton.vue";
 import i18n from "@/i18n";
 import { useCacheStore } from "@/stores/cache";
 import { useMachineStore } from "@/stores/machine";
+import { showConfirmDialog } from "@/composables/useConfirmDialog";
 import { useSettingsStore } from "@/stores/settings";
+import { LogLevel, useUiStore } from "@/stores/ui";
 import { isPrinting } from "@/utils/enums";
 import Path from "@/utils/path";
 
 import CodeStream from "./CodeStream.vue";
+import { DEFAULT_TOOL_COLORS, MAX_TOOL_COLORS, TOOL_COLORS } from "./settings";
 import ColorPicker from "./ColorPicker.vue";
 import FSOverlay from "./FSOverlay.vue";
 
@@ -592,6 +637,7 @@ interface ObjectInfo {
 const RENDER_MODE_MAP = [1, 2, 0];
 
 const machineStore = useMachineStore();
+const uiStore = useUiStore();
 const cacheStore = useCacheStore();
 const settingsStore = useSettingsStore();
 const display = useDisplay();
@@ -616,7 +662,7 @@ const fileInput = ref<HTMLInputElement | null>(null);
 
 // Each configuration category gets its own icon button and its own sidebar; only one can be open
 // at a time and pressing the active button closes it again
-type ConfigCategory = "view" | "quality" | "extruders" | "renderMode" | "progress" | "settings";
+type ConfigCategory = "view" | "colors" | "quality" | "inspection" | "settings";
 
 interface ConfigCategoryEntry {
 	key: ConfigCategory;
@@ -626,10 +672,9 @@ interface ConfigCategoryEntry {
 
 const configCategories = computed<Array<ConfigCategoryEntry>>(() => [
 	{ key: "view", icon: "mdi-eye", caption: i18n.global.t("plugins.gcodeViewer.viewActions.caption") },
-	{ key: "quality", icon: "mdi-checkerboard", caption: i18n.global.t("plugins.gcodeViewer.renderQuality.caption") },
-	{ key: "extruders", icon: "mdi-printer-3d-nozzle", caption: i18n.global.t("plugins.gcodeViewer.extruders.caption") },
-	{ key: "renderMode", icon: "mdi-palette", caption: i18n.global.t("plugins.gcodeViewer.renderMode.caption", 2) },
-	{ key: "progress", icon: "mdi-progress-clock", caption: i18n.global.t("plugins.gcodeViewer.progress.caption") },
+	{ key: "colors", icon: "mdi-palette", caption: i18n.global.t("plugins.gcodeViewer.colors") },
+	{ key: "quality", icon: "mdi-checkerboard", caption: i18n.global.t("plugins.gcodeViewer.quality") },
+	{ key: "inspection", icon: "mdi-progress-clock", caption: i18n.global.t("plugins.gcodeViewer.inspection") },
 	{ key: "settings", icon: "mdi-cog", caption: i18n.global.t("plugins.gcodeViewer.settings") }
 ]);
 
@@ -641,65 +686,59 @@ const openCategory = ref<ConfigCategory | null>(null);
 const openCategoryEntry = computed(() => configCategories.value.find((category) => category.key === openCategory.value));
 const drawer = computed(() => openCategory.value !== null);
 
+// Colour settings belonging to each render mode, indexed like colorMode. Feature colouring comes
+// from the slicer, so it has nothing to configure
+const RENDER_MODE_PANELS: Array<string | undefined> = ["tool", "feedrate", undefined];
+const openRenderModePanel = ref<string | undefined>(undefined);
+
 function toggleCategory(key: ConfigCategory) {
+	if (key === "colors" && openCategory.value !== key) {
+		openRenderModePanel.value = RENDER_MODE_PANELS[colorMode.value];
+	}
 	openCategory.value = (openCategory.value === key) ? null : key;
 }
 
-const renderQualityItems = computed(() => [
-	{ title: i18n.global.t("plugins.gcodeViewer.sbc"),    value: 1 },
-	{ title: i18n.global.t("plugins.gcodeViewer.low"),    value: 2 },
-	{ title: i18n.global.t("plugins.gcodeViewer.medium"), value: 3 },
-	{ title: i18n.global.t("plugins.gcodeViewer.high"),   value: 4 },
-	{ title: i18n.global.t("plugins.gcodeViewer.ultra"),  value: 5 },
-	{ title: i18n.global.t("plugins.gcodeViewer.max"),    value: 6 },
+// The library builds one [box, cylinder, line] mesh variant per chunk, so these are the only three
+// geometry qualities that exist; the values are the library's mesh mode numbers
+const geometryModeItems = computed(() => [
+	{ title: i18n.global.t("plugins.gcodeViewer.geometry.line"),   value: 2 },
+	{ title: i18n.global.t("plugins.gcodeViewer.geometry.normal"), value: 0 },
+	{ title: i18n.global.t("plugins.gcodeViewer.geometry.high"),   value: 1 },
+]);
+const zBeltAngleItems = [15, 25, 35, 45].map((angle) => ({ title: `${angle}°`, value: angle }));
+// How the part that has not been printed yet is drawn. Hiding it, drawing it in its own colours and
+// drawing it in the progress colour are mutually exclusive, so they are one setting rather than two
+// switches whose combinations nobody can predict
+const unprintedModeItems = computed(() => [
+	{ title: i18n.global.t("plugins.gcodeViewer.unprinted.hidden"),   value: 0 },
+	{ title: i18n.global.t("plugins.gcodeViewer.unprinted.original"), value: 1 },
+	{ title: i18n.global.t("plugins.gcodeViewer.unprinted.progress"), value: 2 },
 ]);
 const colorModeItems = computed(() => [
 	{ title: i18n.global.t("plugins.gcodeViewer.color"),    value: 0 },
 	{ title: i18n.global.t("plugins.gcodeViewer.feedrate"), value: 1 },
 	{ title: i18n.global.t("plugins.gcodeViewer.feature"),  value: 2 },
 ]);
-const backgroundColor = ref("#000000FF");
-const progressColor = ref("#FFFFFFFF");
 const loading = ref(false);
-const showTravelLines = ref(false);
-const persistTravels = ref(false);
 const selectedFile = ref("");
-const renderQuality = ref(1);
 const maxHeight = ref(0);
 const minHeight = ref(0);
 const sliderHeight = ref(0);
 const sliderBottomHeight = ref(0);
-const forceWireMode = ref(false);
-const vertexAlpha = ref(false);
 const showObjectSelection = ref(false);
 const objectDialogData = reactive({
 	showDialog: false,
 	info: {} as ObjectInfo,
 });
 const hoverLabel = ref("");
-const bedRenderMode = ref(0);
-const showAxes = ref(true);
-const showObjectLabels = ref(true);
 const fullscreen = ref(false);
-const bedColor = ref("");
-// Default to feature colouring (colorMode 2 -> library Feature mode), the colourful per-feature view
-const colorMode = ref(2);
-const minColorRate = ref(20);
-const maxColorRate = ref(60);
-const minFeedColor = ref("#0000FF");
-const maxFeedColor = ref("#FF0000");
-const cameraInertia = ref(true);
 const loadingMessage = ref("");
-const showOverlay = ref(true);
 const scrubPosition = ref(0);
 const scrubFileSize = ref(0);
 const scrubPlaying = ref(false);
 const scrubSpeed = ref(1);
 let resizeDebounce: ReturnType<typeof setTimeout> | null = null;
 const fileData = ref("");
-const perimeterOnly = ref(false);
-const transparencyPercent = ref(50);
-const progressMode = ref(false);
 
 // True only while the viewer actively follows the running print head (live tracking). The Job
 // Status tab turns this on automatically; the standalone page leaves it off and renders the whole
@@ -748,6 +787,22 @@ const axisBoundsKey = computed(() => move.value.axes
 	.map((axis) => `${axis.letter}:${axis.min}:${axis.max}`)
 	.join(","));
 
+// Last resort for the extrusion width: machines with more than one nozzle size conventionally carry
+// it in the tool name ("Left 0.4", "0.8 nozzle"). Only meaningful in FFF mode, since a CNC or laser
+// tool name has no diameter to find
+const nozzleDiameterFromToolName = computed<number | null>(() => {
+	if (state.value.machineMode !== MachineMode.fff) {
+		return null;
+	}
+	for (const tool of machineStore.model.tools) {
+		const match = /0\.\d+/.exec(tool?.name ?? "");
+		if (match !== null) {
+			return Number(match[0]);
+		}
+	}
+	return null;
+});
+
 const canCancelObject = computed(() => {
 	try {
 		if (!isJobRunning.value || (job.value.build?.objects?.length ?? 0) <= 0) {
@@ -770,28 +825,55 @@ const jobSelectionLabel = computed(() => {
 // #endregion
 
 // #region Cached plugin settings
-const toolColors = computed<string[]>({
-	get: () => pluginCache.value?.toolColors ?? [],
-	set: (value) => cacheStore.setPluginData("GCodeViewer", "toolColors", value),
-});
+// Everything the sidebars expose is persisted so it survives a reload. Transient viewer state (the
+// scrubber, fullscreen, the per-file Z bounds) deliberately stays in plain refs
+const settingDefaults = new Map<string, unknown>();
 
-const useHQRendering = computed<boolean>({
-	get: () => pluginCache.value?.useHQRendering ?? false,
-	set: (value) => cacheStore.setPluginData("GCodeViewer", "useHQRendering", value),
-});
+function cachedSetting<T>(key: string, fallback: T) {
+	settingDefaults.set(key, fallback);
+	return computed<T>({
+		get: () => pluginCache.value?.[key] ?? fallback,
+		set: (value) => cacheStore.setPluginData("GCodeViewer", key, value),
+	});
+}
 
-const specular = computed<boolean>({
-	get: () => pluginCache.value?.useSpecular ?? true,
-	set: (value) => cacheStore.setPluginData("GCodeViewer", "useSpecular", value),
+const toolColors = cachedSetting<string[]>("toolColors", DEFAULT_TOOL_COLORS);
+const backgroundColor = cachedSetting("backgroundColor", "#000000FF");
+// Matches the library's own default bed line colour. Falsy rather than nullish coalescing because
+// caches written by earlier versions hold an empty string here, which is not a usable colour
+const bedColor = computed<string>({
+	get: () => pluginCache.value?.bedColor || "#0000FF",
+	set: (value) => cacheStore.setPluginData("GCodeViewer", "bedColor", value),
 });
+settingDefaults.set("bedColor", "#0000FF");
+settingDefaults.set("viewGCode", false);
+const bedRenderMode = cachedSetting("bedRenderMode", 0);
+const progressColor = cachedSetting("progressColor", "#FFFFFFFF");
+const showTravelLines = cachedSetting("showTravels", false);
+const showAxes = cachedSetting("showAxes", true);
+const showObjectLabels = cachedSetting("showObjectLabels", true);
+const showOverlay = cachedSetting("showOverlay", true);
+const cameraInertia = cachedSetting("cameraInertia", true);
+const perimeterOnly = cachedSetting("perimeterOnly", false);
+const unprintedMode = cachedSetting("unprintedMode", 1);
+const opacityPercent = cachedSetting("opacityPercent", 10);
+// Feature colouring (colorMode 2 -> library Feature mode), the colourful per-feature view
+const colorMode = cachedSetting("colorMode", 2);
+const minColorRate = cachedSetting("minColorRate", 20);
+const maxColorRate = cachedSetting("maxColorRate", 60);
+const minFeedColor = cachedSetting("minFeedColor", "#0000FF");
+const maxFeedColor = cachedSetting("maxFeedColor", "#FF0000");
 
-const g1AsExtrusion = computed<boolean>({
-	get: () => pluginCache.value?.g1AsExtrusion ?? false,
-	set: (value) => cacheStore.setPluginData("GCodeViewer", "g1AsExtrusion", value),
-});
+const useHQRendering = cachedSetting("useHQRendering", false);
 
+const specular = cachedSetting("useSpecular", true);
+
+const g1AsExtrusion = cachedSetting("g1AsExtrusion", false);
+
+// The embedded Job Status tab has its own G-code stream tab next to the viewer, so the built-in
+// code view stays exclusive to the standalone page
 const viewGCode = computed<boolean>({
-	get: () => pluginCache.value?.viewGCode ?? false,
+	get: () => !isEmbedded.value && (pluginCache.value?.viewGCode ?? false),
 	set: (value) => {
 		cacheStore.setPluginData("GCodeViewer", "viewGCode", value);
 		fileData.value = value ? loadedFileText.value : "";
@@ -799,25 +881,24 @@ const viewGCode = computed<boolean>({
 	},
 });
 
-const zBelt = computed<boolean>({
-	get: () => pluginCache.value?.zBelt ?? false,
-	set: (value) => cacheStore.setPluginData("GCodeViewer", "zBelt", value),
-});
+const zBelt = cachedSetting("zBelt", false);
 
-const zBeltAngle = computed<number>({
-	get: () => pluginCache.value?.zBeltAngle ?? 45,
-	set: (value) => cacheStore.setPluginData("GCodeViewer", "zBeltAngle", value),
-});
+const zBeltAngle = cachedSetting("zBeltAngle", 45);
 
-const showWorkplace = computed<boolean>({
-	get: () => pluginCache.value?.showWorkplace ?? true,
-	set: (value) => cacheStore.setPluginData("GCodeViewer", "showWorkplace", value),
-});
+// What the loaded file itself specified, null if it said nothing
+const parsedNozzleDiameter = ref<number | null>(null);
 
-const showCursor = computed<boolean>({
-	get: () => pluginCache.value?.showCursor ?? false,
-	set: (value) => cacheStore.setPluginData("GCodeViewer", "showCursor", value),
-});
+// 0 leaves the diameter to the file and then to the tool names
+const nozzleDiameter = cachedSetting("nozzleDiameter", 0);
+
+const showWorkplace = cachedSetting("showWorkplace", true);
+
+// Machine-agnostic on purpose: the same marker stands in for a nozzle, a spindle or a laser
+const showTool = cachedSetting("showTool", false);
+
+const persistTravels = cachedSetting("persistTravels", false);
+
+const geometryMode = cachedSetting("geometryMode", 0);
 
 // #endregion
 
@@ -854,6 +935,7 @@ function handleViewerEvent(e: any) {
 			break;
 		case "fileloaded":
 			scrubFileSize.value = e.end ?? 0;
+			parsedNozzleDiameter.value = e.nozzleDiameter ?? null;
 			// Tools + render materials are rebuilt by the load, so (re-)apply the current UI state
 			// now that they exist - doing this before the load would touch an undefined modelMaterial
 			updateTools();
@@ -873,14 +955,19 @@ function handleViewerEvent(e: any) {
 				viewer?.resetCamera();
 			}
 			loading.value = false;
+			localStorage.removeItem(RENDER_FLAG_KEY);
 			break;
 		case "loaderror":
 		case "loadcancelled":
 			loading.value = false;
+			localStorage.removeItem(RENDER_FLAG_KEY);
 			break;
 		case "printbounds":
-			minHeight.value = e.minHeight ?? 0;
-			maxHeight.value = e.maxHeight ?? 0;
+			// The bounds come off the mesh bounding box as raw floats, and the clipping sliders step
+			// relative to their minimum - without snapping to the same 0.1 grid every step would
+			// carry the minimum's fraction along with it
+			minHeight.value = Math.floor((e.minHeight ?? 0) * 10) / 10;
+			maxHeight.value = Math.ceil((e.maxHeight ?? 0) * 10) / 10;
 			sliderHeight.value = maxHeight.value;
 			sliderBottomHeight.value = minHeight.value;
 			break;
@@ -917,13 +1004,14 @@ function applyViewerConfig() {
 	setBuildVolumeFromAxes();
 	viewer.setDeltaBed(isDelta.value);
 	viewer.setBedRenderMode(bedRenderMode.value);
-	if (bedColor.value) {
-		viewer.setBedColor(bedColor.value);
-	}
+	viewer.setBedColor(bedColor.value);
 	viewer.setBackgroundColor(backgroundColor.value);
 	viewer.showAxes(showAxes.value);
 	viewer.showObjectLabels(showObjectLabels.value);
+	viewer.showWorkplace(showWorkplace.value);
+	viewer.toggleNozzle(showTool.value);
 	viewer.setCameraInertia(cameraInertia.value);
+	applyParseSettings();
 	viewer.resetCamera();
 }
 
@@ -934,13 +1022,38 @@ function applyRenderSettings() {
 		return;
 	}
 	viewer.setRenderMode(RENDER_MODE_MAP[colorMode.value] ?? 1);
-	viewer.setAlphaMode(vertexAlpha.value);
-	viewer.setProgressMode(progressMode.value);
-	viewer.setMeshMode(forceWireMode.value ? 2 : 0);
-	viewer.setTransparencyValue(transparencyPercent.value / 100);
+	viewer.setAlphaMode(unprintedMode.value === 1);
+	viewer.setProgressMode(unprintedMode.value === 2);
+	viewer.setMeshMode(geometryMode.value);
+	viewer.setTransparencyValue(opacityPercent.value / 100);
 	viewer.setProgressColor(progressColor.value);
 	viewer.setShowTravels(showTravelLines.value);
+	viewer.setPersistTravels(persistTravels.value);
+	viewer.setSpecular(specular.value);
+	applyFeedRateColoring();
 	viewer.setPerimeterOnly(perimeterOnly.value);
+}
+
+// Feed rates are shown in mm/s but the library works in mm/min like the G-code itself
+function applyFeedRateColoring() {
+	viewer?.setFeedRateRange(minColorRate.value * 60, maxColorRate.value * 60);
+	viewer?.setFeedRateColors(minFeedColor.value, maxFeedColor.value);
+}
+
+// Parse-time settings. They only take hold on the next load, so callers that change one have to
+// reload the file themselves
+function applyParseSettings() {
+	viewer?.setNozzleDiameter(nozzleDiameter.value > 0 ? nozzleDiameter.value : null, nozzleDiameterFromToolName.value);
+	viewer?.setG1AsExtrusion(g1AsExtrusion.value);
+	viewer?.setHQRendering(useHQRendering.value);
+	viewer?.setZBelt(zBelt.value, zBeltAngle.value);
+}
+
+function reloadAfterParseSettingChange() {
+	applyParseSettings();
+	if (hasGCode.value && !loading.value) {
+		reloadviewer();
+	}
 }
 
 function setBuildVolumeFromAxes() {
@@ -965,6 +1078,22 @@ function updateTools() {
 // #endregion
 
 // #region Loading
+// A tab killed while building the meshes (the classic SBC failure) leaves this breadcrumb behind,
+// and the next load drops to the cheapest geometry instead of repeating the crash. localStorage
+// rather than the plugin cache because it is written synchronously and so survives a hard crash
+const RENDER_FLAG_KEY = "gcodeViewer.renderInProgress";
+
+function renderCrashRecovery() {
+	if (localStorage.getItem(RENDER_FLAG_KEY) === "true") {
+		localStorage.removeItem(RENDER_FLAG_KEY);
+		if (geometryMode.value !== 2) {
+			geometryMode.value = 2;
+			uiStore.log(LogLevel.warning, i18n.global.t("plugins.gcodeViewer.geometry.caption"), i18n.global.t("plugins.gcodeViewer.geometry.recovered"));
+		}
+	}
+	localStorage.setItem(RENDER_FLAG_KEY, "true");
+}
+
 async function loadText(text: string) {
 	loadedFileText.value = text;
 	fileData.value = viewGCode.value ? text : "";
@@ -972,6 +1101,7 @@ async function loadText(text: string) {
 	if (!viewer) {
 		return;
 	}
+	renderCrashRecovery();
 	loading.value = true;
 	scrubPlaying.value = false;
 	scrubPosition.value = 0;
@@ -1155,8 +1285,30 @@ function updateColor(index: number, value: string) {
 	toolColors.value = next;
 }
 
+function addExtruder() {
+	// Keep following the heater colors, wrapping once the list runs out
+	toolColors.value = [...toolColors.value, TOOL_COLORS[toolColors.value.length % TOOL_COLORS.length]];
+}
+
+function removeLastExtruder() {
+	toolColors.value = toolColors.value.slice(0, -1);
+}
+
 function resetExtruderColors() {
-	toolColors.value = ["#00FFFF", "#FF00FF", "#FFFF00", "#000000", "#FFFFFF"];
+	toolColors.value = [...DEFAULT_TOOL_COLORS];
+}
+
+async function resetSettings() {
+	if (!await showConfirmDialog(i18n.global.t("plugins.gcodeViewer.resetSettings.caption"), i18n.global.t("plugins.gcodeViewer.resetSettings.prompt"), "mdi-restore")) {
+		return;
+	}
+	for (const [key, value] of settingDefaults) {
+		cacheStore.setPluginData("GCodeViewer", key, value);
+	}
+	// Written straight to the cache above, so viewGCode's own setter did not run
+	fileData.value = viewGCode.value ? loadedFileText.value : "";
+	applyViewerConfig();
+	applyRenderSettings();
 }
 
 function updateBackground(value: string) {
@@ -1337,12 +1489,13 @@ onBeforeUnmount(() => {
 watch(fullscreen, setPageScrollLock);
 watch(colorMode, (to) => viewer?.setRenderMode(RENDER_MODE_MAP[to] ?? 1));
 watch(perimeterOnly, (to) => viewer?.setPerimeterOnly(to));
-watch(progressMode, (to) => viewer?.setProgressMode(to));
-watch(vertexAlpha, (to) => viewer?.setAlphaMode(to));
-watch(transparencyPercent, (to) => viewer?.setTransparencyValue(to / 100));
+watch(unprintedMode, (to) => {
+	viewer?.setAlphaMode(to === 1);
+	viewer?.setProgressMode(to === 2);
+});
+watch(opacityPercent, (to) => viewer?.setTransparencyValue(to / 100));
 watch(scrubSpeed, (to) => viewer?.setAnimationSpeed(to));
 watch(showTravelLines, (to) => viewer?.setShowTravels(to));
-watch(forceWireMode, (to) => viewer?.setMeshMode(to ? 2 : 0));
 watch(cameraInertia, (to) => viewer?.setCameraInertia(to));
 watch(followingJob, (to) => viewer?.setAllowSeek(!to));
 
@@ -1362,6 +1515,25 @@ watch(sliderBottomHeight, (newValue) => {
 		sliderHeight.value = newValue + 1;
 	}
 	applyZClip();
+});
+watch(geometryMode, (to) => viewer?.setMeshMode(to));
+watch(colorMode, (to) => {
+	openRenderModePanel.value = RENDER_MODE_PANELS[to];
+});
+watch(persistTravels, (to) => viewer?.setPersistTravels(to));
+watch(specular, (to) => viewer?.setSpecular(to));
+watch(showWorkplace, (to) => viewer?.showWorkplace(to));
+watch(showTool, (to) => viewer?.toggleNozzle(to));
+watch([minColorRate, maxColorRate, minFeedColor, maxFeedColor], () => applyFeedRateColoring());
+// Parse-time settings: nothing changes until the file has been read again
+watch([g1AsExtrusion, useHQRendering, zBelt, zBeltAngle, nozzleDiameter], () => reloadAfterParseSettingChange());
+
+// The tool name is the last resort, so renaming a tool only forces a reparse when neither the
+// manual override nor the file itself supplied a diameter
+watch(nozzleDiameterFromToolName, () => {
+	if (useHQRendering.value && nozzleDiameter.value <= 0 && parsedNozzleDiameter.value === null) {
+		reloadAfterParseSettingChange();
+	}
 });
 watch(bedRenderMode, (to) => viewer?.setBedRenderMode(to));
 watch(showAxes, (to) => viewer?.showAxes(to));
@@ -1392,6 +1564,25 @@ watch(() => job.value.build?.objects, (newValue) => {
 		viewer.loadObjectBoundaries(plainObjects(newValue));
 	}
 }, { deep: true });
+
+// The printer's own axis positions are authoritative for the tool marker - the parsed file only
+// knows where the head should be, and while following a live job we want where it actually is
+const toolPosition = computed(() => {
+	const position = { x: 0, y: 0, z: 0 };
+	for (const axis of move.value.axes) {
+		const letter = axis.letter.toLowerCase();
+		if (letter === "x" || letter === "y" || letter === "z") {
+			position[letter] = axis.userPosition ?? 0;
+		}
+	}
+	return position;
+});
+
+watch(toolPosition, (to) => {
+	if (showTool.value && followingJob.value) {
+		viewer?.setNozzlePosition(to.x, to.y, to.z, false);
+	}
+});
 
 // Live job following: mirror the print head's file position into the viewer while tracking is on
 watch(filePosition, (newValue) => {

@@ -1429,17 +1429,13 @@
 			"fullscreen": "Vollbild",
 			"viewActions": {
 				"caption": "Ansicht",
-				"title": "Kamera zurücksetzen, neu laden und Anzeigeeinstellungen"
+				"title": "Kamera zurücksetzen, Datei laden und Anzeigeoptionen"
 			},
 			"resetCamera": {
 				"caption": "Kamera zurücksetzen",
 				"title": "Kamera auf Ursprungsposition zurücksetzen"
 			},
 			"cancelLoad": "Laden abbrechen",
-			"reloadView": {
-				"caption": "Ansicht neu laden",
-				"title": "Aktuellen G-Code neu laden, muss benutzt werden wenn Einstellungen wie Farbe, Vorschubrate usw. geändert worden sind"
-			},
 			"loadCurrentJob": {
 				"caption": "Live-Fortschritt verfolgen",
 				"title": "Aktuellen Druck- oder Simulationsauftrag laden und den Fortschritt live verfolgen"
@@ -1456,27 +1452,16 @@
 				"caption": "Lokalen G-Code laden",
 				"title": "Eine Datei vom lokalen Laufwerk in die Ansicht laden"
 			},
-			"showCursor": "Cursor anzeigen",
 			"showTravels": "Reisen anzeigen",
-			"renderQuality": {
-				"caption": "Darstellungsqualität",
-				"title": "Darstellungsqualität der Ansicht anpassen. Je höher die Stufe desto mehr Details werden angezeigt"
-			},
-			"sbc": "SBC",
-			"low": "Niedrig",
-			"medium": "Mittel",
-			"high": "Hoch",
-			"ultra": "Ultra",
-			"max": "Max",
 			"useHQRendering": "HQ-Rendering (rund)",
 			"useSpecular": "Spiegelndes Highlighting",
 			"feature": "Feature",
 			"g1AsExtrusion": "G1 darstellen (CNC)",
-			"forceLineRendering": "Liniendarstellung erzwingen",
-			"transparency": "Transparenz",
 			"extruders": {
 				"caption": "Extruder",
-				"title": "Setzt die Farbe, die zur Darstellung eines Extruders genutzt wird"
+				"title": "Setzt die Farbe, die zur Darstellung eines Extruders genutzt wird",
+				"add": "Hinzufügen",
+				"removeLast": "Letztes entfernen"
 			},
 			"tool": "Werkzeug {0}",
 			"resetColor": "Werkzeugfarbe zurücksetzen | Werkzeugfarben zurücksetzen",
@@ -1490,15 +1475,11 @@
 			"maxFeedrate": "Maximale Vorschubrate (mm/s)",
 			"minFeedrateColor": "Farbe für kleinste Vorschubrate",
 			"maxFeedrateColor": "Farbe für größte Vorschubrate",
-			"progress": {
-				"caption": "Fortschritt",
-				"title": "Farbe zur Nachverfolgung des Fortschritts"
-			},
 			"topClipping": "Oberes Clipping",
 			"bottomClipping": "Unteres Clipping",
 			"progressColor": "Farbe für Fortschritt",
 			"settings": "Einstellungen",
-			"background": "Hintergrund",
+			"background": "Hintergrundfarbe",
 			"bedRenderMode": "Bettdarstellungsmodus",
 			"bed": "Bett",
 			"volume": "Volumen",
@@ -1515,11 +1496,48 @@
 			"showWorkplace": "Arbeitsfläche anzeigen",
 			"zBelt": "Z-Riemen",
 			"zBeltAngle": "Winkel des Z-Riemens",
-			"progressMode": "Fortschrittsmodus",
 			"perimeterOnly": "Nur Ränder",
 			"cancelObj": "Objekt abbrechen",
 			"resumeObj": "Objekt fortsetzen",
-			"persistTravels": "Persistenzreisen"
+			"persistTravels": "Persistenzreisen",
+			"showTool": "Werkzeug anzeigen",
+			"useHQRenderingHint": "Verwendet den echten Werkzeugdurchmesser und die beim Einlesen gemessene Schichthöhe anstelle fester Vorgaben. Erfordert ein erneutes Laden der Datei",
+			"g1AsExtrusionHint": "Behandelt G1 ohne Extrusionsparameter als Schnitt, für CNC- und Laserjobs. Erfordert ein erneutes Laden der Datei",
+			"showWorkplaceHint": "Zeigt einen Ursprungsmarker für jedes Werkstückkoordinatensystem, das die Datei mit G10 L2 oder G10 L20 setzt",
+			"zBeltHint": "Interpretiert die Datei für einen Banddrucker mit geneigtem Portal. Erfordert ein erneutes Laden der Datei",
+			"zBeltAngleHint": "Winkel zwischen Portal und Band. Erfordert ein erneutes Laden der Datei",
+			"nozzleDiameter": "Düsendurchmesser",
+			"nozzleDiameterAuto": "Automatisch",
+			"nozzleDiameterHint": "Extrusionsbreite für die hohe Renderqualität. Leer oder 0 verwendet den Wert aus der Datei und ersatzweise den Durchmesser aus dem Werkzeugnamen. Erfordert ein erneutes Laden der Datei",
+			"geometry": {
+				"caption": "Geometrie",
+				"title": "Geometrie der Extrusionen. Linien sind am schnellsten, Zylinder am detailliertesten",
+				"line": "Linien",
+				"normal": "Quader",
+				"high": "Zylinder",
+				"recovered": "Die letzte Darstellung wurde nicht beendet, daher wurde die Geometrie auf Linien reduziert"
+			},
+			"opacity": "Deckkraft",
+			"colors": "Farben",
+			"quality": "Qualität",
+			"inspection": "Inspektion",
+			"play": "Abspielen",
+			"stop": "Anhalten",
+			"fastForward": "Vorspulen",
+			"gridColor": "Gitterfarbe",
+			"borderColor": "Rahmenfarbe",
+			"resetSettings": {
+				"caption": "Einstellungen zurücksetzen",
+				"title": "Setzt alle Einstellungen des G-Code-Viewers auf die Standardwerte zurück",
+				"prompt": "Möchten Sie wirklich alle Einstellungen des G-Code-Viewers zurücksetzen?"
+			},
+			"unprinted": {
+				"caption": "Ungedruckter Bereich",
+				"title": "Legt fest, wie der noch nicht gedruckte Teil der Datei dargestellt wird",
+				"hidden": "Ausgeblendet",
+				"original": "Originalfarben",
+				"progress": "Fortschrittsfarbe"
+			}
 		}
 	},
 	"pluginPermissions": {

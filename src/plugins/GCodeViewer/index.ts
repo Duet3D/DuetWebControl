@@ -4,6 +4,7 @@ import { useCacheStore } from "@/stores/cache";
 import { ContextMenuType } from "@/stores/ui";
 
 import GCodeViewer from "./GCodeViewer.vue";
+import { DEFAULT_TOOL_COLORS } from "./settings";
 
 registerRoute(GCodeViewer, {
 	Job: {
@@ -40,7 +41,7 @@ registerPluginContextMenuItem(
 );
 
 const cacheStore = useCacheStore();
-cacheStore.registerPluginData("GCodeViewer", "toolColors", ["#00FFFF", "#FF00FF", "#FFFF00", "#000000", "#FFFFFF"]);
+cacheStore.registerPluginData("GCodeViewer", "toolColors", DEFAULT_TOOL_COLORS);
 cacheStore.registerPluginData("GCodeViewer", "useHQRendering", false);
 cacheStore.registerPluginData("GCodeViewer", "useSpecular", true);
 cacheStore.registerPluginData("GCodeViewer", "g1AsExtrusion", false);
@@ -48,4 +49,24 @@ cacheStore.registerPluginData("GCodeViewer", "viewGCode", false);
 cacheStore.registerPluginData("GCodeViewer", "zBelt", false);
 cacheStore.registerPluginData("GCodeViewer", "zBeltAngle", 45);
 cacheStore.registerPluginData("GCodeViewer", "showWorkplace", true);
-cacheStore.registerPluginData("GCodeViewer", "showCursor", false);
+cacheStore.registerPluginData("GCodeViewer", "showTool", false);
+cacheStore.registerPluginData("GCodeViewer", "persistTravels", false);
+cacheStore.registerPluginData("GCodeViewer", "geometryMode", 0);
+cacheStore.registerPluginData("GCodeViewer", "nozzleDiameter", 0);
+cacheStore.registerPluginData("GCodeViewer", "backgroundColor", "#000000FF");
+cacheStore.registerPluginData("GCodeViewer", "bedColor", "#0000FF");
+cacheStore.registerPluginData("GCodeViewer", "bedRenderMode", 0);
+cacheStore.registerPluginData("GCodeViewer", "progressColor", "#FFFFFFFF");
+cacheStore.registerPluginData("GCodeViewer", "showTravels", false);
+cacheStore.registerPluginData("GCodeViewer", "showAxes", true);
+cacheStore.registerPluginData("GCodeViewer", "showObjectLabels", true);
+cacheStore.registerPluginData("GCodeViewer", "showOverlay", true);
+cacheStore.registerPluginData("GCodeViewer", "cameraInertia", true);
+cacheStore.registerPluginData("GCodeViewer", "perimeterOnly", false);
+cacheStore.registerPluginData("GCodeViewer", "unprintedMode", 1);
+cacheStore.registerPluginData("GCodeViewer", "opacityPercent", 10);
+cacheStore.registerPluginData("GCodeViewer", "colorMode", 2);
+cacheStore.registerPluginData("GCodeViewer", "minColorRate", 20);
+cacheStore.registerPluginData("GCodeViewer", "maxColorRate", 60);
+cacheStore.registerPluginData("GCodeViewer", "minFeedColor", "#0000FF");
+cacheStore.registerPluginData("GCodeViewer", "maxFeedColor", "#FF0000");

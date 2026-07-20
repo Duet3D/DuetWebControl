@@ -1,6 +1,7 @@
 <style>
-.cm-activeLine {
-	background-color: #333 !important;
+.gcode-exec-line {
+	background-color: rgba(255, 213, 79, 0.22);
+	box-shadow: inset 3px 0 0 0 #ffb300;
 }
 </style>
 
@@ -39,6 +40,9 @@ const monacoLoading = ref(false);
 let editor: Monaco.editor.IStandaloneCodeEditor | null = null;
 let innerDocument = " ";
 
+// Whole-line decoration marking the line currently being executed
+let executionLine: Monaco.editor.IEditorDecorationsCollection | null = null;
+
 function cursorChange() {
 	if (props.isSimulating || !editor) {
 		return;
@@ -49,6 +53,31 @@ function cursorChange() {
 		column: 9999,
 	}) ?? 0;
 	emit("changed", position);
+}
+
+/** Highlight the line currently being executed and keep it in view */
+function followPosition() {
+	if (!props.shown || !editor) {
+		return;
+	}
+	const model = editor.getModel();
+	if (!model) {
+		return;
+	}
+	const target = model.getPositionAt(props.currentline);
+
+	executionLine?.set([{
+		range: { startLineNumber: target.lineNumber, startColumn: 1, endLineNumber: target.lineNumber, endColumn: 1 },
+		options: { isWholeLine: true, className: "gcode-exec-line" },
+	}]);
+
+	const current = editor.getPosition() ?? { lineNumber: 1, column: 1 };
+	if (current.lineNumber === target.lineNumber) {
+		return;
+	}
+	const direction = Math.sign(target.lineNumber - current.lineNumber);
+	editor.setPosition({ lineNumber: target.lineNumber, column: 9999 });
+	editor.revealLine(target.lineNumber + 5 * direction);
 }
 
 onMounted(async () => {
@@ -70,34 +99,25 @@ onMounted(async () => {
 			matchBrackets: "never",
 			minimap: { enabled: false },
 		});
+		executionLine = editor.createDecorationsCollection();
 		editor.focus();
+		followPosition();
 	});
 });
 
 onBeforeUnmount(() => {
 	editor?.dispose();
 	editor = null;
+	executionLine = null;
 });
 
-watch(() => props.currentline, (to) => {
-	if (!props.shown || !editor) {
-		return;
-	}
-	const currentPosition = editor.getPosition() ?? { lineNumber: 1, column: 9999 };
-	const position = editor.getModel()?.getPositionAt(to) ?? { lineNumber: 1, column: 9999 };
-	if (currentPosition.lineNumber === position.lineNumber && currentPosition.column === position.column) {
-		return;
-	}
-	const direction = Math.sign(position.lineNumber - currentPosition.lineNumber);
-	const newpos = { lineNumber: position.lineNumber, column: 9999 };
-	editor.setPosition(newpos);
-	editor.revealLine(newpos.lineNumber + 5 * direction);
-});
+watch(() => props.currentline, followPosition);
 
 watch(() => props.document, (to) => {
 	innerDocument = to;
 	if (editor) {
 		editor.setValue(innerDocument);
+		followPosition();
 	}
 });
 </script>

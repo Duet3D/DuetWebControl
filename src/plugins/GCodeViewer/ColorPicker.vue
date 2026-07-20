@@ -44,24 +44,26 @@ const swatchStyle = computed(() => ({
 	transition: "border-radius 200ms ease-in-out",
 }));
 
+// Values arriving from a setting may be empty or too short; without this the swatch renders blank
+// until the field is focused and blurred, which is what used to "fix" it
+function normalizeColor(value: string): string {
+	const next = value.startsWith("#") ? value : `#${value}`;
+	return next.toUpperCase().padEnd(7, "0").substring(0, 7);
+}
+
 function updateValue(val: string) {
-	let next = val;
-	if (!next.startsWith("#")) {
-		next = "#" + next;
-	}
-	next = next.toUpperCase().padEnd(7, "0").substring(0, 7);
+	const next = normalizeColor(val);
 	color.value = next;
 	internalTextColor.value = next;
 	emit("updatecolor", next);
 }
 
-onMounted(() => {
-	color.value = props.editcolor;
-	internalTextColor.value = props.editcolor;
-});
+function applyEditColor(value: string) {
+	color.value = normalizeColor(value);
+	internalTextColor.value = color.value;
+}
 
-watch(() => props.editcolor, (newVal) => {
-	color.value = newVal;
-	internalTextColor.value = newVal;
-});
+onMounted(() => applyEditColor(props.editcolor));
+
+watch(() => props.editcolor, (newVal) => applyEditColor(newVal));
 </script>

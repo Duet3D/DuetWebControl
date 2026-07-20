@@ -1431,17 +1431,13 @@
 			"fullscreen": "Full Screen",
 			"viewActions": {
 				"caption": "View",
-				"title": "Reset camera, reload, and display toggles"
+				"title": "Reset camera, load files, and display toggles"
 			},
 			"resetCamera": {
 				"caption": "Reset Camera",
 				"title": "Reset camera to home position"
 			},
 			"cancelLoad": "Cancel File Loading",
-			"reloadView": {
-				"caption": "Reload View",
-				"title": "Reload the current gcode, this is used when changing settings like color, feedrate color, etc."
-			},
 			"loadCurrentJob": {
 				"caption": "Follow Live Progress",
 				"title": "Load the current printing or simulating job and follow its live progress"
@@ -1458,23 +1454,12 @@
 				"caption": "Load Local GCode",
 				"title": "Load a file from your local drive into the viewer"
 			},
-			"showCursor": "Show Cursor",
 			"showTravels": "Show Travels",
-			"renderQuality": {
-				"caption": "Render Quality",
-				"title": "Adjust the visualization quality of the viewer. The higher the level the more vertices and render modes become available"
-			},
-			"sbc": "SBC",
-			"low": "Low",
-			"medium": "Medium",
-			"high": "High",
-			"ultra": "Ultra",
-			"max": "Max",
-			"forceLineRendering": "Force Line Rendering",
-			"transparency": "Transparency",
 			"extruders": {
 				"caption": "Extruders",
-				"title": "Sets the color used for rendering an extruder"
+				"title": "Sets the color used for rendering an extruder",
+				"add": "Add",
+				"removeLast": "Remove Last"
 			},
 			"tool": "Tool {0}",
 			"resetColor": "Reset Tool Color | Reset Tool Colors",
@@ -1488,15 +1473,11 @@
 			"maxFeedrate": "Maximum Feedrate (mm/s)",
 			"minFeedrateColor": "Minimum Feedrate Color",
 			"maxFeedrateColor": "Maximum Feedrate Color",
-			"progress": {
-				"caption": "Progress",
-				"title": "Set the printed color for progress tracking"
-			},
 			"topClipping": "Top Clipping",
 			"bottomClipping": "Bottom Clipping",
 			"progressColor": "Progress Color",
 			"settings": "Settings",
-			"background": "Background",
+			"background": "Background Color",
 			"bedRenderMode": "Bed Render Mode",
 			"bed": "Bed",
 			"volume": "Volume",
@@ -1518,10 +1499,47 @@
 			"zBeltAngle": "Z Belt Gantry Angle",
 			"showWorkplace": "Show Workplace",
 			"perimeterOnly": "Perimeter Only",
-			"progressMode": "Progress Mode",
 			"cancelObj": "Cancel Object",
 			"resumeObj": "Resume Object",
-			"persistTravels": "Persist Travels"
+			"persistTravels": "Persist Travels",
+			"showTool": "Show Tool",
+			"useHQRenderingHint": "Use the real tool diameter and the layer height measured while parsing instead of fixed defaults. Requires the file to be reloaded",
+			"g1AsExtrusionHint": "Treat G1 without an extrusion parameter as cutting, for CNC and laser jobs. Requires the file to be reloaded",
+			"showWorkplaceHint": "Show an origin marker for every workplace the file shifts into with G10 L2 or G10 L20",
+			"zBeltHint": "Interpret the file for a belt printer with an angled gantry. Requires the file to be reloaded",
+			"zBeltAngleHint": "Angle between the gantry and the belt. Requires the file to be reloaded",
+			"nozzleDiameter": "Nozzle Diameter",
+			"nozzleDiameterAuto": "Automatic",
+			"nozzleDiameterHint": "Extrusion width used for high quality rendering. Empty or 0 uses the value from the file, falling back to the diameter in the tool name. Requires the file to be reloaded",
+			"geometry": {
+				"caption": "Geometry",
+				"title": "Geometry used for the extrusions. Lines are the fastest, cylinders the most detailed",
+				"line": "Lines",
+				"normal": "Boxes",
+				"high": "Cylinders",
+				"recovered": "The last render did not finish, so the geometry has been reduced to lines"
+			},
+			"opacity": "Opacity",
+			"colors": "Colors",
+			"quality": "Quality",
+			"inspection": "Inspection",
+			"play": "Play",
+			"stop": "Stop",
+			"fastForward": "Fast Forward",
+			"gridColor": "Grid Color",
+			"borderColor": "Border Color",
+			"resetSettings": {
+				"caption": "Reset Settings",
+				"title": "Reset every G-code viewer setting to its default",
+				"prompt": "Do you really want to reset all G-code viewer settings?"
+			},
+			"unprinted": {
+				"caption": "Unprinted Part",
+				"title": "How the part of the file that has not been printed yet is displayed",
+				"hidden": "Hidden",
+				"original": "Original Colors",
+				"progress": "Progress Color"
+			}
 		}
 	},
 	"pluginPermissions": {
