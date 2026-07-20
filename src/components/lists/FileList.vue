@@ -1544,7 +1544,7 @@ const canRunAsMacro = computed(() => {
 	if (!target || target.isDirectory) {
 		return false;
 	}
-	if (!Path.startsWith(browser.directory.value, machineStore.model.directories.system)) {
+	if (!Path.isSystemPath(browser.directory.value, machineStore.model.directories.system)) {
 		return false;
 	}
 	return RUN_MACRO_FILE_RE.test(target.name);
@@ -1557,7 +1557,7 @@ function isConfigToolEligible(item: FileBrowserItem): boolean {
 	if (item.isDirectory || item.name !== "config.json") {
 		return false;
 	}
-	return browser.directory.value === machineStore.model.directories.system;
+	return Path.isSystemPath(browser.directory.value, machineStore.model.directories.system);
 }
 
 async function openInConfigTool() {

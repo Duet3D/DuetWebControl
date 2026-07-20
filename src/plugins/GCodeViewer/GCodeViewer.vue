@@ -1214,9 +1214,19 @@ onMounted(async () => {
 });
 
 onActivated(() => {
+	viewer?.suspend(false);
 	if (initialLoadDone) {
 		loadFromRoute();
+		// The kept-alive subtree was detached from the DOM, so the canvas missed any layout changes
+		// that happened while another page was shown; re-measure once it is back in the document
+		nextTick(() => {
+			applyContainerHeight();
+			pokeViewerResize();
+		});
 	}
+});
+onDeactivated(() => {
+	viewer?.suspend(true);
 });
 watch(sdPathFromRoute, loadFromRoute);
 

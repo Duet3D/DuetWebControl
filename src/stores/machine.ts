@@ -1,4 +1,4 @@
-import { BaseConnector, CancellationToken, CodeBufferError, connect, DisconnectedError, FileListItem, FileNotFoundError, InvalidPasswordError, OnProgressCallback, OperationFailedError, PollConnector, RestConnector } from "@duet3d/connectors";
+import { BaseConnector, CancellationToken, CodeBufferError, connect, DisconnectedError, FileListItem, FileNotFoundError, InvalidPasswordError, NetworkError, OnProgressCallback, OperationFailedError, PollConnector, RestConnector } from "@duet3d/connectors";
 import ObjectModel, { CodeChannel, GCodeFileInfo, initObject, MachineStatus, MessageType, Plugin } from "@duet3d/objectmodel";
 import type JSZip from "jszip";
 import { defineStore } from "pinia";
@@ -122,6 +122,22 @@ export const useMachineStore = defineStore("machine", {
 		 * Indicates if DWC is attempting to establish the connection to the machine agian
 		 */
 		isReconnecting: false,
+
+		/**
+		 * Set while the machine reports an update in progress and deliberately kept across the connection
+		 * loss that the update causes. The object model is reset when the connection drops and reconnect()
+		 * overwrites the status with disconnected, so state.status cannot tell an update apart from an
+		 * ordinary disconnect once the socket is gone
+		 */
+		updateInProgress: false,
+
+		/**
+		 * Set when the reconnect currently under way was caused by an update, and cleared by whoever
+		 * reports the outcome. The connector applies the new object model before it signals the
+		 * reconnection, so by then the machine already reports a regular status again and only this
+		 * flag still knows what the connection loss was about
+		 */
+		reconnectingAfterUpdate: false,
 
 		/**
 		 * Reload DWC once the connection is back up. Armed during a firmware update that also refreshes
@@ -415,6 +431,8 @@ export const useMachineStore = defineStore("machine", {
 			}
 
 			this.connector = null;
+			this.updateInProgress = false;
+			this.reconnectingAfterUpdate = false;
 			this.model = initObject(ObjectModel, DefaultObjectModel);
 			this.model.network.hostname = hostname;
 			this.model.network.name = `(${hostname})`;
@@ -445,6 +463,7 @@ export const useMachineStore = defineStore("machine", {
 			} else if (!this.isReconnecting && (this.model.state.status === MachineStatus.halted || this.model.state.status === MachineStatus.updating)) {
 				// Reconnect instantly on emergency stop / firmware update - the connection comes
 				// back as soon as the board finishes rebooting
+				useUiStore().log(LogLevel.info, i18n.global.t("event.reconnecting", [this.connector.hostname]));
 				await this.reconnect();
 			} else if (this.isReconnecting) {
 				// Reconnect attempt failed, try again shortly. The board often needs a few seconds
@@ -466,16 +485,22 @@ export const useMachineStore = defineStore("machine", {
 				throw new OperationFailedError("reconnect is not available in default machine module");
 			}
 
-			// Update the object model
+			// Update the object model. An update deliberately keeps its status: the connection loss is
+			// caused by the update itself, so reporting it as disconnected would hide what is going on
 			if (!this.isReconnecting) {
+				const updating = this.model.state.status === MachineStatus.updating;
 				this.updateModel({
 					global: null,
 					state: {
 						startupError: null,
-						status: MachineStatus.disconnected,
-					}
+						status: updating ? MachineStatus.updating : MachineStatus.disconnected,
+					},
+					// The last reported percentage is frozen at whatever arrived before the socket went
+					// down, so drop it to let the progress bar fall back to indeterminate
+					...((updating && this.model.sbc?.upgrade != null) ? { sbc: { upgrade: { progress: null } } } : {})
 				});
 				this.isReconnecting = true;
+				this.reconnectingAfterUpdate = updating;
 			}
 
 			// Try to reconnect
@@ -622,11 +647,12 @@ export const useMachineStore = defineStore("machine", {
 					const item = fileTransfers[i]; const filename = item.filename; const content = item.content; const startTime = new Date();
 					try {
 						// Check if config.g needs to be backed up
-						const configFile = Path.combine(this.model.directories.system, Path.configFile);
-						if (Path.equals(filename, configFile)) {
-							const configFileBackup = Path.combine(this.model.directories.system, Path.configBackupFile);
+						if (Path.isConfigFile(filename, this.model.directories.system)) {
+							// Back up next to the file being replaced, which is not necessarily the
+							// configured system directory now that the default one counts as well
+							const configFileBackup = Path.combine(Path.extractDirectory(filename), Path.configBackupFile);
 							try {
-								await this.connector.move(configFile, configFileBackup, true);
+								await this.connector.move(filename, configFileBackup, true);
 							} catch (e) {
 								if (!(e instanceof OperationFailedError) && !(e instanceof FileNotFoundError)) {
 									// config.g may not exist, so suppress errors if necessary
@@ -1037,6 +1063,12 @@ export const useMachineStore = defineStore("machine", {
 					await this.connector.installSystemPackage(filename, packageData, cancellationToken, onProgress);
 					uiStore.makeNotification(LogLevel.success, i18n.global.t("notification.systemPackageInstall.success", [filename]));
 				} catch (e) {
+					// A DSF bundle restarts the very services serving this request, so losing the
+					// connection is the expected outcome and not an error. The install carries on
+					// regardless and its result becomes visible again once the backend is back
+					if (e instanceof NetworkError) {
+						return;
+					}
 					uiStore.makeNotification(LogLevel.error, i18n.global.t("notification.systemPackageInstall.error", [filename]), getErrorMessage(e));
 					throw e
 				}
@@ -1164,8 +1196,19 @@ export const useMachineStore = defineStore("machine", {
 			}
 
 			// Has the firmware halted?
-			if (lastStatus !== this.model.state.status && this.model.state.status === MachineStatus.halted) {
-				useUiStore().log(LogLevel.warning, i18n.global.t("event.emergencyStop"), undefined);
+			if (lastStatus !== this.model.state.status) {
+				if (this.model.state.status === MachineStatus.halted) {
+					useUiStore().log(LogLevel.warning, i18n.global.t("event.emergencyStop"), undefined);
+				} else if (this.model.state.status === MachineStatus.updating) {
+					this.updateInProgress = true;
+					useUiStore().log(LogLevel.info, i18n.global.t("event.updateStarted"));
+				} else if (this.updateInProgress && this.model.state.status !== MachineStatus.disconnected) {
+					// Only a status reported by the machine ends an update; reconnect() writes disconnected itself
+					this.updateInProgress = false;
+					if (!this.reconnectingAfterUpdate) {
+						useUiStore().log(LogLevel.success, i18n.global.t("event.updateFinished"));
+					}
+				}
 			}
 		}
 	}

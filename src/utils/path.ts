@@ -262,6 +262,25 @@ export function pretty(path: string | null | undefined): string {
 }
 
 /**
+ * Check if a path lies in the machine's system directory. Machines may point directories.system
+ * somewhere else, but the default location keeps its meaning when they do, so both count
+ * @param path Path to check
+ * @param systemDirectory System directory reported by the machine
+ */
+export function isSystemPath(path: string, systemDirectory: string) {
+	return startsWith(path, systemDirectory) || startsWith(path, pathObj.system);
+}
+
+/**
+ * Check if a path refers to config.g in either the machine's or the default system directory
+ * @param path Path to check
+ * @param systemDirectory System directory reported by the machine
+ */
+export function isConfigFile(path: string, systemDirectory: string) {
+	return equals(path, combine(systemDirectory, pathObj.configFile)) || equals(path, combine(pathObj.system, pathObj.configFile));
+}
+
+/**
  * Enumeration of default directories and files.
  * It exposes the functions above as well
  */
@@ -304,8 +323,10 @@ const pathObj = {
 	startsWith,
 	volumeRoot,
 
+	isConfigFile,
 	isGCodePath,
 	isSdPath,
+	isSystemPath,
 	pretty,
 	stripMacroFilename,
 }

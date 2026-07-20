@@ -553,7 +553,9 @@ export default class HeightMapViewer {
 		}
 
 		if (this.scene) {
-			this.bedMesh!.dispose(false, true);
+			// dispose() may run before buildBed() when the panel is deactivated mid-init, so the
+			// bed mesh is not guaranteed to exist yet
+			this.bedMesh?.dispose(false, true);
 			this.scene.dispose();
 		}
 

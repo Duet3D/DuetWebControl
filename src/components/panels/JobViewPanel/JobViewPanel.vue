@@ -7,14 +7,17 @@
 <template>
 	<PanelCard v-model:active-title="activeIndex" :titles="titles"
 			   class="d-flex flex-column flex-grow-1">
-		<JobPreview v-if="activeKey === 'preview'" :settings="previewSettings" />
-		<JobLayerChart v-else-if="activeKey === 'layerChart'" :settings="layerSettings" />
-		<JobGCodeStream v-else-if="activeKey === 'gcodeStream'" />
-		<!-- Plugin tabs (e.g. the G-code viewer) fill the remaining panel height; their own
-			 height: 100% / flex roots size against this box -->
-		<div v-else-if="activePluginComponent" class="plugin-tab-content flex-grow-1 d-flex flex-column">
-			<component :is="activePluginComponent" />
-		</div>
+		<!-- KeepAlive keeps switched-away tabs mounted so the G-code viewer suspends its render
+			 loop instead of being destroyed and reloading the job on every tab change. KeepAlive
+			 only caches component children, so the plugin tab carries its layout classes directly
+			 (they fall through to the plugin's root element) rather than sitting in a wrapper div -->
+		<KeepAlive>
+			<JobPreview v-if="activeKey === 'preview'" :settings="previewSettings" />
+			<JobLayerChart v-else-if="activeKey === 'layerChart'" :settings="layerSettings" />
+			<JobGCodeStream v-else-if="activeKey === 'gcodeStream'" />
+			<component :is="activePluginComponent" v-else-if="activePluginComponent"
+					   class="plugin-tab-content flex-grow-1 d-flex flex-column" />
+		</KeepAlive>
 
 		<template #title-append>
 			<v-menu v-if="settingsStore.enablePanelEditing" location="bottom end" :close-on-content-click="false">

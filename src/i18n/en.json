@@ -224,6 +224,8 @@
 		"connectError": "Failed to connect to {0}",
 		"connected": "Connected to {0}",
 		"connectionLost": "Failed to maintain connection to {0}",
+		"updateStarted": "Update started, the connection may be interrupted",
+		"updateFinished": "Update finished",
 		"emergencyStop": "Emergency stop, attemping to reconnect...",
 		"reconnecting": "Connection interrupted, attempting to reconnect...",
 		"reconnected": "Connection established",
@@ -295,6 +297,10 @@
 				"success": "Upload of {0} successful after {1}",
 				"error": "Failed to upload {0}"
 			},
+			"systemPackageInstall": {
+				"title": "Installing file {0}",
+				"message": "Please stand by while the file is being installed..."
+			},
 			"index": {
 				"title": "Determining files in {0}...",
 				"message": "Please stand by while the file list is being prepared..."
@@ -330,8 +336,6 @@
 			"errorSubDirectories": "The filament {0} contains sub-directories. Please delete them manually and try again."
 		},
 		"systemPackageInstall": {
-			"title": "Installing file {0}",
-			"message": "Please stand by while the file is being installed...",
 			"success": "Installation of {0} successful",
 			"error": "Failed to install {0}"
 		},

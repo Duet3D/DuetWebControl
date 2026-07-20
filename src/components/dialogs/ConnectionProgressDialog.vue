@@ -6,8 +6,7 @@
 			</v-card-title>
 
 			<v-card-text>
-				<v-progress-linear :indeterminate="machineStore.connectingProgress < 0"
-								   :model-value="Math.max(0, machineStore.connectingProgress)"
+				<v-progress-linear :indeterminate="progressIndeterminate" :model-value="progressValue"
 								   color="white" class="mb-0" />
 
 				<div v-if="displayReset && machineStore.isConnected" class="d-flex">
@@ -31,6 +30,10 @@
 						<v-icon size="small" class="mr-1" :icon="getBoardIcon(0)" />
 						{{ getBoardName(0) }}
 					</span>
+				</div>
+
+				<div v-else-if="upgrade !== null && upgrade.message" class="mt-3">
+					{{ upgrade.message }}
 				</div>
 			</v-card-text>
 		</v-card>
@@ -77,6 +80,14 @@ const message = computed(() => {
 });
 
 const isUpdating = computed(() => machineStore.model.state.status === MachineStatus.updating && machineStore.boardsBeingUpdated.length > 0);
+
+// Progress of a software upgrade on the SBC (see M997 S2), only reported in SBC mode
+
+const upgrade = computed(() => (machineStore.model.state.status === MachineStatus.updating) ? (machineStore.model.sbc?.upgrade ?? null) : null);
+
+const progressIndeterminate = computed(() => (upgrade.value !== null) ? (upgrade.value.progress === null) : (machineStore.connectingProgress < 0));
+
+const progressValue = computed(() => (upgrade.value?.progress != null) ? upgrade.value.progress * 100 : Math.max(0, machineStore.connectingProgress));
 
 // Display of boards being updated
 

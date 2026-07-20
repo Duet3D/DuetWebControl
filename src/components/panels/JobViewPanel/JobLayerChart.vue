@@ -109,6 +109,9 @@ onMounted(() => {
 			// replay its entry animation every time, and every new layer would animate in
 			animation: false,
 			elements: { line: { tension: 0 } },
+			// "nearest along the x-axis, don't require hovering the point itself" - lets the
+			// tooltip trigger anywhere over the chart at a given layer
+			interaction: { mode: "index", intersect: false },
 			plugins: {
 				legend: { display: false },
 				tooltip: {

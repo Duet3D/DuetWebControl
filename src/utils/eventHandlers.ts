@@ -1,5 +1,6 @@
 import { InvalidPasswordError, OperationCancelledError } from "@duet3d/connectors";
 import i18n from "@/i18n";
+import { useMachineStore } from "@/stores/machine";
 import { LogLevel, useUiStore } from "@/stores/ui";
 
 import { displayTime } from "./display";
@@ -41,7 +42,19 @@ Events.on("connectionError", ({ hostname, error }) => {
 Events.on("reconnected", () => {
 	const uiStore = useUiStore();
 	uiStore.closeNotifications(true);
-	uiStore.log(LogLevel.success, i18n.global.t("event.reconnected"));
+
+	// An update reports its outcome here rather than when the new status arrives, since a message
+	// logged at that point would be swept away by closeNotifications above. Connectors differ in
+	// whether the model lands before or after this event, so clear the flags either way and let
+	// whichever side runs first emit the message
+	const machineStore = useMachineStore();
+	if (machineStore.reconnectingAfterUpdate) {
+		machineStore.reconnectingAfterUpdate = false;
+		machineStore.updateInProgress = false;
+		uiStore.log(LogLevel.success, i18n.global.t("event.updateFinished"));
+	} else {
+		uiStore.log(LogLevel.success, i18n.global.t("event.reconnected"));
+	}
 })
 
 Events.on("disconnected", ({ hostname, graceful }) => {

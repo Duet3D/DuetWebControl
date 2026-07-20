@@ -517,7 +517,7 @@ function isFirmwareContext(dir: string | undefined): boolean {
 		return true;
 	}
 	const dirs = machineStore.model.directories;
-	return Path.startsWith(dir, dirs.system) || Path.startsWith(dir, dirs.firmware);
+	return Path.isSystemPath(dir, dirs.system) || Path.startsWith(dir, dirs.firmware);
 }
 
 // Lazy-loader fold-in: when the loader resolves after mount, fold its result into the active
@@ -667,13 +667,10 @@ function openEditorTab(filename: string) {
 }
 
 // Whether saving this file should offer a firmware reset / config re-run once the editor closes.
-// config.g always qualifies (it lives at directories.system + config.g; the literal 0:/sys/config.g
-// is also accepted since the system directory is configurable but practically always resolves there).
-// board.txt only qualifies on a non-Duet mainboard - LPC/STM32 ports read it, genuine Duet boards
-// never do, so it would be a meaningless prompt there
+// config.g always qualifies. board.txt only qualifies on a non-Duet mainboard - LPC/STM32 ports
+// read it, genuine Duet boards never do, so it would be a meaningless prompt there
 function warrantsResetPrompt(filename: string): boolean {
-	if (Path.equals(filename, Path.combine(machineStore.model.directories.system, Path.configFile))
-			|| Path.equals(filename, "0:/sys/config.g")) {
+	if (Path.isConfigFile(filename, machineStore.model.directories.system)) {
 		return true;
 	}
 	if (Path.equals(filename, Path.boardFile)) {

@@ -25,6 +25,11 @@ const webExtensions: Array<string> = [
 
 const panelDueDisplays = new Set<string>(["PanelDueFirmware.bin", "DuetScreen.bin"]);
 
+// Bundles of system packages that DuetPluginService unpacks and installs itself. The suffix lets
+// callers distinguish multiple bundles (dsf-update-full.zip) without them being mistaken for an
+// ordinary firmware ZIP, which would be expanded and have its members classified individually
+const systemPackageBundle = /^dsf-update(-.+)?\.zip$/i;
+
 export interface FirmwareUpdatePlan {
 	/**
 	 * Files prepared for upload with their final destination paths already applied
@@ -179,8 +184,8 @@ export function useFirmwareInstall() {
 		const name = file.name;
 
 		// SBC .deb files are handed straight to installSystemPackage - they never sit on the SD
-		// card. Same for the special dsf-update.zip bundle (caller already extracted it; we'd
-		// reach this branch via that nested expansion)
+		// card. Same for a system package bundle, which the caller already extracted; we'd reach
+		// this branch via that nested expansion
 		if (ctx.hasSbc && /\.deb$/i.test(name)) {
 			await machineStore.installSystemPackage(name, file);
 			return null;
@@ -255,12 +260,11 @@ export function useFirmwareInstall() {
 			display: false,
 		};
 
-		const configFile = Path.combine(ctx.directories.system, Path.configFile);
 		const expanded: Array<File> = [];
 
 		for (const file of files) {
 			if (/\.zip$/i.test(file.name)) {
-				if (ctx.hasSbc && file.name.toLowerCase() === "dsf-update.zip") {
+				if (ctx.hasSbc && systemPackageBundle.test(file.name)) {
 					await machineStore.installSystemPackage(file.name, file);
 					continue;
 				}
@@ -280,7 +284,7 @@ export function useFirmwareInstall() {
 
 			// config.g always warrants the reset prompt; board.txt only on a non-Duet mainboard, since
 			// genuine Duet boards never read board.txt
-			if (destination === configFile || (destination === Path.boardFile && !ctx.mainboardIsGenuineDuet)) {
+			if (Path.isConfigFile(destination, ctx.directories.system) || (destination === Path.boardFile && !ctx.mainboardIsGenuineDuet)) {
 				plan.configReplaced = true;
 			}
 		}
