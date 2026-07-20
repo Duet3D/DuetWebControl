@@ -25,7 +25,8 @@
 .heater-container {
 	position: fixed;
 	right: 0;
-	top: 20%;
+	top: 50%;
+	transform: translateY(-50%);
 	width: 200px;
 	text-align: center;
 	font-size: large;
@@ -34,7 +35,8 @@
 .heater-container-viewgcode {
 	position: fixed;
 	right: 30.5%;
-	top: 20%;
+	top: 50%;
+	transform: translateY(-50%);
 	width: 200px;
 	text-align: center;
 	font-size: large;

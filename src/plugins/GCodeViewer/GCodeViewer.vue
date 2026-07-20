@@ -66,8 +66,28 @@
 
 .gcv-icon-btn {
 	height: 40px;
-	width: 40px;
 	min-width: 40px;
+	padding: 0 8px;
+}
+
+/* max-width rather than width so the caption can animate in - `width: auto` is not interpolatable */
+.gcv-btn-label {
+	max-width: 0;
+	overflow: hidden;
+	white-space: nowrap;
+	transition: max-width 0.2s ease, margin 0.2s ease;
+}
+
+.gcv-icon-btn:hover .gcv-btn-label,
+.gcv-icon-btn:focus-visible .gcv-btn-label {
+	max-width: 200px;
+	margin-left: 6px;
+}
+
+.gcv-icon-btn:hover .gcv-btn-label-left,
+.gcv-icon-btn:focus-visible .gcv-btn-label-left {
+	margin-left: 0;
+	margin-right: 6px;
 }
 
 /* Settings slide-in panel + backdrop, scoped to `.viewer-box`. Above the canvas + scrubber +
@@ -125,6 +145,7 @@
 	left: 5px;
 	display: flex;
 	flex-direction: column;
+	align-items: flex-start;
 	gap: 5px;
 	z-index: 32;
 	transition-duration: 0.3s;
@@ -153,14 +174,14 @@
    the top-right of the viewport */
 .emergency-button-placement {
 	position: absolute;
-	bottom: 14px;
-	right: 16px;
+	bottom: 5px;
+	right: 5px;
 	z-index: 5;
 }
 
 .emergency-button-placement-codeview {
 	position: absolute;
-	bottom: 14px;
+	bottom: 5px;
 	right: 30%;
 	z-index: 5;
 }
@@ -229,7 +250,8 @@
 		<div :class="{ 'full-screen': fullscreen }" class="viewer-box">
 			<div v-if="fullscreen && settingsStore.showEmergencyStop" :class="emergencyButtonClass">
 				<CodeButton :code="'M112\nM999'" :log="false" :title="$t('button.emergencyStop.title')"
-							color="error" size="small">
+							class="gcv-icon-btn" color="error" size="small">
+					<span class="gcv-btn-label gcv-btn-label-left">{{ $t("button.emergencyStop.caption") }}</span>
 					<v-icon>mdi-flash</v-icon>
 				</CodeButton>
 			</div>
@@ -251,33 +273,36 @@
 			</div>
 
 			<div :class="{ 'button-container-drawer': drawer }" class="button-container">
-				<v-btn :title="$t('plugins.gcodeViewer.fullscreen')" class="gcv-icon-btn"
-					   color="primary" size="small" @click="toggleFullScreen">
+				<v-btn class="gcv-icon-btn" color="primary" size="small" @click="toggleFullScreen">
 					<v-icon>{{ fullscreen ? "mdi-window-restore" : "mdi-window-maximize" }}</v-icon>
+					<span class="gcv-btn-label">{{ $t("plugins.gcodeViewer.fullscreen") }}</span>
 				</v-btn>
 				<v-btn v-if="canToggleLiveView" class="gcv-icon-btn" color="primary" size="small"
 					   :title="followingJob ? $t('plugins.gcodeViewer.staticView.title') : $t('plugins.gcodeViewer.loadCurrentJob.title')"
 					   @click="toggleLiveView">
 					<v-icon>{{ followingJob ? "mdi-cube-outline" : "mdi-printer-3d" }}</v-icon>
+					<span class="gcv-btn-label">{{ followingJob ? $t("plugins.gcodeViewer.staticView.caption") : $t("plugins.gcodeViewer.loadCurrentJob.caption") }}</span>
 				</v-btn>
-				<v-btn v-if="loading" :title="$t('plugins.gcodeViewer.cancelLoad')" class="gcv-icon-btn"
-					   color="warning" size="small" @click="cancelLoad">
+				<v-btn v-if="loading" class="gcv-icon-btn" color="warning" size="small" @click="cancelLoad">
 					<v-icon color="error">mdi-cancel</v-icon>
+					<span class="gcv-btn-label">{{ $t("plugins.gcodeViewer.cancelLoad") }}</span>
 				</v-btn>
 			</div>
 
 			<div :class="{ 'button-container-drawer': drawer }" class="gcv-category-container">
 				<v-btn v-for="category in railCategories" :key="category.key" class="gcv-icon-btn"
 					   :color="openCategory === category.key ? 'secondary' : 'primary'" size="small"
-					   :title="category.caption" @click="toggleCategory(category.key)">
+					   @click="toggleCategory(category.key)">
 					<v-icon>{{ category.icon }}</v-icon>
+					<span class="gcv-btn-label">{{ category.caption }}</span>
 				</v-btn>
 			</div>
 
 			<div :class="{ 'button-container-drawer': drawer }" class="gcv-settings-container">
 				<v-btn class="gcv-icon-btn" :color="openCategory === 'settings' ? 'secondary' : 'primary'"
-					   size="small" :title="settingsCategory.caption" @click="toggleCategory('settings')">
+					   size="small" @click="toggleCategory('settings')">
 					<v-icon>{{ settingsCategory.icon }}</v-icon>
+					<span class="gcv-btn-label">{{ settingsCategory.caption }}</span>
 				</v-btn>
 			</div>
 
@@ -311,18 +336,14 @@
 									   prepend-icon="mdi-camera" @click="reset">
 									{{ $t("plugins.gcodeViewer.resetCamera.caption") }}
 								</v-btn>
-								<v-btn :disabled="loading" :title="$t('plugins.gcodeViewer.reloadView.title')" block
-									   color="primary" prepend-icon="mdi-reload-alert" @click="reloadviewer">
-									{{ $t("plugins.gcodeViewer.reloadView.caption") }}
-								</v-btn>
-								<v-btn v-if="!isEmbedded" :disabled="!isJobRunning || loading" block color="secondary"
+								<v-btn v-if="canToggleLiveView" block color="secondary"
 									   :title="followingJob ? $t('plugins.gcodeViewer.staticView.title') : $t('plugins.gcodeViewer.loadCurrentJob.title')"
 									   :prepend-icon="followingJob ? 'mdi-cube-outline' : 'mdi-printer-3d'"
 									   @click="toggleLiveView">
 									{{ followingJob ? $t("plugins.gcodeViewer.staticView.caption") : $t("plugins.gcodeViewer.loadCurrentJob.caption") }}
 								</v-btn>
-								<v-btn :disabled="loading" :title="$t('plugins.gcodeViewer.unloadGCode.title')" block
-									   color="primary" prepend-icon="mdi-video-3d-off" @click="clearScene">
+								<v-btn v-if="hasGCode" :disabled="loading" :title="$t('plugins.gcodeViewer.unloadGCode.title')"
+									   block color="primary" prepend-icon="mdi-video-3d-off" @click="clearScene">
 									{{ $t("plugins.gcodeViewer.unloadGCode.caption") }}
 								</v-btn>
 								<v-btn :disabled="loading" :title="$t('plugins.gcodeViewer.loadLocalGCode.title')" block
@@ -352,7 +373,7 @@
 								<v-select v-model="renderQuality" :items="renderQualityItems"
 										  :label="$t('plugins.gcodeViewer.renderQuality.caption')"
 										  disabled density="compact" variant="outlined"
-										  hide-details />
+										  hide-details class="mt-2" />
 								<div class="d-flex flex-column">
 									<v-switch v-model="useHQRendering" :label="$t('plugins.gcodeViewer.useHQRendering')"
 											  color="primary" hide-details disabled />
@@ -374,8 +395,8 @@
 
 						<template v-else-if="openCategory === 'extruders'">
 							<div class="d-flex flex-column ga-3">
-								<v-btn :disabled="loading" :title="$t('plugins.gcodeViewer.reloadView.title')" block
-									   color="primary" prepend-icon="mdi-reload-alert" @click="reloadviewer">
+								<v-btn v-if="hasGCode" :disabled="loading" :title="$t('plugins.gcodeViewer.reloadView.title')"
+									   block color="primary" prepend-icon="mdi-reload-alert" @click="reloadviewer">
 									{{ $t("plugins.gcodeViewer.reloadView.caption") }}
 								</v-btn>
 								<div v-for="(extruder, index) in toolColors" :key="index">
@@ -393,7 +414,7 @@
 							<div class="d-flex flex-column ga-3">
 								<v-select v-model="colorMode" :items="colorModeItems" :disabled="loading"
 										  :label="$t('plugins.gcodeViewer.renderMode.caption', 1)"
-										  density="compact" variant="outlined" hide-details />
+										  density="compact" variant="outlined" hide-details class="mt-2" />
 								<v-switch v-model="g1AsExtrusion" :label="$t('plugins.gcodeViewer.g1AsExtrusion')"
 										  color="primary" hide-details disabled />
 								<div>
@@ -414,8 +435,8 @@
 									<ColorPicker :editcolor="maxFeedColor"
 												 @updatecolor="(value) => updateMaxFeedColor(value)" />
 								</div>
-								<v-btn :disabled="loading" :title="$t('plugins.gcodeViewer.reloadView.title')" block
-									   color="primary" prepend-icon="mdi-reload-alert" @click="reloadviewer">
+								<v-btn v-if="hasGCode" :disabled="loading" :title="$t('plugins.gcodeViewer.reloadView.title')"
+									   block color="primary" prepend-icon="mdi-reload-alert" @click="reloadviewer">
 									{{ $t("plugins.gcodeViewer.reloadView.caption") }}
 								</v-btn>
 							</div>
@@ -586,7 +607,8 @@ let viewer: Viewer_Proxy | null = null;
 
 // Last loaded G-code text. The library renders in a worker and no longer exposes the file back, so
 // we keep our own copy to feed the code-stream view and to re-load on "reload"
-let loadedFileText = "";
+const loadedFileText = ref("");
+const hasGCode = computed(() => loadedFileText.value !== "");
 
 const primaryContainer = ref<HTMLElement | null>(null);
 const viewerCanvas = ref<HTMLCanvasElement | null>(null);
@@ -772,7 +794,7 @@ const viewGCode = computed<boolean>({
 	get: () => pluginCache.value?.viewGCode ?? false,
 	set: (value) => {
 		cacheStore.setPluginData("GCodeViewer", "viewGCode", value);
-		fileData.value = value ? loadedFileText : "";
+		fileData.value = value ? loadedFileText.value : "";
 		nextTick(() => pokeViewerResize());
 	},
 });
@@ -944,7 +966,7 @@ function updateTools() {
 
 // #region Loading
 async function loadText(text: string) {
-	loadedFileText = text;
+	loadedFileText.value = text;
 	fileData.value = viewGCode.value ? text : "";
 	await whenReady();
 	if (!viewer) {
@@ -1061,15 +1083,15 @@ async function fileSelected(e: Event) {
 }
 
 async function reloadviewer() {
-	if (loading.value || !loadedFileText) {
+	if (loading.value || !hasGCode.value) {
 		return;
 	}
-	await loadText(loadedFileText);
+	await loadText(loadedFileText.value);
 }
 
 function clearScene() {
 	selectedFile.value = "";
-	loadedFileText = "";
+	loadedFileText.value = "";
 	fileData.value = "";
 	scrubFileSize.value = 0;
 	scrubPosition.value = 0;
@@ -1225,6 +1247,12 @@ function onWindowResize() {
 	}, 150);
 }
 
+// The fullscreen overlay is teleported to the body and covers the viewport, so the page behind it
+// must not keep its own scrollbar
+function setPageScrollLock(locked: boolean) {
+	document.documentElement.style.overflow = locked ? "hidden" : "";
+}
+
 function toggleFullScreen() {
 	fullscreen.value = !fullscreen.value;
 	nextTick(() => pokeViewerResize());
@@ -1275,6 +1303,7 @@ onMounted(async () => {
 
 onActivated(() => {
 	viewer?.suspend(false);
+	setPageScrollLock(fullscreen.value);
 	if (initialLoadDone) {
 		loadFromRoute();
 		// The kept-alive subtree was detached from the DOM, so the canvas missed any layout changes
@@ -1287,6 +1316,7 @@ onActivated(() => {
 });
 onDeactivated(() => {
 	viewer?.suspend(true);
+	setPageScrollLock(false);
 });
 watch(sdPathFromRoute, loadFromRoute);
 
@@ -1298,11 +1328,13 @@ onBeforeUnmount(() => {
 	}
 	viewer?.unload();
 	viewer = null;
+	setPageScrollLock(false);
 });
 
 // #endregion
 
 // #region Watches
+watch(fullscreen, setPageScrollLock);
 watch(colorMode, (to) => viewer?.setRenderMode(RENDER_MODE_MAP[to] ?? 1));
 watch(perimeterOnly, (to) => viewer?.setPerimeterOnly(to));
 watch(progressMode, (to) => viewer?.setProgressMode(to));

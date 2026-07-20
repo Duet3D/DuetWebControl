@@ -1,6 +1,6 @@
 <template>
 	<v-row class="justify-center align-center">
-		<v-col class="shrink" :style="backgroundColorStyle">
+		<v-col class="shrink" style="min-width: 220px;">
 			<v-text-field v-model="internalTextColor" hide-details density="compact" variant="solo"
 						  class="ma-0 pa-0" @blur="updateValue(internalTextColor)"
 						  @keyup.enter="updateValue(internalTextColor)">
@@ -35,16 +35,11 @@ const internalTextColor = ref("#000000");
 const color = ref("#000000");
 const menu = ref(false);
 
-const backgroundColorStyle = computed(() => ({
-	minWidth: "220px",
-	backgroundColor: color.value,
-}));
-
 const swatchStyle = computed(() => ({
 	backgroundColor: color.value,
 	cursor: "pointer",
-	height: "30px",
-	width: "30px",
+	height: "40px",
+	width: "40px",
 	borderRadius: menu.value ? "50%" : "4px",
 	transition: "border-radius 200ms ease-in-out",
 }));
