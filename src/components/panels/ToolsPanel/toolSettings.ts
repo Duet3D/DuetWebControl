@@ -68,6 +68,11 @@ export interface ToolDisplaySettings {
 	promptDuringFilamentChange: boolean;
 
 	/**
+	 * Show the power button in the panel title that turns off every heater which is not off yet
+	 */
+	showTurnEverythingOff: boolean;
+
+	/**
 	 * Show the extra (non-heater) analog sensors directly on the Tools view. When enabled the
 	 * separate Extra tab is hidden and its sensors fold into the Tools list instead
 	 */
@@ -121,6 +126,7 @@ export const toolDisplayDefaults: ToolDisplaySettings = {
 	showToolNumber: true,
 	showFilamentControls: true,
 	promptDuringFilamentChange: true,
+	showTurnEverythingOff: true,
 	showExtraOnTools: false,
 	displayedExtraOnTools: null,
 	displayedExtraSensors: null,

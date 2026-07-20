@@ -759,6 +759,7 @@
 			"caption": "Werkzeuge",
 			"controlHeaters": "Heizer steuern",
 			"turnEverythingOff": "Alle abschalten",
+			"off": "Aus",
 			"setActiveTemperatures": "Aktive Temperaturen setzen",
 			"setStandbyTemperatures": "Standby-Temperaturen setzen",
 			"setToolTemperatures": "Werkzeugtemperaturen setzen",
@@ -790,6 +791,8 @@
 				"noItems": "Keine zusätzlichen Sensoren",
 				"showInChartHint": "Diesen Sensor im Temperaturdiagramm anzeigen"
 			},
+			"showTurnEverythingOff": "Ausschaltknopf anzeigen",
+			"showTurnEverythingOffHint": "Einen Ausschaltknopf in der Panel-Überschrift anzeigen, der alle noch nicht abgeschalteten Heizer ausschaltet",
 			"noTools": "Keine Werkzeuge",
 			"displayedTools": "Angezeigte Werkzeuge",
 			"toolChangeMacros": "Makros beim Werkzeugwechsel",
@@ -1424,7 +1427,6 @@
 			"maxTemp": "Max. Temperatur: {0}",
 			"view3D": "3D ansehen",
 			"fullscreen": "Vollbild",
-			"showConfiguration": "Konfiguration anzeigen",
 			"viewActions": {
 				"caption": "Ansicht",
 				"title": "Kamera zurücksetzen, neu laden und Anzeigeeinstellungen"
@@ -1441,6 +1443,10 @@
 			"loadCurrentJob": {
 				"caption": "Live-Fortschritt verfolgen",
 				"title": "Aktuellen Druck- oder Simulationsauftrag laden und den Fortschritt live verfolgen"
+			},
+			"staticView": {
+				"caption": "Statische Ansicht",
+				"title": "Den Live-Fortschritt nicht mehr verfolgen und die gesamte Datei zum Durchsuchen anzeigen"
 			},
 			"unloadGCode": {
 				"caption": "G-Code entladen",

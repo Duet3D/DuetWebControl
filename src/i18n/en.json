@@ -757,6 +757,7 @@
 			"caption": "Tools",
 			"controlHeaters": "Control Heaters",
 			"turnEverythingOff": "Turn Everything Off",
+			"off": "Off",
 			"setActiveTemperatures": "Set active temperatures",
 			"setStandbyTemperatures": "Set standby temperatures",
 			"setToolTemperatures": "Set tool temperatures",
@@ -792,6 +793,8 @@
 			},
 			"showExtraOnTools": "Show extra sensors on Tools",
 			"showExtraOnToolsHint": "Fold the extra sensors into the Tools list and hide the separate Extra tab",
+			"showTurnEverythingOff": "Show turn everything off button",
+			"showTurnEverythingOffHint": "Show a power button in the panel title that turns off all heaters which are not off yet",
 			"noTools": "No Tools",
 			"displayedTools": "Displayed tools",
 			"toolChangeMacros": "Tool change macros",
@@ -1426,7 +1429,6 @@
 			"maxTemp": "Max Temp: {0}",
 			"view3D": "View 3D",
 			"fullscreen": "Full Screen",
-			"showConfiguration": "Show Viewer Configuration",
 			"viewActions": {
 				"caption": "View",
 				"title": "Reset camera, reload, and display toggles"
@@ -1443,6 +1445,10 @@
 			"loadCurrentJob": {
 				"caption": "Follow Live Progress",
 				"title": "Load the current printing or simulating job and follow its live progress"
+			},
+			"staticView": {
+				"caption": "Static View",
+				"title": "Stop following the live progress and show the whole file for scrubbing"
 			},
 			"unloadGCode": {
 				"caption": "Unload GCode",

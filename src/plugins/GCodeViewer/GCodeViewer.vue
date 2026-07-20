@@ -33,8 +33,6 @@
 	height: 90%;
 }
 
-.btn-toggle { flex-direction: column; }
-
 .primary-container {
 	position: relative;
 	width: 100%;
@@ -45,12 +43,6 @@
 	width: calc(100% - 16px);
 }
 
-.gcv-drawer-actions {
-	padding: 12px;
-}
-.gcv-drawer-switches {
-	padding: 0 12px 12px;
-}
 @media (min-width: 840px) {
 	.primary-container {
 		margin: 0;
@@ -72,9 +64,10 @@
 	background-color: black;
 }
 
-.full-screen-icon {
+.gcv-icon-btn {
 	height: 40px;
 	width: 40px;
+	min-width: 40px;
 }
 
 /* Settings slide-in panel + backdrop, scoped to `.viewer-box`. Above the canvas + scrubber +
@@ -97,8 +90,20 @@
 	background-color: rgb(var(--v-theme-surface));
 	color: rgb(var(--v-theme-on-surface));
 	z-index: 31;
-	overflow-y: auto;
+	display: flex;
+	flex-direction: column;
 	box-shadow: 0 0 12px rgba(0, 0, 0, 0.3);
+}
+
+.gcv-settings-header {
+	padding: 8px 8px 8px 16px;
+}
+
+/* 16px, not 12px: a v-slider thumb parked at its maximum puts its 42px touch target 13px past the
+   slider's own box, which a tighter padding turns into a horizontal scrollbar */
+.gcv-settings-body {
+	padding: 16px;
+	overflow-y: auto;
 }
 
 .gcv-settings-slide-enter-active,
@@ -111,11 +116,31 @@
 	transform: translateX(-100%);
 }
 
-.button-container {
+/* The three left-hand button groups sit above the settings panel and its backdrop so a category
+   can be switched or closed without going through the backdrop first */
+.button-container,
+.gcv-category-container,
+.gcv-settings-container {
 	position: absolute;
-	top: 5px;
 	left: 5px;
+	display: flex;
+	flex-direction: column;
+	gap: 5px;
+	z-index: 32;
 	transition-duration: 0.3s;
+}
+
+.button-container {
+	top: 5px;
+}
+
+.gcv-category-container {
+	top: 50%;
+	transform: translateY(-50%);
+}
+
+.gcv-settings-container {
+	bottom: 5px;
 }
 
 .button-container-drawer {
@@ -226,27 +251,40 @@
 			</div>
 
 			<div :class="{ 'button-container-drawer': drawer }" class="button-container">
-				<v-btn :title="$t('plugins.gcodeViewer.fullscreen')" class="full-screen-icon mb-2"
+				<v-btn :title="$t('plugins.gcodeViewer.fullscreen')" class="gcv-icon-btn"
 					   color="primary" size="small" @click="toggleFullScreen">
 					<v-icon>{{ fullscreen ? "mdi-window-restore" : "mdi-window-maximize" }}</v-icon>
 				</v-btn>
-				<br />
-				<v-btn :title="$t('plugins.gcodeViewer.showConfiguration')" class="mb-10"
-					   color="primary" size="small" @click="drawer = !drawer">
-					<v-icon>mdi-cog</v-icon>
+				<v-btn v-if="canToggleLiveView" class="gcv-icon-btn" color="primary" size="small"
+					   :title="followingJob ? $t('plugins.gcodeViewer.staticView.title') : $t('plugins.gcodeViewer.loadCurrentJob.title')"
+					   @click="toggleLiveView">
+					<v-icon>{{ followingJob ? "mdi-cube-outline" : "mdi-printer-3d" }}</v-icon>
 				</v-btn>
-				<br />
-				<v-btn v-if="isJobRunning && !loading && !followingJob"
-					   :title="$t('plugins.gcodeViewer.loadCurrentJob.title')" class="mb-10"
-					   color="primary" size="small" @click="() => loadRunningJob(true)">
-					<v-icon>mdi-printer-3d</v-icon>
-				</v-btn>
-				<br />
-				<v-btn v-if="loading" :title="$t('plugins.gcodeViewer.cancelLoad')"
+				<v-btn v-if="loading" :title="$t('plugins.gcodeViewer.cancelLoad')" class="gcv-icon-btn"
 					   color="warning" size="small" @click="cancelLoad">
 					<v-icon color="error">mdi-cancel</v-icon>
 				</v-btn>
 			</div>
+
+			<div :class="{ 'button-container-drawer': drawer }" class="gcv-category-container">
+				<v-btn v-for="category in railCategories" :key="category.key" class="gcv-icon-btn"
+					   :color="openCategory === category.key ? 'secondary' : 'primary'" size="small"
+					   :title="category.caption" @click="toggleCategory(category.key)">
+					<v-icon>{{ category.icon }}</v-icon>
+				</v-btn>
+			</div>
+
+			<div :class="{ 'button-container-drawer': drawer }" class="gcv-settings-container">
+				<v-btn class="gcv-icon-btn" :color="openCategory === 'settings' ? 'secondary' : 'primary'"
+					   size="small" :title="settingsCategory.caption" @click="toggleCategory('settings')">
+					<v-icon>{{ settingsCategory.icon }}</v-icon>
+				</v-btn>
+			</div>
+
+			<!-- Kept outside the sidebar so chooseFile() always finds it, no matter which category
+				 is open (or whether any is) -->
+			<input ref="fileInput" type="file" accept=".g,.gcode,.gc,.gco,.nc,.ngc,.tap" hidden
+				   @change="fileSelected" />
 
 			<!-- Settings panel: plain absolutely-positioned child of `.viewer-box` rather than a
 				 v-navigation-drawer, because the drawer's teleport + overlay layer fights the
@@ -254,16 +292,20 @@
 				 `position: absolute; inset: 0` so the panel stays within the viewer card and
 				 doesn't bleed over the status panel above. Fullscreen mode: viewer-box becomes
 				 `position: fixed; inset: 0` and the panel covers the viewport with it -->
-			<div v-if="drawer" class="gcv-settings-backdrop" @click="drawer = false" />
+			<div v-if="drawer" class="gcv-settings-backdrop" @click="openCategory = null" />
 			<Transition name="gcv-settings-slide">
-				<aside v-if="drawer" class="gcv-settings-panel">
-					<v-expansion-panels v-model="openDrawerPanel" variant="accordion">
-					<v-expansion-panel value="view">
-						<v-expansion-panel-title :title="$t('plugins.gcodeViewer.viewActions.title')">
-							<v-icon class="mr-2">mdi-eye</v-icon>
-							<strong>{{ $t("plugins.gcodeViewer.viewActions.caption") }}</strong>
-						</v-expansion-panel-title>
-						<v-expansion-panel-text eager>
+				<aside v-if="openCategoryEntry" class="gcv-settings-panel">
+					<div class="gcv-settings-header d-flex align-center">
+						<v-icon class="mr-2">{{ openCategoryEntry.icon }}</v-icon>
+						<strong>{{ openCategoryEntry.caption }}</strong>
+						<v-spacer />
+						<v-btn icon="mdi-close" variant="text" size="small" density="comfortable"
+							   :title="$t('generic.close')" @click="openCategory = null" />
+					</div>
+					<v-divider />
+
+					<div class="gcv-settings-body">
+						<template v-if="openCategory === 'view'">
 							<div class="d-flex flex-column ga-2">
 								<v-btn :title="$t('plugins.gcodeViewer.resetCamera.title')" block color="primary"
 									   prepend-icon="mdi-camera" @click="reset">
@@ -273,10 +315,11 @@
 									   color="primary" prepend-icon="mdi-reload-alert" @click="reloadviewer">
 									{{ $t("plugins.gcodeViewer.reloadView.caption") }}
 								</v-btn>
-								<v-btn :disabled="!isJobRunning || loading || followingJob"
-									   :title="$t('plugins.gcodeViewer.loadCurrentJob.title')" block
-									   color="secondary" prepend-icon="mdi-printer-3d" @click="() => loadRunningJob(true)">
-									{{ $t("plugins.gcodeViewer.loadCurrentJob.caption") }}
+								<v-btn v-if="!isEmbedded" :disabled="!isJobRunning || loading" block color="secondary"
+									   :title="followingJob ? $t('plugins.gcodeViewer.staticView.title') : $t('plugins.gcodeViewer.loadCurrentJob.title')"
+									   :prepend-icon="followingJob ? 'mdi-cube-outline' : 'mdi-printer-3d'"
+									   @click="toggleLiveView">
+									{{ followingJob ? $t("plugins.gcodeViewer.staticView.caption") : $t("plugins.gcodeViewer.loadCurrentJob.caption") }}
 								</v-btn>
 								<v-btn :disabled="loading" :title="$t('plugins.gcodeViewer.unloadGCode.title')" block
 									   color="primary" prepend-icon="mdi-video-3d-off" @click="clearScene">
@@ -286,8 +329,6 @@
 									   color="primary" prepend-icon="mdi-file" @click="chooseFile">
 									{{ $t("plugins.gcodeViewer.loadLocalGCode.caption") }}
 								</v-btn>
-								<input ref="fileInput" type="file" accept=".g,.gcode,.gc,.gco,.nc,.ngc,.tap" hidden
-									   @change="fileSelected" />
 
 								<v-divider class="my-1" />
 
@@ -304,50 +345,37 @@
 											  color="primary" hide-details />
 								</div>
 							</div>
-						</v-expansion-panel-text>
-					</v-expansion-panel>
+						</template>
 
-					<v-expansion-panel value="quality">
-						<v-expansion-panel-title :title="$t('plugins.gcodeViewer.renderQuality.title')">
-							<v-icon class="mr-2">mdi-checkerboard</v-icon>
-							<strong>{{ $t("plugins.gcodeViewer.renderQuality.caption") }}</strong>
-						</v-expansion-panel-title>
-						<v-expansion-panel-text eager>
+						<template v-else-if="openCategory === 'quality'">
 							<div class="d-flex flex-column ga-3">
 								<v-select v-model="renderQuality" :items="renderQualityItems"
 										  :label="$t('plugins.gcodeViewer.renderQuality.caption')"
 										  disabled density="compact" variant="outlined"
 										  hide-details />
 								<div class="d-flex flex-column">
-									<v-checkbox v-model="useHQRendering" :label="$t('plugins.gcodeViewer.useHQRendering')"
-												color="primary" hide-details disabled />
-									<v-checkbox v-model="forceWireMode"
-												:label="$t('plugins.gcodeViewer.forceLineRendering')"
-												color="primary" hide-details />
-									<v-checkbox v-model="perimeterOnly" :label="$t('plugins.gcodeViewer.perimeterOnly')"
-												color="primary" hide-details />
-									<v-checkbox v-model="progressMode" :label="$t('plugins.gcodeViewer.progressMode')"
-												color="primary" hide-details />
-									<v-checkbox v-model="vertexAlpha" :label="$t('plugins.gcodeViewer.transparency')"
-												color="primary" hide-details />
+									<v-switch v-model="useHQRendering" :label="$t('plugins.gcodeViewer.useHQRendering')"
+											  color="primary" hide-details disabled />
+									<v-switch v-model="forceWireMode" :label="$t('plugins.gcodeViewer.forceLineRendering')"
+											  color="primary" hide-details />
+									<v-switch v-model="perimeterOnly" :label="$t('plugins.gcodeViewer.perimeterOnly')"
+											  color="primary" hide-details />
+									<v-switch v-model="progressMode" :label="$t('plugins.gcodeViewer.progressMode')"
+											  color="primary" hide-details />
+									<v-switch v-model="vertexAlpha" :label="$t('plugins.gcodeViewer.transparency')"
+											  color="primary" hide-details />
 									<v-slider v-if="vertexAlpha" v-model="transparencyPercent" min="1" max="100"
 											  hide-details />
-									<v-checkbox v-model="specular" :label="$t('plugins.gcodeViewer.useSpecular')"
-												color="primary" hide-details disabled />
+									<v-switch v-model="specular" :label="$t('plugins.gcodeViewer.useSpecular')"
+											  color="primary" hide-details disabled />
 								</div>
 							</div>
-						</v-expansion-panel-text>
-					</v-expansion-panel>
+						</template>
 
-					<v-expansion-panel>
-						<v-expansion-panel-title :title="$t('plugins.gcodeViewer.extruders.title')">
-							<v-icon class="mr-2">mdi-printer-3d-nozzle</v-icon>
-							<strong>{{ $t("plugins.gcodeViewer.extruders.caption") }}</strong>
-						</v-expansion-panel-title>
-						<v-expansion-panel-text>
+						<template v-else-if="openCategory === 'extruders'">
 							<div class="d-flex flex-column ga-3">
 								<v-btn :disabled="loading" :title="$t('plugins.gcodeViewer.reloadView.title')" block
-									   color="primary" @click="reloadviewer">
+									   color="primary" prepend-icon="mdi-reload-alert" @click="reloadviewer">
 									{{ $t("plugins.gcodeViewer.reloadView.caption") }}
 								</v-btn>
 								<div v-for="(extruder, index) in toolColors" :key="index">
@@ -355,27 +383,19 @@
 									<ColorPicker :editcolor="extruder"
 												 @updatecolor="(value) => updateColor(index, value)" />
 								</div>
-								<v-btn block color="warning" @click="resetExtruderColors">
+								<v-btn block color="warning" prepend-icon="mdi-restore" @click="resetExtruderColors">
 									{{ $t("plugins.gcodeViewer.resetColor", toolColors.length) }}
 								</v-btn>
 							</div>
-						</v-expansion-panel-text>
-					</v-expansion-panel>
+						</template>
 
-					<v-expansion-panel>
-						<v-expansion-panel-title :title="$t('plugins.gcodeViewer.renderMode.title')">
-							<v-icon class="mr-2">mdi-palette</v-icon>
-							<strong>{{ $t("plugins.gcodeViewer.renderMode.caption", 2) }}</strong>
-						</v-expansion-panel-title>
-						<v-expansion-panel-text>
+						<template v-else-if="openCategory === 'renderMode'">
 							<div class="d-flex flex-column ga-3">
-								<v-btn-toggle v-model="colorMode" mandatory class="btn-toggle d-flex">
-									<v-btn :disabled="loading" :value="0" block>{{ $t("plugins.gcodeViewer.color") }}</v-btn>
-									<v-btn :disabled="loading" :value="1" block>{{ $t("plugins.gcodeViewer.feedrate") }}</v-btn>
-									<v-btn :disabled="loading" :value="2" block>{{ $t("plugins.gcodeViewer.feature") }}</v-btn>
-								</v-btn-toggle>
-								<v-checkbox v-model="g1AsExtrusion" :label="$t('plugins.gcodeViewer.g1AsExtrusion')"
-											color="primary" hide-details disabled />
+								<v-select v-model="colorMode" :items="colorModeItems" :disabled="loading"
+										  :label="$t('plugins.gcodeViewer.renderMode.caption', 1)"
+										  density="compact" variant="outlined" hide-details />
+								<v-switch v-model="g1AsExtrusion" :label="$t('plugins.gcodeViewer.g1AsExtrusion')"
+										  color="primary" hide-details disabled />
 								<div>
 									<div class="text-title-small mb-1">{{ $t("plugins.gcodeViewer.minFeedrate") }}</div>
 									<v-slider v-model="minColorRate" :max="500" :min="5" thumb-label hide-details disabled />
@@ -395,19 +415,13 @@
 												 @updatecolor="(value) => updateMaxFeedColor(value)" />
 								</div>
 								<v-btn :disabled="loading" :title="$t('plugins.gcodeViewer.reloadView.title')" block
-									   color="primary" @click="reloadviewer">
+									   color="primary" prepend-icon="mdi-reload-alert" @click="reloadviewer">
 									{{ $t("plugins.gcodeViewer.reloadView.caption") }}
 								</v-btn>
 							</div>
-						</v-expansion-panel-text>
-					</v-expansion-panel>
+						</template>
 
-					<v-expansion-panel>
-						<v-expansion-panel-title :title="$t('plugins.gcodeViewer.progress.title')">
-							<v-icon class="mr-2">mdi-progress-clock</v-icon>
-							<strong>{{ $t("plugins.gcodeViewer.progress.caption") }}</strong>
-						</v-expansion-panel-title>
-						<v-expansion-panel-text>
+						<template v-else-if="openCategory === 'progress'">
 							<div class="d-flex flex-column ga-3">
 								<div>
 									<div class="text-title-small mb-1">{{ $t("plugins.gcodeViewer.topClipping") }}</div>
@@ -425,15 +439,9 @@
 												 @updatecolor="(value) => updateProgressColor(value)" />
 								</div>
 							</div>
-						</v-expansion-panel-text>
-					</v-expansion-panel>
+						</template>
 
-					<v-expansion-panel>
-						<v-expansion-panel-title>
-							<v-icon class="mr-2">mdi-cog</v-icon>
-							<strong>{{ $t("plugins.gcodeViewer.settings") }}</strong>
-						</v-expansion-panel-title>
-						<v-expansion-panel-text>
+						<template v-else-if="openCategory === 'settings'">
 							<div class="d-flex flex-column ga-3">
 								<div>
 									<div class="text-title-small mb-2">{{ $t("plugins.gcodeViewer.background") }}</div>
@@ -442,24 +450,22 @@
 								</div>
 								<div>
 									<div class="text-title-small mb-2">{{ $t("plugins.gcodeViewer.bedRenderMode") }}</div>
-									<v-btn-toggle v-model="bedRenderMode" mandatory class="d-flex flex-column mb-3">
-										<v-btn :value="0" block>{{ $t("plugins.gcodeViewer.bed") }}</v-btn>
-										<v-btn :value="1" block>{{ $t("plugins.gcodeViewer.volume") }}</v-btn>
+									<v-btn-toggle v-model="bedRenderMode" mandatory class="d-flex mb-3">
+										<v-btn :value="0" class="flex-grow-1">{{ $t("plugins.gcodeViewer.bed") }}</v-btn>
+										<v-btn :value="1" class="flex-grow-1">{{ $t("plugins.gcodeViewer.volume") }}</v-btn>
 									</v-btn-toggle>
 									<ColorPicker :editcolor="bedColor"
 												 @updatecolor="(value) => updateBedColor(value)" />
 								</div>
 								<div class="d-flex flex-column">
-									<v-checkbox v-model="showOverlay" :label="$t('plugins.gcodeViewer.showFSOverlay')"
-												color="primary" hide-details />
-									<v-checkbox v-model="showAxes" :label="$t('plugins.gcodeViewer.showAxes')"
-												color="primary" hide-details />
-									<v-checkbox v-model="showObjectLabels"
-												:label="$t('plugins.gcodeViewer.showObjectLabels')"
-												color="primary" hide-details />
-									<v-checkbox v-model="showWorkplace"
-												:label="$t('plugins.gcodeViewer.showWorkplace')"
-												color="primary" hide-details disabled />
+									<v-switch v-model="showOverlay" :label="$t('plugins.gcodeViewer.showFSOverlay')"
+											  color="primary" hide-details />
+									<v-switch v-model="showAxes" :label="$t('plugins.gcodeViewer.showAxes')"
+											  color="primary" hide-details />
+									<v-switch v-model="showObjectLabels" :label="$t('plugins.gcodeViewer.showObjectLabels')"
+											  color="primary" hide-details />
+									<v-switch v-model="showWorkplace" :label="$t('plugins.gcodeViewer.showWorkplace')"
+											  color="primary" hide-details disabled />
 									<v-switch v-model="cameraInertia" :label="$t('plugins.gcodeViewer.cameraInertia')"
 											  color="primary" hide-details />
 									<v-switch v-model="zBelt" :label="$t('plugins.gcodeViewer.zBelt')"
@@ -469,9 +475,8 @@
 											  :label="$t('plugins.gcodeViewer.zBeltAngle')"
 											  density="compact" variant="outlined" hide-details disabled />
 							</div>
-						</v-expansion-panel-text>
-					</v-expansion-panel>
-					</v-expansion-panels>
+						</template>
+					</div>
 				</aside>
 			</Transition>
 
@@ -587,10 +592,36 @@ const primaryContainer = ref<HTMLElement | null>(null);
 const viewerCanvas = ref<HTMLCanvasElement | null>(null);
 const fileInput = ref<HTMLInputElement | null>(null);
 
-const drawer = ref(false);
-// Open the View / Actions group by default when the drawer first comes up - it carries the
-// reset/reload/load buttons + the toggles a user most often reaches for
-const openDrawerPanel = ref<string>("view");
+// Each configuration category gets its own icon button and its own sidebar; only one can be open
+// at a time and pressing the active button closes it again
+type ConfigCategory = "view" | "quality" | "extruders" | "renderMode" | "progress" | "settings";
+
+interface ConfigCategoryEntry {
+	key: ConfigCategory;
+	icon: string;
+	caption: string;
+}
+
+const configCategories = computed<Array<ConfigCategoryEntry>>(() => [
+	{ key: "view", icon: "mdi-eye", caption: i18n.global.t("plugins.gcodeViewer.viewActions.caption") },
+	{ key: "quality", icon: "mdi-checkerboard", caption: i18n.global.t("plugins.gcodeViewer.renderQuality.caption") },
+	{ key: "extruders", icon: "mdi-printer-3d-nozzle", caption: i18n.global.t("plugins.gcodeViewer.extruders.caption") },
+	{ key: "renderMode", icon: "mdi-palette", caption: i18n.global.t("plugins.gcodeViewer.renderMode.caption", 2) },
+	{ key: "progress", icon: "mdi-progress-clock", caption: i18n.global.t("plugins.gcodeViewer.progress.caption") },
+	{ key: "settings", icon: "mdi-cog", caption: i18n.global.t("plugins.gcodeViewer.settings") }
+]);
+
+// The settings category is pinned to the bottom-left corner, every other one to the centered rail
+const railCategories = computed(() => configCategories.value.filter((category) => category.key !== "settings"));
+const settingsCategory = computed(() => configCategories.value.find((category) => category.key === "settings")!);
+
+const openCategory = ref<ConfigCategory | null>(null);
+const openCategoryEntry = computed(() => configCategories.value.find((category) => category.key === openCategory.value));
+const drawer = computed(() => openCategory.value !== null);
+
+function toggleCategory(key: ConfigCategory) {
+	openCategory.value = (openCategory.value === key) ? null : key;
+}
 
 const renderQualityItems = computed(() => [
 	{ title: i18n.global.t("plugins.gcodeViewer.sbc"),    value: 1 },
@@ -599,6 +630,11 @@ const renderQualityItems = computed(() => [
 	{ title: i18n.global.t("plugins.gcodeViewer.high"),   value: 4 },
 	{ title: i18n.global.t("plugins.gcodeViewer.ultra"),  value: 5 },
 	{ title: i18n.global.t("plugins.gcodeViewer.max"),    value: 6 },
+]);
+const colorModeItems = computed(() => [
+	{ title: i18n.global.t("plugins.gcodeViewer.color"),    value: 0 },
+	{ title: i18n.global.t("plugins.gcodeViewer.feedrate"), value: 1 },
+	{ title: i18n.global.t("plugins.gcodeViewer.feature"),  value: 2 },
 ]);
 const backgroundColor = ref("#000000FF");
 const progressColor = ref("#FFFFFFFF");
@@ -987,6 +1023,30 @@ async function loadRunningJob(live = true) {
 	}
 }
 
+// Live view follows the print head and locks seeking, static view renders the whole file and hands
+// control back to the scrubber. Only the standalone page offers the choice - the embedded Job
+// Status tab always follows the running job
+const canToggleLiveView = computed(() => !isEmbedded.value && isJobRunning.value && !loading.value);
+
+function showWholeFile() {
+	scrubPosition.value = scrubFileSize.value;
+	viewer?.updateFilePosition(scrubFileSize.value);
+}
+
+async function toggleLiveView() {
+	if (followingJob.value) {
+		followingJob.value = false;
+		showWholeFile();
+	} else if (visualizingCurrentJob.value) {
+		viewer?.stopNozzleAnimation();
+		scrubPlaying.value = false;
+		followingJob.value = true;
+		viewer?.updateFilePosition(filePosition.value);
+	} else {
+		await loadRunningJob(true);
+	}
+}
+
 async function fileSelected(e: Event) {
 	const input = e.target as HTMLInputElement;
 	const file = input.files?.[0];
@@ -1309,15 +1369,13 @@ watch(filePosition, (newValue) => {
 	}
 });
 
+// A job that ends clears its file position, and the filePosition watcher above runs first (watchers
+// fire in creation order), which would leave the finished job rendered at 0% - show the whole file
+// instead. visualizingCurrentJob covers the job stopping as well as the loaded file changing
 watch(visualizingCurrentJob, (newValue) => {
-	if (!newValue) {
+	if (!newValue && followingJob.value) {
 		followingJob.value = false;
-	}
-});
-
-watch(isJobRunning, (newValue) => {
-	if (!newValue) {
-		followingJob.value = false;
+		showWholeFile();
 	}
 });
 

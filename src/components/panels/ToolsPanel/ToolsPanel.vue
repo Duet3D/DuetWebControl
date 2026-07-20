@@ -5,11 +5,24 @@
 			<ExtraSensorList v-else :sensors="extraTabSensors" />
 		</v-card-text>
 
+		<template #title-append>
+			<v-btn v-if="settings.showTurnEverythingOff && anyHeaterOn" variant="text" size="small"
+				   density="comfortable" color="primary" :disabled="!canTurnEverythingOff"
+				   :loading="turningEverythingOff" :title="$t('panel.tools.turnEverythingOff')"
+				   @click="turnEverythingOff">
+				<v-icon size="small" class="mr-1">mdi-power-standby</v-icon>
+				{{ $t("panel.tools.off") }}
+			</v-btn>
+		</template>
+
 		<!-- Tools / Filaments / Beds / Chambers settings -->
 		<template #settings-0>
 			<v-switch v-if="extraSensors.length > 0" v-model="settings.showExtraOnTools" color="primary"
-					  class="mb-2" :label="$t('panel.tools.showExtraOnTools')"
+					  :label="$t('panel.tools.showExtraOnTools')"
 					  v-hint="$t('panel.tools.showExtraOnToolsHint')" density="comfortable" hide-details />
+			<v-switch v-model="settings.showTurnEverythingOff" color="primary" class="mb-2"
+					  :label="$t('panel.tools.showTurnEverythingOff')"
+					  v-hint="$t('panel.tools.showTurnEverythingOffHint')" density="comfortable" hide-details />
 
 			<v-tabs v-model="settingsTab" density="compact" grow>
 				<v-tab v-if="hasTools" :value="0">{{ $t("panel.tools.caption") }}</v-tab>
@@ -107,7 +120,7 @@
 </template>
 
 <script setup lang="ts">
-import type { AnalogSensor } from "@duet3d/objectmodel";
+import { type AnalogSensor, HeaterState, MachineStatus } from "@duet3d/objectmodel";
 
 import ControlList from "./ControlList/ControlList.vue";
 import ExtraSensorList from "./ExtraSensorList.vue";
@@ -116,6 +129,7 @@ import { useComponentSettings } from "@/composables/useComponentSettings";
 import i18n from "@/i18n";
 import { useMachineStore } from "@/stores/machine";
 import { ToolChangeMacro } from "@/stores/settings";
+import { useUiStore } from "@/stores/ui";
 import { formatExtraSensorName } from "@/utils/display";
 
 // tfree.g / tpre.g / tpost.g entries offered by the tool-change-macros selector
@@ -131,6 +145,7 @@ interface ExtraSensor {
 }
 
 const machineStore = useMachineStore();
+const uiStore = useUiStore();
 
 // Per-panel tool display preferences, shared down to the control rows that consume them
 const settings = useComponentSettings<ToolDisplaySettings>({ ...toolDisplayDefaults });
@@ -180,6 +195,49 @@ function slotHasHeater(heaterIndices: Array<number>): boolean {
 const hasTools = computed(() => machineStore.model.tools.some(tool => tool !== null));
 const hasBeds = computed(() => machineStore.bedHeaterMapping.some(slotHasHeater));
 const hasChambers = computed(() => machineStore.chamberHeaterMapping.some(slotHasHeater));
+
+function heaterIsOn(heaterIndex: number): boolean {
+	const heaters = machineStore.model.heat.heaters;
+	return heaterIndex >= 0 && heaterIndex < heaters.length
+		&& heaters[heaterIndex] !== null && heaters[heaterIndex]!.state !== HeaterState.off;
+}
+
+const anyHeaterOn = computed(() =>
+	machineStore.model.tools.some(tool => tool !== null && tool.heaters.some(heaterIsOn))
+	|| machineStore.bedHeaterMapping.some(heaterIndices => heaterIndices.some(heaterIsOn))
+	|| machineStore.chamberHeaterMapping.some(heaterIndices => heaterIndices.some(heaterIsOn)));
+
+const canTurnEverythingOff = computed(() =>
+	!uiStore.uiFrozen && ![MachineStatus.pausing, MachineStatus.processing, MachineStatus.resuming].includes(machineStore.model.state.status));
+
+const turningEverythingOff = ref(false);
+
+async function turnEverythingOff() {
+	let code = "";
+	for (const tool of machineStore.model.tools) {
+		if (tool !== null && tool.heaters.length > 0) {
+			code += `M568 P${tool.number} A0\n`;
+		}
+	}
+	machineStore.bedHeaterMapping.forEach((heaterIndices, index) => {
+		if (slotHasHeater(heaterIndices)) {
+			code += `M140 P${index} S-273.15\n`;
+		}
+	});
+	machineStore.chamberHeaterMapping.forEach((heaterIndices, index) => {
+		if (slotHasHeater(heaterIndices)) {
+			code += `M141 P${index} S-273.15\n`;
+		}
+	});
+
+	turningEverythingOff.value = true;
+	try {
+		await machineStore.sendCode(code);
+	} catch {
+		// handled before we get here
+	}
+	turningEverythingOff.value = false;
+}
 
 // Tools is always present; Extra is offered only when there are non-heater analog sensors and the
 // user hasn't folded them into the Tools view
