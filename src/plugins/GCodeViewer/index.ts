@@ -65,7 +65,7 @@ cacheStore.registerPluginData("GCodeViewer", "showObjectLabels", true);
 cacheStore.registerPluginData("GCodeViewer", "showOverlay", true);
 cacheStore.registerPluginData("GCodeViewer", "cameraInertia", true);
 cacheStore.registerPluginData("GCodeViewer", "perimeterOnly", false);
-cacheStore.registerPluginData("GCodeViewer", "unprintedMode", 2);
+cacheStore.registerPluginData("GCodeViewer", "unprintedMode", 0);
 cacheStore.registerPluginData("GCodeViewer", "opacityPercent", 5);
 cacheStore.registerPluginData("GCodeViewer", "colorMode", 2);
 cacheStore.registerPluginData("GCodeViewer", "minColorRate", 20);

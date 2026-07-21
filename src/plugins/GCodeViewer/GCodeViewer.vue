@@ -468,6 +468,12 @@
 								</v-expansion-panels>
 
 								<div>
+									<div class="text-title-small mb-2">{{ $t("plugins.gcodeViewer.trailColor") }}</div>
+									<ColorPicker :editcolor="trailColor"
+												 @updatecolor="(value) => updateTrailColor(value)" />
+								</div>
+
+								<div>
 									<div class="text-title-small mb-2">{{ $t("plugins.gcodeViewer.bedRenderMode") }}</div>
 									<v-btn-toggle v-model="bedRenderMode" mandatory class="d-flex mb-3">
 										<v-btn :value="0" class="flex-grow-1">{{ $t("plugins.gcodeViewer.bed") }}</v-btn>
@@ -501,6 +507,10 @@
 								<div v-if="unprintedMode !== 0" class="ml-6">
 									<div class="text-title-small mb-1">{{ $t("plugins.gcodeViewer.opacity") }}</div>
 									<v-slider v-model="opacityPercent" min="1" max="100" thumb-label hide-details />
+								</div>
+								<div>
+									<div class="text-title-small mb-1">{{ $t("plugins.gcodeViewer.trailDuration") }}</div>
+									<v-slider v-model="trailDuration" min="0" max="60" step="1" thumb-label hide-details />
 								</div>
 								<div>
 									<div class="text-title-small mb-1">{{ $t("plugins.gcodeViewer.topClipping") }}</div>
@@ -576,11 +586,11 @@
 					<v-col cols="12" md="5">
 						<v-btn-toggle v-model="scrubSpeed" mandatory rounded color="secondary" class="w-100">
 							<v-btn :value="1" class="flex-grow-1">1x</v-btn>
-							<v-btn :value="2" class="flex-grow-1">2x</v-btn>
-							<v-btn :value="5" class="flex-grow-1">5x</v-btn>
 							<v-btn :value="10" class="flex-grow-1">10x</v-btn>
-							<v-btn :value="20" class="flex-grow-1">20x</v-btn>
+							<v-btn :value="50" class="flex-grow-1">50x</v-btn>
 							<v-btn :value="100" class="flex-grow-1">100x</v-btn>
+							<v-btn :value="500" class="flex-grow-1">500x</v-btn>
+							<v-btn :value="1000" class="flex-grow-1">1000x</v-btn>
 						</v-btn-toggle>
 					</v-col>
 				</v-row>
@@ -858,6 +868,8 @@ settingDefaults.set("bedColor", "#0000FF");
 settingDefaults.set("viewGCode", false);
 const bedRenderMode = cachedSetting("bedRenderMode", 0);
 const progressColor = cachedSetting("progressColor", "#FFFFFFFF");
+const trailColor = cachedSetting("trailColor", "#FFFFFF");
+const trailDuration = cachedSetting("trailDuration", 10);
 const showTravelLines = cachedSetting("showTravels", false);
 const showAxes = cachedSetting("showAxes", true);
 const showRuler = cachedSetting("showRuler", false);
@@ -866,7 +878,7 @@ const showObjectLabels = cachedSetting("showObjectLabels", true);
 const showOverlay = cachedSetting("showOverlay", true);
 const cameraInertia = cachedSetting("cameraInertia", true);
 const perimeterOnly = cachedSetting("perimeterOnly", false);
-const unprintedMode = cachedSetting("unprintedMode", 2);
+const unprintedMode = cachedSetting("unprintedMode", 0);
 const opacityPercent = cachedSetting("opacityPercent", 5);
 // Feature colouring (colorMode 2 -> library Feature mode), the colourful per-feature view
 const colorMode = cachedSetting("colorMode", 2);
@@ -956,6 +968,7 @@ function handleViewerEvent(e: any) {
 			// While following a live job, disable click-to-seek and snap the head to the printer's
 			// current position (the fresh load renders the whole file as finished until we do)
 			viewer?.setAllowSeek(!followingJob.value);
+			viewer?.setLiveTracking(followingJob.value);
 			if (followingJob.value) {
 				viewer?.updateFilePosition(filePosition.value);
 			}
@@ -1038,8 +1051,10 @@ function applyRenderSettings() {
 	viewer.setAlphaMode(unprintedMode.value === 1);
 	viewer.setProgressMode(unprintedMode.value === 2);
 	viewer.setMeshMode(geometryMode.value);
-	viewer.setTransparencyValue(opacityPercent.value / 100);
+	viewer.setUnprintedOpacity(opacityPercent.value / 100);
 	viewer.setProgressColor(progressColor.value);
+	viewer.setTrailColor(trailColor.value);
+	viewer.setTrailDuration(trailDuration.value);
 	viewer.setShowTravels(showTravelLines.value);
 	viewer.setPersistTravels(persistTravels.value);
 	viewer.setSpecular(specular.value);
@@ -1339,6 +1354,11 @@ function updateProgressColor(value: string) {
 	viewer?.setProgressColor(value);
 }
 
+function updateTrailColor(value: string) {
+	trailColor.value = value;
+	viewer?.setTrailColor(value);
+}
+
 // Feed-rate colouring has no library method yet; the pickers are shown greyed-out. The setters keep
 // the bound value in sync so the choice survives until support returns
 function updateMinFeedColor(value: string) {
@@ -1510,11 +1530,15 @@ watch(unprintedMode, (to) => {
 	viewer?.setAlphaMode(to === 1);
 	viewer?.setProgressMode(to === 2);
 });
-watch(opacityPercent, (to) => viewer?.setTransparencyValue(to / 100));
+watch(opacityPercent, (to) => viewer?.setUnprintedOpacity(to / 100));
+watch(trailDuration, (to) => viewer?.setTrailDuration(to));
 watch(scrubSpeed, (to) => viewer?.setAnimationSpeed(to));
 watch(showTravelLines, (to) => viewer?.setShowTravels(to));
 watch(cameraInertia, (to) => viewer?.setCameraInertia(to));
-watch(followingJob, (to) => viewer?.setAllowSeek(!to));
+watch(followingJob, (to) => {
+	viewer?.setAllowSeek(!to);
+	viewer?.setLiveTracking(to);
+});
 
 // Top/bottom Z clipping. Keep the two thumbs from crossing, then push both plane heights (with a
 // one-layer margin on each end) regardless of which thumb moved

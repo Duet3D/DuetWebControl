@@ -1472,6 +1472,8 @@
 			"topClipping": "Oberes Clipping",
 			"bottomClipping": "Unteres Clipping",
 			"progressColor": "Farbe für Fortschritt",
+			"trailColor": "Farbe der Spur",
+			"trailDuration": "Spurdauer (s)",
 			"settings": "Einstellungen",
 			"background": "Hintergrundfarbe",
 			"bedRenderMode": "Bettdarstellungsmodus",

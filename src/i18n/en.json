@@ -1470,6 +1470,8 @@
 			"topClipping": "Top Clipping",
 			"bottomClipping": "Bottom Clipping",
 			"progressColor": "Progress Color",
+			"trailColor": "Trail Color",
+			"trailDuration": "Trail Duration (s)",
 			"settings": "Settings",
 			"background": "Background Color",
 			"bedRenderMode": "Bed Render Mode",
