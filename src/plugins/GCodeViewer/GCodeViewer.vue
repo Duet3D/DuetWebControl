@@ -530,6 +530,15 @@
 								<div class="d-flex flex-column">
 									<v-switch v-model="showAxes" :label="$t('plugins.gcodeViewer.showAxes')"
 											  color="primary" hide-details />
+									<v-switch v-model="showRuler" :label="$t('plugins.gcodeViewer.showRuler')"
+											  :title="$t('plugins.gcodeViewer.showRulerHint')"
+											  color="primary" hide-details />
+									<v-text-field v-if="showRuler" v-model.number="rulerInterval" type="number"
+												  :label="$t('plugins.gcodeViewer.rulerInterval')"
+												  :title="$t('plugins.gcodeViewer.rulerIntervalHint')"
+												  :placeholder="$t('plugins.gcodeViewer.rulerIntervalAuto')"
+												  min="0" max="500" step="5" density="compact"
+												  variant="outlined" hide-details class="mt-2 ml-6" />
 									<v-switch v-model="showWorkplace" :label="$t('plugins.gcodeViewer.showWorkplace')"
 											  :title="$t('plugins.gcodeViewer.showWorkplaceHint')"
 											  color="primary" hide-details />
@@ -774,7 +783,7 @@ const visualizingCurrentJob = computed(() => {
 	}
 });
 
-const filePosition = computed(() => Number(job.value.filePosition ?? 0));
+const filePosition = computed(() => Number(machineStore.printingFilePosition ?? 0));
 
 const kinematicsName = computed(() => move.value.kinematics.name);
 const isDelta = computed(() => kinematicsName.value === KinematicsName.linearDelta
@@ -851,12 +860,14 @@ const bedRenderMode = cachedSetting("bedRenderMode", 0);
 const progressColor = cachedSetting("progressColor", "#FFFFFFFF");
 const showTravelLines = cachedSetting("showTravels", false);
 const showAxes = cachedSetting("showAxes", true);
+const showRuler = cachedSetting("showRuler", false);
+const rulerInterval = cachedSetting("rulerInterval", 0);
 const showObjectLabels = cachedSetting("showObjectLabels", true);
 const showOverlay = cachedSetting("showOverlay", true);
 const cameraInertia = cachedSetting("cameraInertia", true);
 const perimeterOnly = cachedSetting("perimeterOnly", false);
-const unprintedMode = cachedSetting("unprintedMode", 1);
-const opacityPercent = cachedSetting("opacityPercent", 10);
+const unprintedMode = cachedSetting("unprintedMode", 2);
+const opacityPercent = cachedSetting("opacityPercent", 5);
 // Feature colouring (colorMode 2 -> library Feature mode), the colourful per-feature view
 const colorMode = cachedSetting("colorMode", 2);
 const minColorRate = cachedSetting("minColorRate", 20);
@@ -1007,6 +1018,8 @@ function applyViewerConfig() {
 	viewer.setBedColor(bedColor.value);
 	viewer.setBackgroundColor(backgroundColor.value);
 	viewer.showAxes(showAxes.value);
+	viewer.setRulerInterval(rulerInterval.value > 0 ? rulerInterval.value : null);
+	viewer.showRuler(showRuler.value);
 	viewer.showObjectLabels(showObjectLabels.value);
 	viewer.showWorkplace(showWorkplace.value);
 	viewer.toggleNozzle(showTool.value);
@@ -1337,7 +1350,11 @@ function updateMaxFeedColor(value: string) {
 }
 
 function reset() {
-	viewer?.resetCamera();
+	if (isEmbedded.value) {
+		viewer?.frameToPrint(true);
+	} else {
+		viewer?.resetCamera(true);
+	}
 }
 
 // #endregion
@@ -1537,6 +1554,8 @@ watch(nozzleDiameterFromToolName, () => {
 });
 watch(bedRenderMode, (to) => viewer?.setBedRenderMode(to));
 watch(showAxes, (to) => viewer?.showAxes(to));
+watch(showRuler, (to) => viewer?.showRuler(to));
+watch(rulerInterval, (to) => viewer?.setRulerInterval(to > 0 ? to : null));
 watch(showObjectLabels, (to) => viewer?.showObjectLabels(to));
 watch(toolColors, () => updateTools(), { deep: true });
 watch(axisBoundsKey, () => setBuildVolumeFromAxes());

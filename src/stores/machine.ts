@@ -214,13 +214,21 @@ export const useMachineStore = defineStore("machine", {
 		},
 
 		/**
-		 * Fraction printed in per cent (0..1)
+		 * File position being printed. `move.currentMove.filePosition` is the code being executed and
+		 * is null while that code is not a move; `job.filePosition` is the position everything has
+		 * been read up to, which runs ahead of execution
 		 * @param state Store state
+		 * @returns File position being printed or null if unknown
+		 */
+		printingFilePosition: state => state.model.move.currentMove.filePosition ?? state.model.job.filePosition,
+
+		/**
+		 * Fraction printed in per cent (0..1)
 		 * @returns Fraction printed
 		 */
-		fractionPrinted: state => {
-			if (state.model.job.filePosition !== null && state.model.job.file !== null && state.model.job.file.size > 0) {
-				return (state.model.job.filePosition as number) / (state.model.job.file.size as number);
+		fractionPrinted(): number {
+			if (this.printingFilePosition !== null && this.model.job.file !== null && this.model.job.file.size > 0) {
+				return Number(this.printingFilePosition) / (this.model.job.file.size as number);
 			}
 			return 0;
 		},

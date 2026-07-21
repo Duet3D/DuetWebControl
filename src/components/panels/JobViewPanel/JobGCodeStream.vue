@@ -75,7 +75,7 @@ function followPosition() {
 	if (!model) {
 		return;
 	}
-	const offset = Number(machineStore.model.job.filePosition ?? 0);
+	const offset = Number(machineStore.printingFilePosition ?? 0);
 	const target = model.getPositionAt(offset);
 
 	executionLine?.set([{
@@ -127,7 +127,7 @@ onBeforeUnmount(() => {
 
 watch(() => machineStore.model.job.file?.fileName, () => jobFileStore.loadContent());
 watch(() => jobFileStore.content, syncEditor);
-watch(() => machineStore.model.job.filePosition, followPosition);
+watch(() => machineStore.printingFilePosition, followPosition);
 watch(() => settingsStore.darkTheme, (dark) => {
 	monacoNamespace?.editor.setTheme(dark ? "vs-dark" : "vs");
 });

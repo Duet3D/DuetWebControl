@@ -15,11 +15,31 @@
 }
 
 .event-log-row {
+	position: relative;
 	display: grid;
 	grid-template-columns: 1fr;
 	gap: 0.125rem;
-	padding: 0.5rem 0.75rem;
+	padding: 0.5rem 2.5rem 0.5rem 0.75rem;
 	border-bottom: thin solid rgba(var(--v-border-color), var(--v-border-opacity));
+}
+
+.event-log-copy {
+	position: absolute;
+	top: 0.25rem;
+	right: 0.25rem;
+	transition: opacity 0.2s;
+}
+
+/* Pointer devices reveal the button on hover; touch devices have no hover state, so it stays visible */
+@media (hover: hover) {
+	.event-log-copy {
+		opacity: 0;
+	}
+
+	.event-log-row:hover .event-log-copy,
+	.event-log-copy:focus-visible {
+		opacity: 1;
+	}
 }
 
 .event-log-row:last-child {
@@ -87,6 +107,10 @@
 					<br v-if="entry.title && entry.message">
 					<span v-if="entry.message" class="event-log-message" v-html="formatMessage(entry.message)" />
 				</div>
+				<v-btn class="event-log-copy" icon variant="text" density="comfortable"
+					   :title="$t('list.eventLog.copy')" @click="copyEntry(entry)">
+					<v-icon size="small">mdi-content-copy</v-icon>
+				</v-btn>
 			</li>
 		</ul>
 
@@ -192,17 +216,20 @@ function openContextMenu(entry: LogMessage, x: number, y: number) {
 	nextTick(() => { contextMenu.shown = true; });
 }
 
-async function copyText(text: string) {
+async function copyText(text: string, notification: string | null = null) {
 	try {
 		await copyToClipboard(text);
+		if (notification !== null) {
+			uiStore.makeNotification(LogLevel.info, notification);
+		}
 	} catch (e) {
-		console.warn(e);
+		uiStore.notifyError(e, i18n.global.t("list.eventLog.copy"));
 	}
 }
 
 function copyEntry(entry: LogMessage | null) {
 	if (entry) {
-		copyText(formatContent(entry));
+		copyText(formatContent(entry), i18n.global.t("list.eventLog.messageCopied"));
 	}
 }
 
