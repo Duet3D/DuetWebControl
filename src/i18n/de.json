@@ -671,14 +671,10 @@
 			"settings": {
 				"stepWidth": "Schrittweite",
 				"stepWidthHint": "Wert, der pro Klick auf die +/--Knöpfe angewendet wird",
-				"numericInput": "Numerische Eingaben",
-				"numericInputHint": "Numerische Eingabefelder statt der Schieberegler anzeigen",
 				"showResetLink": "Links zum Zurücksetzen anzeigen",
 				"showResetLinkHint": "Einen Link anzeigen, der den Extrusionsfaktor auf 100 % zurücksetzt",
 				"showCurrentToolOnly": "Nur aktuelles Werkzeug",
-				"showCurrentToolOnlyHint": "Nur die Extruder des aktuell ausgewählten Werkzeugs anzeigen",
-				"enableLock": "Sperrbare Schieberegler",
-				"enableLockHint": "Eine Sperrtaste neben jedem Schieberegler anzeigen, die ihn schreibgeschützt schaltet, um unbeabsichtigte Anpassungen zu verhindern"
+				"showCurrentToolOnlyHint": "Nur die Extruder des aktuell ausgewählten Werkzeugs anzeigen"
 			}
 		},
 		"jobControl": {
@@ -749,11 +745,7 @@
 				"upperLimit": "Anfängliche Obergrenze",
 				"upperLimitHint": "Anfängliches Maximum des Schiebereglers; er skaliert automatisch hoch, wenn der Geschwindigkeitsfaktor diesen Wert übersteigt",
 				"stepWidth": "Schrittweite",
-				"stepWidthHint": "Wert, der pro Klick auf die +/--Knöpfe angewendet wird",
-				"numericInput": "Numerische Eingabe",
-				"numericInputHint": "Ein numerisches Eingabefeld statt des Schiebereglers anzeigen",
-				"enableLock": "Sperrbarer Schieberegler",
-				"enableLockHint": "Eine Sperrtaste neben dem Schieberegler anzeigen, die ihn schreibgeschützt schaltet, um unbeabsichtigte Anpassungen zu verhindern"
+				"stepWidthHint": "Wert, der pro Klick auf die +/--Knöpfe angewendet wird"
 			}
 		},
 		"tools": {
@@ -888,11 +880,7 @@
 			"displayedFans": "Angezeigte Lüfter",
 			"settings": {
 				"stepWidth": "Schrittweite",
-				"stepWidthHint": "Wert, der pro Klick auf die +/--Knöpfe angewendet wird",
-				"numericInput": "Numerische Eingabe",
-				"numericInputHint": "Ein numerisches Eingabefeld statt des Schiebereglers anzeigen",
-				"enableLock": "Sperrbarer Schieberegler",
-				"enableLockHint": "Eine Sperrtaste neben dem Schieberegler anzeigen, die ihn schreibgeschützt schaltet, um unbeabsichtigte Anpassungen zu verhindern"
+				"stepWidthHint": "Wert, der pro Klick auf die +/--Knöpfe angewendet wird"
 			}
 		},
 		"fans": {
@@ -904,11 +892,7 @@
 			"displayedFans": "Angezeigte Lüfter",
 			"settings": {
 				"stepWidth": "Schrittweite",
-				"stepWidthHint": "Wert, der pro Klick auf die +/--Knöpfe angewendet wird",
-				"numericInput": "Numerische Eingaben",
-				"numericInputHint": "Numerische Eingabefelder statt der Schieberegler anzeigen",
-				"enableLock": "Sperrbare Schieberegler",
-				"enableLockHint": "Eine Sperrtaste neben jedem Schieberegler anzeigen, die ihn schreibgeschützt schaltet, um unbeabsichtigte Anpassungen zu verhindern"
+				"stepWidthHint": "Wert, der pro Klick auf die +/--Knöpfe angewendet wird"
 			}
 		},
 		"movement": {
@@ -1004,6 +988,15 @@
 				"off": "Aus",
 				"toBottom": "Immer ganz nach unten scrollen",
 				"viewerPages": "Nur auf Ansichtsseiten"
+			},
+			"numericInputs": "Zahleneingaben",
+			"numericInputsHint": "In den Lüfter-, Geschwindigkeitsfaktor- und Extrusionsfaktor-Panels Zahlenfelder statt der Schieberegler anzeigen",
+			"lockableSliders": "Sperrbare Schieberegler",
+			"lockableSlidersHint": "Neben jedem Schieberegler eine Sperrschaltfläche anzeigen, die ihn schreibgeschützt schaltet, um versehentliches Verschieben zu verhindern",
+			"lockableSlidersOptions": {
+				"always": "Immer",
+				"mobile": "Nur auf Mobilgeräten",
+				"disabled": "Deaktiviert"
 			}
 		},
 		"communicationCard": {

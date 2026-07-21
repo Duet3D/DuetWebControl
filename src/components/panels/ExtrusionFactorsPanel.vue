@@ -25,7 +25,6 @@
 					</div>
 					<PercentageInput :model-value="Math.round(extruder.factor * 100)" :min="0"
 									 :max="getMax(extruder.factor)" :step="settings.stepWidth"
-									 :numeric-input="settings.numericInput" :lockable="settings.enableLock"
 									 :disabled="uiStore.uiFrozen"
 									 @update:model-value="setExtrusionFactor(index, $event)" />
 				</div>
@@ -48,17 +47,9 @@
 								  :label="$t('panel.extrusionFactors.displayedExtruders')"
 								  v-model="settings.displayedExtruders" />
 
-			<v-switch v-model="settings.numericInput" color="primary" class="mt-3"
-					  :label="$t('panel.extrusionFactors.settings.numericInput')"
-					  v-hint="$t('panel.extrusionFactors.settings.numericInputHint')"
-					  density="comfortable" hide-details />
-			<v-switch v-model="settings.showResetLink" color="primary"
+			<v-switch v-model="settings.showResetLink" color="primary" class="mt-3"
 					  :label="$t('panel.extrusionFactors.settings.showResetLink')"
 					  v-hint="$t('panel.extrusionFactors.settings.showResetLinkHint')"
-					  density="comfortable" hide-details />
-			<v-switch v-model="settings.enableLock" color="primary"
-					  :label="$t('panel.extrusionFactors.settings.enableLock')"
-					  v-hint="$t('panel.extrusionFactors.settings.enableLockHint')"
 					  density="comfortable" hide-details />
 
 			<v-number-input v-model="settings.stepWidth" :min="1" :step="1" :precision="0" class="mt-3"
@@ -82,17 +73,13 @@ const uiStore = useUiStore();
 const settings = useComponentSettings<{
 	displayedExtruders: Array<number> | null;
 	stepWidth: number;
-	numericInput: boolean;
 	showResetLink: boolean;
 	showCurrentToolOnly: boolean;
-	enableLock: boolean;
 }>({
 	displayedExtruders: null,
 	stepWidth: 1,
-	numericInput: false,
 	showResetLink: true,
 	showCurrentToolOnly: false,
-	enableLock: false,
 });
 
 const extruders = computed(() => machineStore.model.move.extruders);

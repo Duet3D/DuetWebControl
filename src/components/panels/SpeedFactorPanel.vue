@@ -11,21 +11,11 @@
 
 		<v-card-text class="pt-0 pb-2">
 			<PercentageInput v-model="speedFactor" :min="speedFactorMin" :max="speedFactorMax"
-							 :step="settings.stepWidth" :numeric-input="settings.numericInput"
-							 :lockable="settings.enableLock" :disabled="uiStore.uiFrozen" />
+							 :step="settings.stepWidth" :disabled="uiStore.uiFrozen" />
 		</v-card-text>
 
 		<template #settings>
-			<v-switch v-model="settings.numericInput" color="primary"
-					  :label="$t('panel.speedFactor.settings.numericInput')"
-					  v-hint="$t('panel.speedFactor.settings.numericInputHint')"
-					  density="comfortable" hide-details />
-			<v-switch v-model="settings.enableLock" color="primary"
-					  :label="$t('panel.speedFactor.settings.enableLock')"
-					  v-hint="$t('panel.speedFactor.settings.enableLockHint')"
-					  density="comfortable" hide-details />
-
-			<v-number-input v-model="settings.upperLimit" :min="100" :step="10" :precision="0" class="mt-3"
+			<v-number-input v-model="settings.upperLimit" :min="100" :step="10" :precision="0"
 							:label="$t('panel.speedFactor.settings.upperLimit')"
 							v-hint="$t('panel.speedFactor.settings.upperLimitHint')"
 							variant="outlined" density="comfortable" hide-details />
@@ -49,13 +39,9 @@ const uiStore = useUiStore();
 const settings = useComponentSettings<{
 	upperLimit: number;
 	stepWidth: number;
-	numericInput: boolean;
-	enableLock: boolean;
 }>({
 	upperLimit: 150,
 	stepWidth: 5,
-	numericInput: false,
-	enableLock: false,
 });
 
 const speedFactor = computed<number>({

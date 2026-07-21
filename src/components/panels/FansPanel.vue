@@ -5,7 +5,6 @@
 				 class="d-flex flex-column pt-2">
 				<div class="mb-1">{{ $t("panel.fans.toolFan") }}</div>
 				<PercentageInput :model-value="toolFanValue" :step="settings.stepWidth"
-								 :numeric-input="settings.numericInput" :lockable="settings.enableLock"
 								 :disabled="uiStore.uiFrozen"
 								 @update:model-value="setFanValue(-1, $event)" />
 			</div>
@@ -15,8 +14,7 @@
 					 class="d-flex flex-column pt-2">
 					<div class="mb-1">{{ fanModel.name || $t("panel.fans.fan", [index]) }}</div>
 					<PercentageInput :model-value="Math.round(fanModel.requestedValue * 100)" :step="settings.stepWidth"
-									 :numeric-input="settings.numericInput" :lockable="settings.enableLock"
-									 :disabled="uiStore.uiFrozen"
+										 :disabled="uiStore.uiFrozen"
 									 @update:model-value="setFanValue(index, $event)" />
 				</div>
 			</template>
@@ -29,15 +27,6 @@
 		<template #settings>
 			<EntityVisibilityList kind="fans" :label="$t('panel.fans.displayedFans')"
 								  v-model="settings.displayedFans" />
-
-			<v-switch v-model="settings.numericInput" color="primary" class="mt-3"
-					  :label="$t('panel.fans.settings.numericInput')"
-					  v-hint="$t('panel.fans.settings.numericInputHint')"
-					  density="comfortable" hide-details />
-			<v-switch v-model="settings.enableLock" color="primary"
-					  :label="$t('panel.fans.settings.enableLock')"
-					  v-hint="$t('panel.fans.settings.enableLockHint')"
-					  density="comfortable" hide-details />
 
 			<v-number-input v-model="settings.stepWidth" :min="1" :step="1" :precision="0" class="mt-3"
 							:label="$t('panel.fans.settings.stepWidth')"
@@ -62,13 +51,9 @@ const uiStore = useUiStore();
 const settings = useComponentSettings<{
 	displayedFans: Array<number> | null;
 	stepWidth: number;
-	numericInput: boolean;
-	enableLock: boolean;
 }>({
 	displayedFans: null,
 	stepWidth: 5,
-	numericInput: false,
-	enableLock: false,
 });
 
 const fans = computed<Array<Fan | null>>(() => machineStore.model.fans);

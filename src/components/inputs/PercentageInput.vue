@@ -50,7 +50,10 @@
 </template>
 
 <script setup lang="ts">
+import { useDisplay } from "vuetify";
+
 import { useLargeButtons } from "@/composables/useLargeButtons";
+import { LockableSliders, useSettingsStore } from "@/stores/settings";
 import { isNumber } from "@/utils/numbers";
 
 const props = withDefaults(defineProps<{
@@ -58,20 +61,21 @@ const props = withDefaults(defineProps<{
 	max?: number;
 	step?: number;
 	disabled?: boolean;
-	// Show a numeric entry field instead of the slider
-	numericInput?: boolean;
-	// Show a lock button that toggles slider readonly to prevent accidental drags
-	lockable?: boolean;
 }>(), {
 	min: 0,
 	max: 100,
 	step: 5,
 	disabled: false,
-	numericInput: false,
-	lockable: false,
 });
 
 const modelValue = defineModel<number>({ required: true });
+
+const { mobile } = useDisplay();
+const settingsStore = useSettingsStore();
+
+const numericInput = computed(() => settingsStore.behaviour.numericInputs);
+const lockable = computed(() => settingsStore.behaviour.lockableSliders === LockableSliders.always
+	|| (settingsStore.behaviour.lockableSliders === LockableSliders.mobile && mobile.value));
 
 // Tunables for the apply debounce and for press-and-hold auto-repeat
 const debounceTime = 500;
@@ -101,7 +105,7 @@ watch(modelValue, (to) => {
 // Numeric mode commits on a debounce so the v-number-input's spinner and keystrokes don't fire
 // one G-code per intermediate value. Slider mode commits through onSliderEnd / applyStep
 watch(innerValue, (value) => {
-	if (!props.numericInput) {
+	if (!numericInput.value) {
 		return;
 	}
 	if (debounceTimer) {

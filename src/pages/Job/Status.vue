@@ -18,6 +18,12 @@
 	min-height: 0;
 }
 
+/* v-row wraps, so a tall column stretches the whole line and the panels would grow past the page
+   box. The cap resolves against the row's own height, making each column scroll instead */
+.panel-grid > * {
+	max-height: 100%;
+}
+
 @media (max-width: 839px) {
 	.mobile-first-screen {
 		min-height: calc(100dvh - var(--v-layout-top, 64px));

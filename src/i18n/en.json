@@ -669,14 +669,10 @@
 			"settings": {
 				"stepWidth": "Step width",
 				"stepWidthHint": "Amount applied per click of the + and - buttons",
-				"numericInput": "Numeric inputs",
-				"numericInputHint": "Show numeric entry fields instead of the sliders",
 				"showResetLink": "Show reset links",
 				"showResetLinkHint": "Show a link that resets the extrusion factor to 100%",
 				"showCurrentToolOnly": "Current tool only",
-				"showCurrentToolOnlyHint": "Show only the extruder(s) of the currently selected tool",
-				"enableLock": "Lockable sliders",
-				"enableLockHint": "Show a lock button next to each slider that toggles it readonly to prevent accidental drags"
+				"showCurrentToolOnlyHint": "Show only the extruder(s) of the currently selected tool"
 			}
 		},
 		"jobControl": {
@@ -747,11 +743,7 @@
 				"upperLimit": "Initial upper limit",
 				"upperLimitHint": "Initial maximum of the slider; it scales up automatically when the speed factor exceeds it",
 				"stepWidth": "Step width",
-				"stepWidthHint": "Amount applied per click of the + and - buttons",
-				"numericInput": "Numeric input",
-				"numericInputHint": "Show a numeric entry field instead of the slider",
-				"enableLock": "Lockable slider",
-				"enableLockHint": "Show a lock button next to the slider that toggles it readonly to prevent accidental drags"
+				"stepWidthHint": "Amount applied per click of the + and - buttons"
 			}
 		},
 		"tools": {
@@ -890,11 +882,7 @@
 			"displayedFans": "Displayed fans",
 			"settings": {
 				"stepWidth": "Step width",
-				"stepWidthHint": "Amount applied per click of the + and - buttons",
-				"numericInput": "Numeric input",
-				"numericInputHint": "Show a numeric entry field instead of the slider",
-				"enableLock": "Lockable slider",
-				"enableLockHint": "Show a lock button next to the slider that toggles it readonly to prevent accidental drags"
+				"stepWidthHint": "Amount applied per click of the + and - buttons"
 			}
 		},
 		"fans": {
@@ -906,11 +894,7 @@
 			"displayedFans": "Displayed fans",
 			"settings": {
 				"stepWidth": "Step width",
-				"stepWidthHint": "Amount applied per click of the + and - buttons",
-				"numericInput": "Numeric inputs",
-				"numericInputHint": "Show numeric entry fields instead of the sliders",
-				"enableLock": "Lockable sliders",
-				"enableLockHint": "Show a lock button next to each slider that toggles it readonly to prevent accidental drags"
+				"stepWidthHint": "Amount applied per click of the + and - buttons"
 			}
 		},
 		"movement": {
@@ -1006,6 +990,15 @@
 				"off": "Off",
 				"toBottom": "Always scroll to bottom",
 				"viewerPages": "Only on viewer pages"
+			},
+			"numericInputs": "Numeric inputs",
+			"numericInputsHint": "Show numeric entry fields instead of the sliders in the fan, speed factor and extrusion factor panels",
+			"lockableSliders": "Lockable sliders",
+			"lockableSlidersHint": "Show a lock button next to each slider that toggles it readonly to prevent accidental drags",
+			"lockableSlidersOptions": {
+				"always": "Always",
+				"mobile": "Only on mobile",
+				"disabled": "Disabled"
 			}
 		},
 		"communicationCard": {

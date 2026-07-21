@@ -6,8 +6,8 @@
 		</v-card-text>
 
 		<template #title-append>
-			<v-btn v-if="settings.showTurnEverythingOff && anyHeaterOn" variant="text" size="small"
-				   density="comfortable" color="primary" :disabled="!canTurnEverythingOff"
+			<v-btn v-if="settings.showTurnEverythingOff && anythingOn && canTurnEverythingOff" variant="text" size="small"
+				   density="comfortable" color="primary"
 				   :loading="turningEverythingOff" :title="$t('panel.tools.turnEverythingOff')"
 				   @click="turnEverythingOff">
 				<v-icon size="small" class="mr-1">mdi-power-standby</v-icon>
@@ -120,7 +120,7 @@
 </template>
 
 <script setup lang="ts">
-import { type AnalogSensor, HeaterState, MachineStatus } from "@duet3d/objectmodel";
+import { type AnalogSensor, HeaterState, MachineStatus, SpindleState } from "@duet3d/objectmodel";
 
 import ControlList from "./ControlList/ControlList.vue";
 import ExtraSensorList from "./ExtraSensorList.vue";
@@ -196,16 +196,24 @@ const hasTools = computed(() => machineStore.model.tools.some(tool => tool !== n
 const hasBeds = computed(() => machineStore.bedHeaterMapping.some(slotHasHeater));
 const hasChambers = computed(() => machineStore.chamberHeaterMapping.some(slotHasHeater));
 
+// Only active/standby mean the heater is commanded on - fault, offline and tuning are states the
+// Off button cannot clear, so they must not make it appear
 function heaterIsOn(heaterIndex: number): boolean {
 	const heaters = machineStore.model.heat.heaters;
-	return heaterIndex >= 0 && heaterIndex < heaters.length
-		&& heaters[heaterIndex] !== null && heaters[heaterIndex]!.state !== HeaterState.off;
+	return heaterIndex >= 0 && heaterIndex < heaters.length && heaters[heaterIndex] !== null
+		&& [HeaterState.active, HeaterState.standby].includes(heaters[heaterIndex]!.state);
 }
 
-const anyHeaterOn = computed(() =>
+function spindleIsOn(spindleIndex: number): boolean {
+	const spindle = machineStore.model.spindles[spindleIndex];
+	return spindle !== null && (spindle.state === SpindleState.forward || spindle.state === SpindleState.reverse);
+}
+
+const anythingOn = computed(() =>
 	machineStore.model.tools.some(tool => tool !== null && tool.heaters.some(heaterIsOn))
 	|| machineStore.bedHeaterMapping.some(heaterIndices => heaterIndices.some(heaterIsOn))
-	|| machineStore.chamberHeaterMapping.some(heaterIndices => heaterIndices.some(heaterIsOn)));
+	|| machineStore.chamberHeaterMapping.some(heaterIndices => heaterIndices.some(heaterIsOn))
+	|| machineStore.model.spindles.some((_, index) => spindleIsOn(index)));
 
 const canTurnEverythingOff = computed(() =>
 	!uiStore.uiFrozen && ![MachineStatus.pausing, MachineStatus.processing, MachineStatus.resuming].includes(machineStore.model.state.status));
@@ -227,6 +235,11 @@ async function turnEverythingOff() {
 	machineStore.chamberHeaterMapping.forEach((heaterIndices, index) => {
 		if (slotHasHeater(heaterIndices)) {
 			code += `M141 P${index} S-273.15\n`;
+		}
+	});
+	machineStore.model.spindles.forEach((_, index) => {
+		if (spindleIsOn(index)) {
+			code += `M5 P${index}\n`;
 		}
 	});
 

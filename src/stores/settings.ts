@@ -105,6 +105,12 @@ export enum AutoScrollMode {
 	viewerPages = "viewerPages"
 }
 
+export enum LockableSliders {
+	always = "always",
+	mobile = "mobile",
+	disabled = "disabled"
+}
+
 // Schema version embedded in persisted settings blobs. Bump SETTINGS_SCHEMA_VERSION and add a
 // step to {@link settingsUpgrades} whenever the shape changes incompatibly; the load path
 // chains upgrades from the persisted version up to the current one. Mirrors the pattern used by
@@ -261,6 +267,21 @@ export const useSettingsStore = defineStore("settings", {
 			 * so for active prints that's where most users want to land
 			 */
 			switchToJobOnPrintStart: true,
+
+			/**
+			 * Show numeric entry fields instead of the sliders in the fan, speed factor and
+			 * extrusion factor panels
+			 */
+			numericInputs: false,
+
+			/**
+			 * Show a lock button next to each slider that toggles it readonly, so a stray drag
+			 * cannot change a fan or factor
+			 * - always: on every display
+			 * - mobile: only where a touch display makes accidental drags likely
+			 * - disabled: never
+			 */
+			lockableSliders: LockableSliders.mobile as LockableSliders,
 
 			/**
 			 * Scroll viewport-filling pages (height map, G-code viewer, file editor) to their

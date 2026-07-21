@@ -116,6 +116,15 @@
 												  :label="$t('settings.behaviour.checkVersions')"
 												  v-hint="$t('settings.behaviour.checkVersionsHint')"
 												  density="comfortable" hide-details />
+										<v-switch v-model="settingsStore.behaviour.numericInputs" color="primary"
+												  :label="$t('settings.behaviour.numericInputs')"
+												  v-hint="$t('settings.behaviour.numericInputsHint')"
+												  density="comfortable" hide-details />
+										<v-select v-model="settingsStore.behaviour.lockableSliders" :items="lockableSlidersOptions"
+												  item-title="label" item-value="value"
+												  :label="$t('settings.behaviour.lockableSliders')"
+												  v-hint="$t('settings.behaviour.lockableSlidersHint')"
+												  variant="outlined" density="comfortable" hide-details class="mt-4" />
 										<v-select v-model="settingsStore.behaviour.autoScrollMode" :items="autoScrollModeOptions"
 												  item-title="label" item-value="value"
 												  :label="$t('settings.behaviour.autoScrollMode')"
@@ -919,7 +928,7 @@ import { localStorageSupported, removeLocalSetting } from "@/utils/localStorage"
 import { useCacheStore } from "@/stores/cache";
 import { useMachineStore } from "@/stores/machine";
 import { useMenuStore } from "@/stores/menu";
-import { AutoScrollMode, DashboardMode, UnitOfMeasure, useSettingsStore, WebcamFlip } from "@/stores/settings";
+import { AutoScrollMode, DashboardMode, LockableSliders, UnitOfMeasure, useSettingsStore, WebcamFlip } from "@/stores/settings";
 import { LogLevel, useUiStore } from "@/stores/ui";
 import { display, displaySize } from "@/utils/display";
 import { getErrorMessage } from "@/utils/errors";
@@ -1049,6 +1058,12 @@ const autoScrollModeOptions = computed(() => [
 	{ label: i18n.global.t("settings.behaviour.autoScrollModeOptions.off"), value: AutoScrollMode.off },
 	{ label: i18n.global.t("settings.behaviour.autoScrollModeOptions.toBottom"), value: AutoScrollMode.toBottom },
 	{ label: i18n.global.t("settings.behaviour.autoScrollModeOptions.viewerPages"), value: AutoScrollMode.viewerPages },
+]);
+
+const lockableSlidersOptions = computed(() => [
+	{ label: i18n.global.t("settings.behaviour.lockableSlidersOptions.always"), value: LockableSliders.always },
+	{ label: i18n.global.t("settings.behaviour.lockableSlidersOptions.mobile"), value: LockableSliders.mobile },
+	{ label: i18n.global.t("settings.behaviour.lockableSlidersOptions.disabled"), value: LockableSliders.disabled },
 ]);
 
 const flipOptions = computed(() => [
