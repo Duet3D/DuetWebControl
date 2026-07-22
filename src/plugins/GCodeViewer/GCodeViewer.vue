@@ -765,6 +765,10 @@ const fileData = ref("");
 // button, which also re-enables per-object cancellation
 const followingJob = ref(false);
 
+// True while the scene holds the running job as the viewer loaded it by itself. A job change or a
+// reconnect may replace such a scene, whereas a file the user picked is never overwritten
+const autoLoadedJob = ref(false);
+
 // The scene, bed, camera and build-object machinery are created inside the worker's async engine
 // init, so config messages sent before it finishes would hit an undefined scene and be dropped.
 // The library posts a `ready` event when init completes; whenReady() gates the first config + load
@@ -1139,6 +1143,7 @@ async function loadText(text: string) {
 async function loadSdFile(path: string) {
 	selectedFile.value = path;
 	followingJob.value = false;
+	autoLoadedJob.value = false;
 	loading.value = true;
 	try {
 		const blob = await machineStore.download({ filename: Path.combine(path), type: "text" }, false, false, false);
@@ -1174,11 +1179,20 @@ function loadFromRoute() {
 	}
 }
 
-// Loads the job currently being processed, but only when the viewer is idle and empty - an
-// explicit file selection or an in-progress load is left untouched. The embedded Job Status tab
-// follows the live print head; the standalone page renders the whole file as finished instead
+// Brings the viewer in line with the job currently being processed: loads it when the viewer is
+// idle or still shows an earlier auto-loaded job, and picks live tracking back up when a
+// disconnect dropped it. An explicit file selection or an in-progress load is left untouched. The
+// embedded Job Status tab follows the live print head; the standalone page renders the whole file
+// as finished instead and lets the user opt into live view
 function autoLoadRunningJob() {
-	if (isJobRunning.value && !loading.value && !visualizingCurrentJob.value && selectedFile.value === "") {
+	if (!isJobRunning.value || loading.value) {
+		return;
+	}
+	if (visualizingCurrentJob.value) {
+		if (isEmbedded.value && !followingJob.value) {
+			resumeLiveView();
+		}
+	} else if (selectedFile.value === "" || autoLoadedJob.value) {
 		loadRunningJob(isEmbedded.value);
 	}
 }
@@ -1189,6 +1203,7 @@ async function loadRunningJob(live = true) {
 	}
 	selectedFile.value = job.value.file.fileName;
 	followingJob.value = live;
+	autoLoadedJob.value = true;
 	loading.value = true;
 	try {
 		const blob = await machineStore.download({ filename: job.value.file.fileName, type: "text" }, false, false, false);
@@ -1213,15 +1228,19 @@ function showWholeFile() {
 	viewer?.updateFilePosition(scrubFileSize.value);
 }
 
+function resumeLiveView() {
+	viewer?.stopNozzleAnimation();
+	scrubPlaying.value = false;
+	followingJob.value = true;
+	viewer?.updateFilePosition(filePosition.value);
+}
+
 async function toggleLiveView() {
 	if (followingJob.value) {
 		followingJob.value = false;
 		showWholeFile();
 	} else if (visualizingCurrentJob.value) {
-		viewer?.stopNozzleAnimation();
-		scrubPlaying.value = false;
-		followingJob.value = true;
-		viewer?.updateFilePosition(filePosition.value);
+		resumeLiveView();
 	} else {
 		await loadRunningJob(true);
 	}
@@ -1236,6 +1255,7 @@ async function fileSelected(e: Event) {
 	}
 	selectedFile.value = "";
 	followingJob.value = false;
+	autoLoadedJob.value = false;
 	loading.value = true;
 	await loadText(await file.text());
 }
@@ -1249,6 +1269,7 @@ async function reloadviewer() {
 
 function clearScene() {
 	selectedFile.value = "";
+	autoLoadedJob.value = false;
 	loadedFileText.value = "";
 	fileData.value = "";
 	scrubFileSize.value = 0;
@@ -1644,6 +1665,10 @@ watch(visualizingCurrentJob, (newValue) => {
 		showWholeFile();
 	}
 });
+
+// The running job changes under a viewer that is already showing one whenever the next job starts
+// or a reconnect resumes the previous one, and neither goes through the route
+watch([isJobRunning, () => job.value.file?.fileName], autoLoadRunningJob);
 
 watch(selectedFile, () => {
 	showObjectSelection.value = false;
