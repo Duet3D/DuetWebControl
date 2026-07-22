@@ -566,8 +566,7 @@
 				</aside>
 			</Transition>
 
-			<div v-show="!followingJob && scrubFileSize > 0"
-				 :class="[{ 'button-container-drawer': drawer }, scrubberClass]">
+			<div v-show="showScrubber" :class="[{ 'button-container-drawer': drawer }, scrubberClass]">
 				<v-row class="scrubber-row">
 					<v-col cols="10" md="5">
 						<v-slider v-model="scrubPosition" :hint="`${scrubPosition}/${scrubFileSize}`"
@@ -969,9 +968,9 @@ function handleViewerEvent(e: any) {
 			applyRenderSettings();
 			viewer?.setAnimationSpeed(scrubSpeed.value);
 			viewer?.requestPrintBounds();
-			// While following a live job, disable click-to-seek and snap the head to the printer's
-			// current position (the fresh load renders the whole file as finished until we do)
-			viewer?.setAllowSeek(!followingJob.value);
+			// Snap the head to the printer's current position while following a live job (the fresh
+			// load renders the whole file as finished until we do)
+			viewer?.setAllowSeek(allowSeek.value);
 			viewer?.setLiveTracking(followingJob.value);
 			if (followingJob.value) {
 				viewer?.updateFilePosition(filePosition.value);
@@ -1222,6 +1221,11 @@ async function loadRunningJob(live = true) {
 // control back to the scrubber. Only the standalone page offers the choice - the embedded Job
 // Status tab always follows the running job
 const canToggleLiveView = computed(() => !isEmbedded.value && isJobRunning.value && !loading.value);
+
+// Playback belongs to the standalone page - the embedded Job Status tab keeps the scrubber hidden
+// and click-to-seek locked even once a job has finished and live tracking has been dropped
+const showScrubber = computed(() => !isEmbedded.value && !followingJob.value && scrubFileSize.value > 0);
+const allowSeek = computed(() => !isEmbedded.value && !followingJob.value);
 
 function showWholeFile() {
 	scrubPosition.value = scrubFileSize.value;
@@ -1557,7 +1561,7 @@ watch(scrubSpeed, (to) => viewer?.setAnimationSpeed(to));
 watch(showTravelLines, (to) => viewer?.setShowTravels(to));
 watch(cameraInertia, (to) => viewer?.setCameraInertia(to));
 watch(followingJob, (to) => {
-	viewer?.setAllowSeek(!to);
+	viewer?.setAllowSeek(allowSeek.value);
 	viewer?.setLiveTracking(to);
 });
 
