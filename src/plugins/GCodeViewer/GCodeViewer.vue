@@ -327,8 +327,8 @@
 					<div class="gcv-settings-body">
 						<template v-if="openCategory === 'view'">
 							<div class="d-flex flex-column ga-2">
-								<v-btn :title="$t('plugins.gcodeViewer.resetCamera.title')" block color="primary"
-									   prepend-icon="mdi-camera" @click="reset">
+								<v-btn :disabled="cameraAtDefault" :title="$t('plugins.gcodeViewer.resetCamera.title')"
+									   block color="primary" prepend-icon="mdi-camera" @click="reset">
 									{{ $t("plugins.gcodeViewer.resetCamera.caption") }}
 								</v-btn>
 								<v-btn v-if="canToggleLiveView" block color="secondary"
@@ -755,6 +755,7 @@ const scrubPosition = ref(0);
 const scrubFileSize = ref(0);
 const scrubPlaying = ref(false);
 const scrubSpeed = ref(1);
+const cameraAtDefault = ref(true);
 let resizeDebounce: ReturnType<typeof setTimeout> | null = null;
 const fileData = ref("");
 
@@ -975,12 +976,7 @@ function handleViewerEvent(e: any) {
 			if (followingJob.value) {
 				viewer?.updateFilePosition(filePosition.value);
 			}
-			// Embedded job view frames the printed geometry; the standalone page frames the whole bed
-			if (isEmbedded.value) {
-				viewer?.frameToPrint();
-			} else {
-				viewer?.resetCamera();
-			}
+			viewer?.resetCamera();
 			loading.value = false;
 			localStorage.removeItem(RENDER_FLAG_KEY);
 			break;
@@ -1000,6 +996,9 @@ function handleViewerEvent(e: any) {
 			break;
 		case "positionupdate":
 			scrubPosition.value = e.position ?? 0;
+			break;
+		case "cameradefault":
+			cameraAtDefault.value = e.isDefault ?? true;
 			break;
 		case "objectSelected":
 			objectDialogData.info = e.object as ObjectInfo;
@@ -1040,6 +1039,7 @@ function applyViewerConfig() {
 	viewer.showWorkplace(showWorkplace.value);
 	viewer.toggleNozzle(showTool.value);
 	viewer.setCameraInertia(cameraInertia.value);
+	viewer.setDefaultFraming(isEmbedded.value ? "print" : "bed");
 	applyParseSettings();
 	viewer.resetCamera();
 }
@@ -1395,11 +1395,7 @@ function updateMaxFeedColor(value: string) {
 }
 
 function reset() {
-	if (isEmbedded.value) {
-		viewer?.frameToPrint(true);
-	} else {
-		viewer?.resetCamera(true);
-	}
+	viewer?.resetCamera(true);
 }
 
 // #endregion
@@ -1646,8 +1642,9 @@ const toolPosition = computed(() => {
 	return position;
 });
 
+// Fed even with the marker hidden, because the viewer follows the print's height from it
 watch(toolPosition, (to) => {
-	if (showTool.value && followingJob.value) {
+	if (followingJob.value) {
 		viewer?.setNozzlePosition(to.x, to.y, to.z, false);
 	}
 });
