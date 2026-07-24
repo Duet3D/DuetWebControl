@@ -20,7 +20,7 @@
 					<v-col>
 						<v-row no-gutters>
 							<v-col v-for="index in numMoveSteps" :key="index" :class="getMoveCellClass(index - 1, true)">
-								<CodeButton :code="getMoveCode(axis, index - 1, true)" :disabled="!canMove(axis)"
+								<CodeButton :code="getMoveCode(axis, index - 1, true)" :disabled="!canMove(axis, true)"
 											no-wait block tile class="move-btn"
 											@contextmenu.prevent="showMoveStepDialog(axis.letter, index - 1)">
 									<v-icon>mdi-chevron-left</v-icon>
@@ -41,7 +41,7 @@
 					<v-col>
 						<v-row no-gutters>
 							<v-col v-for="index in numMoveSteps" :key="index" :class="getMoveCellClass(numMoveSteps - index, true)">
-								<CodeButton :code="getMoveCode(axis, numMoveSteps - index, false)" :disabled="!canMove(axis)"
+								<CodeButton :code="getMoveCode(axis, numMoveSteps - index, false)" :disabled="!canMove(axis, false)"
 											no-wait block tile class="move-btn"
 											@contextmenu.prevent="showMoveStepDialog(axis.letter, numMoveSteps - index)">
 									{{ axis.letter + showSign(moveSteps(axis.letter)[numMoveSteps - index]) }}
@@ -90,7 +90,7 @@
 import { Axis, AxisLetter, MessageBox, MessageBoxMode } from "@duet3d/objectmodel";
 
 import { useComponentSettings } from "@/composables/useComponentSettings";
-import { defaultMoveSteps, getMoveCellClass, type MoveStepMap, useMoveSteps } from "@/composables/useMoveSteps";
+import { defaultMoveSteps, getMoveCellClass, isAxisAtLimit, type MoveStepMap, useMoveSteps } from "@/composables/useMoveSteps";
 import { useMachineStore } from "@/stores/machine";
 import { useSettingsStore } from "@/stores/settings";
 
@@ -192,8 +192,8 @@ const canConfirm = computed(() => {
 	return true;
 });
 
-function canMove(axis: Axis): boolean {
-	return axis.homed || !machineStore.model.move.noMovesBeforeHoming;
+function canMove(axis: Axis, decrementing: boolean): boolean {
+	return (axis.homed || !machineStore.model.move.noMovesBeforeHoming) && !isAxisAtLimit(axis, decrementing);
 }
 
 function displayAxisPosition(axis: Axis): string {

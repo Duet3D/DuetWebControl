@@ -140,7 +140,8 @@
 						<v-row density="compact">
 							<v-col v-for="index in numMoveSteps" :key="index"
 								   :class="[getMoveCellClass(index - 1, cnc), (index === numMoveSteps ? 'd-none d-md-block' : '')]">
-								<CodeButton :code="getMoveCode(axis, index - 1, true)" no-wait block tile class="move-btn"
+								<CodeButton :code="getMoveCode(axis, index - 1, true)" :disabled="isAxisAtLimit(axis, true)"
+											no-wait block tile class="move-btn"
 											@contextmenu.prevent="showMoveStepDialog(axis.letter, index - 1)">
 									<v-icon>mdi-chevron-left</v-icon>
 									{{ axis.letter + showSign(-moveSteps(axis.letter)[index - 1]) }}
@@ -154,8 +155,8 @@
 						<v-row density="compact">
 							<v-col v-for="index in numMoveSteps" :key="index"
 								   :class="[getMoveCellClass(numMoveSteps - index, cnc), (index === 1 ? 'd-none d-md-block' : '')]">
-								<CodeButton :code="getMoveCode(axis, numMoveSteps - index, false)" no-wait block tile
-											class="move-btn"
+								<CodeButton :code="getMoveCode(axis, numMoveSteps - index, false)" :disabled="isAxisAtLimit(axis, false)"
+											no-wait block tile class="move-btn"
 											@contextmenu.prevent="showMoveStepDialog(axis.letter, numMoveSteps - index)">
 									{{ axis.letter + showSign(moveSteps(axis.letter)[numMoveSteps - index]) }}
 									<v-icon>mdi-chevron-right</v-icon>
@@ -295,7 +296,7 @@
 					<v-col>
 						<v-row no-gutters>
 							<v-col v-for="index in numMoveSteps" :key="index" :class="getMoveCellClass(index - 1, cnc)">
-								<CodeButton :code="getMoveCode(axis, index - 1, true)" :disabled="!canMove(axis)" no-wait
+								<CodeButton :code="getMoveCode(axis, index - 1, true)" :disabled="!canMove(axis, true)" no-wait
 											:size="largeBtnSize" block tile class="move-btn"
 											@contextmenu.prevent="showMoveStepDialog(axis.letter, index - 1)">
 									<v-icon>mdi-chevron-left</v-icon>
@@ -309,7 +310,7 @@
 					<v-col>
 						<v-row no-gutters>
 							<v-col v-for="index in numMoveSteps" :key="index" :class="getMoveCellClass(numMoveSteps - index, cnc)">
-								<CodeButton :code="getMoveCode(axis, numMoveSteps - index, false)" :disabled="!canMove(axis)"
+								<CodeButton :code="getMoveCode(axis, numMoveSteps - index, false)" :disabled="!canMove(axis, false)"
 											no-wait :size="largeBtnSize" block tile class="move-btn"
 											@contextmenu.prevent="showMoveStepDialog(axis.letter, numMoveSteps - index)">
 									{{ axis.letter + showSign(moveSteps(axis.letter)[numMoveSteps - index]) }}
@@ -373,7 +374,7 @@ import CodeButton from "@/components/buttons/CodeButton.vue";
 import MeshEditDialog from "@/components/dialogs/MeshEditDialog.vue";
 import { useComponentSettings } from "@/composables/useComponentSettings";
 import { useLargeButtons } from "@/composables/useLargeButtons";
-import { defaultMoveSteps, getMoveCellClass, type MoveStepMap, useMoveSteps } from "@/composables/useMoveSteps";
+import { defaultMoveSteps, getMoveCellClass, isAxisAtLimit, type MoveStepMap, useMoveSteps } from "@/composables/useMoveSteps";
 import i18n from "@/i18n";
 import { useMachineStore } from "@/stores/machine";
 import { useUiStore } from "@/stores/ui";
@@ -481,8 +482,8 @@ const workplaceNumber = computed(() => {
 	return system ? system.workplaceNumber : 0;
 });
 
-function canMove(axis: Axis): boolean {
-	return canHome.value && (axis.homed || !machineStore.model.move.noMovesBeforeHoming);
+function canMove(axis: Axis, decrementing: boolean): boolean {
+	return canHome.value && (axis.homed || !machineStore.model.move.noMovesBeforeHoming) && !isAxisAtLimit(axis, decrementing);
 }
 
 function sendCode(code: string) {

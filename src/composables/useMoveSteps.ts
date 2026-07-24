@@ -1,4 +1,4 @@
-import { AxisLetter } from "@duet3d/objectmodel";
+import { Axis, AxisLetter } from "@duet3d/objectmodel";
 import type { Ref } from "vue";
 
 import { getNumericInput } from "@/composables/useInputDialog";
@@ -45,6 +45,22 @@ export function getMoveCellClass(index: number, compact?: boolean): string {
 		return compact ? "d-none d-xl-block" : "d-none d-sm-block";
 	}
 	return "";
+}
+
+// Reported machine positions are rounded, so treat anything within this distance as being at the limit
+const axisLimitTolerance = 0.01;
+
+/**
+ * Check if an axis has reached the end of its travel in the given direction. Axis limits are only
+ * enforced once the axis is homed and they are meaningless if no travel range is configured
+ * @param axis Axis to check
+ * @param decrementing Whether the movement decreases the axis position
+ */
+export function isAxisAtLimit(axis: Axis, decrementing: boolean): boolean {
+	if (!axis.homed || axis.machinePosition === null || axis.min >= axis.max) {
+		return false;
+	}
+	return decrementing ? (axis.machinePosition <= axis.min + axisLimitTolerance) : (axis.machinePosition >= axis.max - axisLimitTolerance);
 }
 
 /**
