@@ -126,7 +126,7 @@ export function onSampleAdded(listener: () => void): () => void {
 	return () => sampleListeners.delete(listener);
 }
 
-function pushSeriesData(index: number, extra: boolean, sensor: AnalogSensor) {
+function pushSeriesData(index: number, extra: boolean, sensor: AnalogSensor): TempChartDataset {
 	let dataset = sampleSeries.find(item => item.index === index && item.extra === extra);
 
 	const currentLocale = i18n.global.locale.value;
@@ -154,6 +154,7 @@ function pushSeriesData(index: number, extra: boolean, sensor: AnalogSensor) {
 	}
 
 	dataset.data!.push(sensor.lastReading !== null ? sensor.lastReading : NaN);
+	return dataset;
 }
 
 // Custom series belong to the chart component that displays them, but sampling has to keep running
@@ -225,17 +226,27 @@ function recordSamples() {
 	if (sampleTimes.length > 0 && now - sampleTimes[sampleTimes.length - 1] < sampleInterval) {
 		return;
 	}
+	const liveSeries = new Set<TempChartDataset>();
 	machineStore.model.sensors.analog.forEach((sensor, sensorIndex) => {
 		if (sensor === null) {
 			return;
 		}
 		const heaterIndex = machineStore.model.heat.heaters.findIndex(heater => heater !== null && heater.sensor === sensorIndex);
 		if (heaterIndex !== -1) {
-			pushSeriesData(heaterIndex, false, sensor);
+			liveSeries.add(pushSeriesData(heaterIndex, false, sensor));
 		} else {
-			pushSeriesData(sensorIndex, true, sensor);
+			liveSeries.add(pushSeriesData(sensorIndex, true, sensor));
 		}
 	});
+
+	// Drop datasets of heaters and sensors that are gone from the object model, else a series removed
+	// from config.g keeps its legend entry until DWC is reloaded. This also covers a sensor that lost
+	// its heater and is now sampled again under its extra-sensor key
+	for (let i = sampleSeries.length - 1; i >= 0; i--) {
+		if (!sampleSeries[i].custom && !liveSeries.has(sampleSeries[i])) {
+			sampleSeries.splice(i, 1);
+		}
+	}
 
 	recordCustomSamples(machineStore.model as unknown as Record<string, unknown>);
 
