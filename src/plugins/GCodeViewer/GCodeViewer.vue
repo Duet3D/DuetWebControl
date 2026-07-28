@@ -1669,7 +1669,14 @@ watch(visualizingCurrentJob, (newValue) => {
 
 // The running job changes under a viewer that is already showing one whenever the next job starts
 // or a reconnect resumes the previous one, and neither goes through the route
-watch([isJobRunning, () => job.value.file?.fileName], autoLoadRunningJob);
+watch([isJobRunning, () => job.value.file?.fileName], () => {
+	autoLoadRunningJob();
+	// A job starting on the file that is already displayed keeps the scene, so there is no
+	// `fileloaded` to re-frame the camera the way every other way into a running job has
+	if (visualizingCurrentJob.value && !loading.value) {
+		viewer?.resetCamera(true);
+	}
+});
 
 watch(selectedFile, () => {
 	showObjectSelection.value = false;
