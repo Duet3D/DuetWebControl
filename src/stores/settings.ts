@@ -450,6 +450,9 @@ export const useSettingsStore = defineStore("settings", {
 			minimap: true,
 			/** Show line numbers in the gutter */
 			lineNumbers: true,
+			/** Render spaces and tabs as visible glyphs. When off, Monaco still shows them inside
+			 * the current selection, which is its own default */
+			renderWhitespace: false,
 			/** Modern auto-complete suggestion popup as you type. Off in comments/strings to avoid noise during macro authoring */
 			quickSuggestions: true,
 			/** Trigger the suggestion widget on punctuation (`.`, `:` etc.) - independent of {@link quickSuggestions} */

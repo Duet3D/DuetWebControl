@@ -65,6 +65,11 @@
 				<v-icon>mdi-format-indent-increase</v-icon>
 			</v-btn>
 
+			<v-btn v-if="canRun" variant="text" icon :disabled="saving || loading || uiStore.uiFrozen"
+				   :loading="running" :title="$t('dialog.fileEdit.run')" @click="run">
+				<v-icon>mdi-play</v-icon>
+			</v-btn>
+
 			<v-btn variant="text" icon :disabled="!dirty || saving || loading || !canRevert"
 				   :title="canRevert ? $t('dialog.fileEdit.revert') : $t('dialog.fileEdit.revertTooLarge')"
 				   @click="revert">
@@ -115,6 +120,7 @@
 </template>
 
 <script setup lang="ts">
+import { DisconnectedError } from "@duet3d/connectors";
 import { MachineMode } from "@duet3d/objectmodel";
 import type * as Monaco from "monaco-editor-core";
 
@@ -449,6 +455,26 @@ async function save(): Promise<boolean> {
 	}
 }
 
+// M98 executes any macro-style file in place, pending changes being saved first. Sliced jobs under
+// the gcodes directory are started with M32 from the Jobs page instead, so the button skips those
+const canRun = computed(() => isGCode.value && !Path.startsWith(props.filename, machineStore.model.directories.gCodes));
+const running = ref(false);
+
+async function run() {
+	if (running.value || (dirty.value && !(await save()))) {
+		return;
+	}
+	running.value = true;
+	try {
+		await machineStore.sendCode(`M98 P"${Path.escapeFilename(props.filename)}"`);
+	} catch (e) {
+		if (!(e instanceof DisconnectedError)) {
+			console.warn(e);
+		}
+	}
+	running.value = false;
+}
+
 function revert() {
 	// originalValue is null for files past the threshold; the button is disabled in that case
 	// but guard here too in case it ever fires through some other path
@@ -598,6 +624,7 @@ function buildEditorOptions(prefs: ReturnType<typeof useSettingsStore>["editor"]
 		wordWrap: prefs.wordWrap,
 		minimap: { enabled: prefs.minimap },
 		lineNumbers: prefs.lineNumbers ? "on" : "off",
+		renderWhitespace: prefs.renderWhitespace ? "all" : "selection",
 		// Monaco's quickSuggestions can be a boolean or an object scoping by context (comments,
 		// strings, other). Mirror the framework default of suppressing in comments/strings when
 		// enabled so macro-author comments don't spam suggestions
@@ -607,7 +634,7 @@ function buildEditorOptions(prefs: ReturnType<typeof useSettingsStore>["editor"]
 		suggestOnTriggerCharacters: prefs.suggestOnTriggerCharacters,
 		parameterHints: { enabled: prefs.parameterHints },
 		// monaco-editor-core defaults hover.above to true; prefer below the line (room permitting)
-		hover: { enabled: prefs.hover, above: false },
+		hover: { enabled: prefs.hover ? "on" : "off", above: false },
 		inlineSuggest: { enabled: prefs.inlineSuggest },
 		bracketPairColorization: { enabled: prefs.bracketPairColorization },
 		formatOnPaste: prefs.formatOnPaste,

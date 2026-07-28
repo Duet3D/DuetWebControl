@@ -98,7 +98,8 @@
 				"dontSave": "Nicht speichern"
 			},
 			"gcodeReference": "G-Code-Referenz",
-			"indentComments": "Kommentare einrücken"
+			"indentComments": "Kommentare einrücken",
+			"run": "Speichern und ausführen"
 		},
 		"newFile": {
 			"title": "Neue Datei",
@@ -1155,6 +1156,8 @@
 			"minimapHint": "Eine kleine Übersicht der Datei am rechten Editorrand anzeigen",
 			"lineNumbers": "Zeilennummern anzeigen",
 			"lineNumbersHint": "Zeilennummern am linken Editorrand anzeigen",
+			"renderWhitespace": "Leerzeichen anzeigen",
+			"renderWhitespaceHint": "Leerzeichen und Tabs als sichtbare Zeichen darstellen, damit gemischte Einrückungen auffallen",
 			"bracketPairColorization": "Zusammengehörige Klammern einfärben",
 			"bracketPairColorizationHint": "Zusammengehörige Klammern unterschiedlich einfärben, damit Verschachtelungen leichter zu erkennen sind",
 			"quickSuggestions": "Autovervollständigung",

@@ -517,6 +517,10 @@
 												  :label="$t('settings.editor.lineNumbers')"
 												  v-hint="$t('settings.editor.lineNumbersHint')"
 												  density="comfortable" hide-details />
+										<v-switch v-model="settingsStore.editor.renderWhitespace" color="primary"
+												  :label="$t('settings.editor.renderWhitespace')"
+												  v-hint="$t('settings.editor.renderWhitespaceHint')"
+												  density="comfortable" hide-details />
 										<v-switch v-model="settingsStore.editor.bracketPairColorization" color="primary"
 												  :label="$t('settings.editor.bracketPairColorization')"
 												  v-hint="$t('settings.editor.bracketPairColorizationHint')"

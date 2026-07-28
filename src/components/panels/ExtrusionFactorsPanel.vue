@@ -23,8 +23,8 @@
 							{{ $t("generic.reset") }}
 						</a>
 					</div>
-					<PercentageInput :model-value="Math.round(extruder.factor * 100)" :min="0"
-									 :max="getMax(extruder.factor)" :step="settings.stepWidth"
+					<PercentageInput :model-value="extruder.factor * 100" :min="0"
+									 :max="getMax(extruder.factor)" :step="settings.stepWidth" :precision="1"
 									 :disabled="uiStore.uiFrozen"
 									 @update:model-value="setExtrusionFactor(index, $event)" />
 				</div>
@@ -52,7 +52,7 @@
 					  v-hint="$t('panel.extrusionFactors.settings.showResetLinkHint')"
 					  density="comfortable" hide-details />
 
-			<v-number-input v-model="settings.stepWidth" :min="1" :step="1" :precision="0" class="mt-3"
+			<v-number-input v-model="settings.stepWidth" :min="0.1" :step="0.1" :precision="1" class="mt-3"
 							:label="$t('panel.extrusionFactors.settings.stepWidth')"
 							v-hint="$t('panel.extrusionFactors.settings.stepWidthHint')"
 							variant="outlined" density="comfortable" hide-details suffix="%" />

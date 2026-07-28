@@ -7,7 +7,7 @@
 <template>
 	<v-row density="compact" class="align-center">
 		<v-col v-if="numericInput">
-			<v-number-input v-model="innerValue" :min="min" :max="max" :step="step" :precision="0"
+			<v-number-input v-model="innerValue" :min="min" :max="max" :step="step" :precision="precision"
 							:disabled="disabled" control-variant="split" hide-details
 							variant="outlined" density="compact" suffix="%" class="mb-2" />
 		</v-col>
@@ -32,7 +32,7 @@
 						  :readonly="isLocked && lockable" hide-details thumb-label="always" class="slider"
 						  @update:model-value="innerValue = $event" @end="onSliderEnd">
 					<template #thumb-label="{ modelValue: thumbValue }">
-						{{ Math.round(thumbValue) }}&nbsp;%
+						{{ roundValue(thumbValue) }}&nbsp;%
 					</template>
 				</v-slider>
 			</v-col>
@@ -60,11 +60,17 @@ const props = withDefaults(defineProps<{
 	min?: number;
 	max?: number;
 	step?: number;
+	/**
+	 * Number of decimals the value is committed with. Zero keeps the classic integer-only
+	 * percentage; extrusion factors use one decimal to compensate for filament diameter tolerances
+	 */
+	precision?: number;
 	disabled?: boolean;
 }>(), {
 	min: 0,
 	max: 100,
 	step: 5,
+	precision: 0,
 	disabled: false,
 });
 
@@ -88,15 +94,20 @@ let debounceTimer: ReturnType<typeof setTimeout> | null = null;
 let decreaseTimer: ReturnType<typeof setTimeout> | null = null;
 let increaseTimer: ReturnType<typeof setTimeout> | null = null;
 
+function roundValue(value: number) {
+	const scale = 10 ** props.precision;
+	return Math.round(value * scale) / scale;
+}
+
 // Commit only when the handle is released - @update:model-value just tracks the thumb during a
 // drag so a single drag doesn't fire one write (a G-code) per intermediate value
 function onSliderEnd(value: number) {
-	innerValue.value = value;
-	modelValue.value = value;
+	innerValue.value = roundValue(value);
+	modelValue.value = innerValue.value;
 }
 
 watch(modelValue, (to) => {
-	const rounded = Math.round(to);
+	const rounded = roundValue(to);
 	if (innerValue.value !== rounded) {
 		innerValue.value = rounded;
 	}
@@ -114,7 +125,7 @@ watch(innerValue, (value) => {
 	debounceTimer = setTimeout(() => {
 		debounceTimer = null;
 		if (isNumber(value) && value >= props.min && value <= props.max
-			&& Math.round(modelValue.value) !== value) {
+			&& roundValue(modelValue.value) !== value) {
 			modelValue.value = value;
 		}
 	}, debounceTime);
@@ -133,7 +144,7 @@ function applyStep(diff: number) {
 	if (debounceTimer) {
 		clearTimeout(debounceTimer);
 	}
-	innerValue.value = Math.round(Math.min(props.max, Math.max(props.min, innerValue.value + diff)));
+	innerValue.value = roundValue(Math.min(props.max, Math.max(props.min, innerValue.value + diff)));
 	debounceTimer = setTimeout(() => {
 		modelValue.value = innerValue.value;
 		debounceTimer = null;

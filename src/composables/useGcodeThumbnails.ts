@@ -83,6 +83,22 @@ export function useGcodeThumbnails() {
 			: null;
 	}
 
+	// A cached entry describes the file as it was when it got parsed, and overwriting a file keeps
+	// its name - slicers uploading through the RRF API do exactly that. Compare the listing's size
+	// and timestamp against the parsed ones so a replaced file is re-read instead of served stale
+	function isCachedInfoStale(info: GCodeFileInfo, item: GcodeThumbnailItem): boolean {
+		if (Number(info.size) !== Number(item.size)) {
+			return true;
+		}
+		if (info.lastModified === null || !item.lastModified) {
+			return false;
+		}
+		// The listing's timestamps carry an arbitrary millisecond part, so both sides are only
+		// comparable down to whole seconds
+		const parsedTime = new Date(info.lastModified).getTime();
+		return !Number.isNaN(parsedTime) && Math.floor(parsedTime / 1000) !== Math.floor(item.lastModified.getTime() / 1000);
+	}
+
 	// Slicer fileinfo (thumbnails, print time, height, ...) only exists for sliced print jobs.
 	// Those live in the gcodes tree on the system volume or anywhere on an external volume; other
 	// system-volume areas (/sys, /macros, /filaments, ...) hold gcode macros that share the .g
@@ -115,6 +131,9 @@ export function useGcodeThumbnails() {
 			const item = gcodeFiles[i];
 			const filename = Path.combine(directorySnapshot, item.name);
 			let info: GCodeFileInfo | undefined = cacheStore.fileInfos[filename];
+			if (info && isCachedInfoStale(info, item)) {
+				info = undefined;
+			}
 			if (!info) {
 				try {
 					info = await machineStore.getFileInfo(filename, true);

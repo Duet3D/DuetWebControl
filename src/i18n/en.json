@@ -98,7 +98,8 @@
 				"dontSave": "Don't save"
 			},
 			"gcodeReference": "G-Code Reference",
-			"indentComments": "Indent Comments"
+			"indentComments": "Indent Comments",
+			"run": "Save and Run"
 		},
 		"newFile": {
 			"title": "New File",
@@ -1157,6 +1158,8 @@
 			"minimapHint": "Show a small overview of the file on the right edge of the editor",
 			"lineNumbers": "Show line numbers",
 			"lineNumbersHint": "Display line numbers in the editor gutter",
+			"renderWhitespace": "Show whitespace",
+			"renderWhitespaceHint": "Render spaces and tabs as visible glyphs so mixed indentation is easy to spot",
 			"bracketPairColorization": "Colorize matching brackets",
 			"bracketPairColorizationHint": "Highlight matching brackets in different colours to make nesting easier to follow",
 			"quickSuggestions": "Auto-complete suggestions",
