@@ -935,6 +935,7 @@ import { useMenuStore } from "@/stores/menu";
 import { AutoScrollMode, DashboardMode, LockableSliders, UnitOfMeasure, useSettingsStore, WebcamFlip } from "@/stores/settings";
 import { LogLevel, useUiStore } from "@/stores/ui";
 import { display, displaySize } from "@/utils/display";
+import { isPrinting } from "@/utils/enums";
 import { getErrorMessage } from "@/utils/errors";
 
 import packageInfo from "../../../package.json";
@@ -1183,7 +1184,7 @@ async function closeDwc() {
 
 // M999 B-1 is intercepted by the DuetPi Management Plugin, which runs `systemctl reboot`
 // (or `poweroff` with P"OFF") on the SBC, so both buttons stay disabled while it isn't running
-const sbcPowerEnabled = computed(() => machineStore.isConnected && machineStore.isDuetPiManagementPluginRunning && !uiStore.uiFrozen);
+const sbcPowerEnabled = computed(() => machineStore.isConnected && machineStore.isDuetPiManagementPluginRunning && !uiStore.uiFrozen && !isPrinting(machineStore.model.state.status));
 
 async function rebootSbc() {
 	if (!(await showConfirmDialog(i18n.global.t("settings.about.rebootTitle"), i18n.global.t("settings.about.rebootPrompt"), "mdi-restart"))) {
