@@ -5,12 +5,10 @@
 </style>
 
 <template>
-	<v-form @submit.prevent="commit">
-		<v-combobox v-model="inputValue" class="control-input" type="number" min="-273" max="1999" step="any" :label="label"
-					:items="itemStrings" :loading="applying"
-					:disabled="disabled || uiStore.uiFrozen || !isValid" density="compact" variant="underlined"
-					hide-details hide-selected single-line @update:model-value="onModelValueChange" @blur="onBlur" />
-	</v-form>
+	<v-combobox v-model="inputValue" v-model:menu="menuOpen" class="control-input" type="number" min="-273" max="1999" step="any" :label="label"
+				:items="items" :loading="applying"
+				:disabled="disabled || uiStore.uiFrozen || !isValid" density="compact" variant="underlined"
+				hide-details hide-selected single-line @update:model-value="onModelValueChange" @keydown.enter="onEnter" @blur="onBlur" />
 </template>
 
 <script setup lang="ts">
@@ -37,7 +35,8 @@ const settingsStore = useSettingsStore();
 const uiStore = useUiStore();
 
 const applying = ref(false);
-const inputValue = ref<string>("0");
+const menuOpen = ref(false);
+const inputValue = ref<string | number>("0");
 const actualValue = ref(0);
 
 const items = computed<Array<number>>(() => {
@@ -69,8 +68,6 @@ const items = computed<Array<number>>(() => {
 	}
 	return [];
 });
-
-const itemStrings = computed(() => items.value.map(value => value.toString()));
 
 const isValid = computed<boolean>(() => {
 	if (props.type === "all" || props.type === "spindle") {
@@ -177,8 +174,10 @@ const currentValue = computed<number>(() => {
 	return 0;
 });
 
+const numericValue = computed(() => (typeof inputValue.value === "number") ? inputValue.value : parseFloat(inputValue.value));
+
 async function commit() {
-	const value = parseFloat(inputValue.value);
+	const value = numericValue.value;
 	if (!isFinite(value)) {
 		uiStore.log(LogLevel.warning, i18n.global.t("error.enterValidNumber"));
 		return;
@@ -256,17 +255,19 @@ async function commit() {
 	applying.value = false;
 }
 
-// v-combobox emits @update:model-value both on free-text typing AND on dropdown-item selection
-// Only the latter should auto-commit; we distinguish them by checking whether the new value
-// matches one of the preset items exactly. A free-text commit goes through the form's @submit
-// (Enter) or through onBlur instead
-function onModelValueChange(newValue: string | null) {
-	if (newValue === null) {
-		return;
-	}
-	if (itemStrings.value.includes(newValue)) {
+// v-combobox emits @update:model-value on every keystroke as well as on dropdown-item selection.
+// Because the presets are numbers, only a selected item comes back as a number - typed text stays
+// a string and is committed via Enter or blur instead
+function onModelValueChange(newValue: string | number | null) {
+	if (typeof newValue === "number") {
 		commit();
 	}
+}
+
+// v-combobox swallows Enter to open its menu, so the typed value must be committed from here
+function onEnter() {
+	menuOpen.value = false;
+	commit();
 }
 
 // Commit on blur if the user typed a new value and tabbed/clicked away; otherwise revert the
@@ -276,8 +277,7 @@ function onBlur() {
 	if (applying.value) {
 		return;
 	}
-	const value = parseFloat(inputValue.value);
-	if (Number.isFinite(value) && value !== actualValue.value) {
+	if (Number.isFinite(numericValue.value) && numericValue.value !== actualValue.value) {
 		commit();
 		return;
 	}
