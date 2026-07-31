@@ -5,10 +5,12 @@
 </style>
 
 <template>
-	<v-combobox v-model="inputValue" v-model:menu="menuOpen" class="control-input" type="number" min="-273" max="1999" step="any" :label="label"
-				:items="items" :loading="applying"
-				:disabled="disabled || uiStore.uiFrozen || !isValid" density="compact" variant="underlined"
-				hide-details hide-selected single-line @update:model-value="onModelValueChange" @keydown.enter="onEnter" @blur="onBlur" />
+	<div @keydown.enter.capture.stop="onEnter">
+		<v-combobox v-model="inputValue" v-model:menu="menuOpen" class="control-input" type="number" min="-273" max="1999" step="any" :label="label"
+					:items="items" :loading="applying"
+					:disabled="disabled || uiStore.uiFrozen || !isValid" density="compact" variant="underlined"
+					hide-details hide-selected single-line @update:model-value="onModelValueChange" @blur="onBlur" />
+	</div>
 </template>
 
 <script setup lang="ts">
@@ -264,7 +266,9 @@ function onModelValueChange(newValue: string | number | null) {
 	}
 }
 
-// v-combobox swallows Enter to open its menu, so the typed value must be committed from here
+// v-combobox reacts to Enter by opening its menu and re-selecting the typed text, and it defers
+// that to the next tick so the menu cannot be closed again from here. Hence the keypress is
+// caught before it reaches the component
 function onEnter() {
 	menuOpen.value = false;
 	commit();
