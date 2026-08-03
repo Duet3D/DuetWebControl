@@ -590,7 +590,7 @@
 					</v-container>
 				</v-window-item>
 
-				<v-window-item value="Boards" eager>
+				<v-window-item value="Infrastructure" eager>
 					<v-alert v-if="boards.length === 0" type="info" variant="tonal" tile>
 						{{ $t("settings.about.noBoards") }}
 					</v-alert>
@@ -957,7 +957,7 @@ const builtinTabs: Array<BuiltinTab> = [
 	{ key: "Presets", icon: "mdi-format-list-numbered", caption: "settings.tabs.presets", order: 25 },
 	{ key: "Webcam", icon: "mdi-webcam", caption: "settings.tabs.webcam", order: 30 },
 	{ key: "Editor", icon: "mdi-text-box-edit", caption: "settings.tabs.editor", order: 45 },
-	{ key: "Boards", icon: "mdi-chip", caption: "settings.tabs.infrastructure", order: 55 },
+	{ key: "Infrastructure", icon: "mdi-chip", caption: "settings.tabs.infrastructure", order: 55 },
 	{ key: "About", icon: "mdi-information", caption: "settings.tabs.about", order: 60 },
 ];
 
@@ -1052,6 +1052,13 @@ const activeTab = computed<string>({
 		}
 	},
 });
+
+// Immediate so a deep link also becomes the tab restored next time; the restore itself runs in a
+// router guard, see src/router/index.ts
+watch(activeTab, (tab) => {
+	cacheStore.lastSettingsTab = tab;
+}, { immediate: true });
+
 const presetsTab = ref<string>("tool");
 
 const languageOptions = computed(() => [

@@ -117,6 +117,12 @@ export const useCacheStore = defineStore("cache", {
 		lastJobDirectory: "",
 
 		/**
+		 * Key of the Settings tab last opened, restored when the page is opened without an
+		 * explicit sub-route
+		 */
+		lastSettingsTab: "",
+
+		/**
 		 * Keys of Job Status view panel tabs the user hid via the panel's tab-visibility menu;
 		 * absent keys are shown, so newly added tabs default to visible
 		 */

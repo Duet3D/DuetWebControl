@@ -9,6 +9,7 @@ import { createRouter, createWebHistory, type RouteRecordRaw } from "vue-router"
 import { setupLayouts } from "virtual:generated-layouts";
 import { routes, handleHotUpdate } from "vue-router/auto-routes";
 
+import { useCacheStore } from "@/stores/cache";
 import { AutoScrollMode, useSettingsStore } from "@/stores/settings";
 import { useUiStore } from "@/stores/ui";
 import vuetify from "@/vue-plugins/vuetify";
@@ -104,6 +105,19 @@ const router = createRouter({
 		}
 		return { top: 0 };
 	},
+});
+
+// A bare /Settings (menu click) resumes the tab last opened. Resolved during navigation rather
+// than in the page, so the tabs never render General first and slide over. An explicit
+// /Settings/<tab> deep link is left alone, and a key that no longer resolves - a plugin tab whose
+// plugin is gone - falls back to General in the page
+router.beforeEach((to) => {
+	if (to.path === "/Settings") {
+		const lastSettingsTab = useCacheStore().lastSettingsTab;
+		if (lastSettingsTab) {
+			return `/Settings/${lastSettingsTab}`;
+		}
+	}
 });
 
 // Capture whether the page being left was scrolled to its bottom edge. Read here, before the
