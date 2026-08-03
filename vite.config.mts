@@ -19,11 +19,19 @@ import { readFileSync } from 'node:fs'
 import { fileURLToPath, URL } from 'node:url'
 
 // Ship sourcemaps for prerelease builds (alpha/beta/rc) so we can debug installs in the wild.
-// Stable releases skip them to keep the SD-card and DSF zips lean. DWC_SOURCEMAP=1 / =0 forces
-// either way, e.g. when probing a stable build locally
-const dwcVersion = JSON.parse(readFileSync(new URL("./package.json", import.meta.url), "utf8")).version as string
-const isPrerelease = /-(?:alpha|beta|rc)\b/i.test(dwcVersion)
-const sourcemap = process.env.DWC_SOURCEMAP !== undefined ? process.env.DWC_SOURCEMAP !== "0" : isPrerelease
+// Stable releases build them in hidden mode instead: the bundles carry no sourceMappingURL, so
+// browsers never request the maps and the SD-card and DSF zips stay lean, but the maps are still
+// emitted and packaged into srcmaps.zip for offline stack trace lookups.
+// DWC_SOURCEMAP=1 / =hidden / =0 forces either way, e.g. when probing a stable build locally
+const dwcPackage = JSON.parse(readFileSync(new URL("./package.json", import.meta.url), "utf8"))
+const isPrerelease = /-(?:alpha|beta|rc)\b/i.test(dwcPackage.version as string)
+const sourcemapMode = process.env.DWC_SOURCEMAP
+const requestedSourcemap: boolean | "hidden" = (sourcemapMode === undefined) ? (isPrerelease ? true : "hidden") : (sourcemapMode === "hidden") ? "hidden" : sourcemapMode !== "0"
+
+// A renamed productName means this is one of the authorized OEM forks. Their stable builds run on
+// customer machines we have no access to, so they always keep at least hidden maps - turning maps
+// off entirely would leave a fork's field errors undecodable
+const sourcemap = (requestedSourcemap === false && dwcPackage.productName !== "DuetWebControl") ? "hidden" : requestedSourcemap
 
 // Build datetime in local time, "YYYY-MM-DD HH:MM" (no seconds) - injected via `define` below
 // and surfaced in Settings -> Infrastructure next to the DSF build datetime
@@ -229,6 +237,9 @@ export default defineConfig({
       filename: 'service-worker.js',
       manifest: false,
       workbox: {
+        // Workbox emits its own maps with a sourceMappingURL comment, which would 404 once the
+        // maps are held back - tie them to the shipped-sourcemaps case
+        sourcemap: sourcemap === true,
         skipWaiting: true,
         clientsClaim: true,
         cleanupOutdatedCaches: true,

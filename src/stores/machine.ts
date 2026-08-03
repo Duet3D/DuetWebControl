@@ -10,6 +10,7 @@ import { useSettingsStore } from "./settings";
 import i18n, { translateResponse } from "@/i18n";
 import { FileTransferNotification, FileTransferType, LogLevel, useUiStore } from "./ui";
 import { checkManifest, checkVersion } from "@/plugins";
+import { applyModelPatches, interceptCode } from "@/plugins/interception";
 import { loadDwcPlugin, loadDwcPlugins, unloadDwcPlugin } from "@/plugins";
 import beep from "@/utils/beep";
 import { isPrinting } from "@/utils/enums";
@@ -559,7 +560,8 @@ export const useMachineStore = defineStore("machine", {
 		},
 
 		/**
-		 * Send a code and log the result (if applicable)
+		 * Send a code and log the result (if applicable).
+		 * Plugins may rewrite or answer the code before it goes out, see registerCodeInterceptor
 		 * @param code Code to send
 		 * @param fromInput Optional value indicating if the code originates from a code input
 		 * @param logReply Log the code reply
@@ -572,7 +574,19 @@ export const useMachineStore = defineStore("machine", {
 			}
 
 			try {
-				let reply = await this.connector.sendCode(code, noWait ?? false);
+				// The original code is what gets logged and reported either way - that is what the
+				// rest of DWC asked for, a rewrite is the intercepting plugin's business
+				const interception = await interceptCode(code);
+				if (interception !== undefined && "reply" in interception) {
+					const interceptedReply = translateResponse(interception.reply);
+					Events.emit("codeExecuted", { code, reply: interceptedReply });
+					if (logReply && (fromInput || interceptedReply)) {
+						useUiStore().logCode(code, interceptedReply);
+					}
+					return (noWait ? undefined : interceptedReply) as B extends true ? void : string;
+				}
+
+				let reply = await this.connector.sendCode(interception?.code ?? code, noWait ?? false);
 				if (typeof reply === "string") {
 					reply = translateResponse(reply);
 					Events.emit("codeExecuted", { code, reply: reply as string });
@@ -1168,6 +1182,9 @@ export const useMachineStore = defineStore("machine", {
 					}
 				}
 			}
+
+			// Let plugins augment the payload before it is merged, see registerModelPatch
+			applyModelPatches(payload, this.model);
 
 			// Update typed state
 			this.model.update(payload);

@@ -36,6 +36,7 @@
  * Output:
  *   <plugin-dir>/dist/                 - compiled IIFE bundle + optional CSS
  *   <plugin-dir>/<id>-<ver>.zip        - ZIP archive
+ *   <plugin-dir>/<id>-<ver>-srcmap.zip - sourcemaps of a stable build, held back from the archive
  *
  * See build-plugin-pkg.js for full packaging with file list population.
  */
@@ -167,11 +168,13 @@ export async function buildPlugin(pluginDir, manifest, entryFile) {
 	const outDir = resolve(pluginDir, "dist");
 
 	// Ship sourcemaps for prerelease plugin versions (alpha/beta/rc) so installs can be debugged in
-	// the wild, like DWC's own build; stable releases skip them to keep the ZIP lean. The version is
-	// already resolved (placeholders expanded) by the caller. DWC_SOURCEMAP=1 / =0 forces either way
-	const sourcemap = process.env.DWC_SOURCEMAP !== undefined
-		? process.env.DWC_SOURCEMAP !== "0"
-		: /-(?:alpha|beta|rc)\b/i.test(manifest.version);
+	// the wild, like DWC's own build. Stable versions build them in hidden mode instead: no
+	// sourceMappingURL reaches the bundle and the maps stay out of the plugin ZIP, they are packaged
+	// as <id>-<version>-srcmap.zip for offline stack trace lookups instead. The version is already
+	// resolved (placeholders expanded) by the caller. DWC_SOURCEMAP=1 / =hidden / =0 forces either way
+	const sourcemapMode = process.env.DWC_SOURCEMAP;
+	const isPrerelease = /-(?:alpha|beta|rc)\b/i.test(manifest.version);
+	const sourcemap = (sourcemapMode === undefined) ? (isPrerelease ? true : "hidden") : (sourcemapMode === "hidden") ? "hidden" : sourcemapMode !== "0";
 
 	const result = await build({
 		root: pluginDir,
@@ -227,7 +230,17 @@ export async function buildPlugin(pluginDir, manifest, entryFile) {
 	const jsFile = emitted.find((name) => name.endsWith(".js"));
 	const cssFile = emitted.find((name) => name.endsWith(".css"));
 
-	return { outDir, jsFile, cssFile };
+	return { outDir, jsFile, cssFile, hiddenSourcemaps: sourcemap === "hidden" };
+}
+
+async function writeZip(zip, zipPath) {
+	const buf = await zip.generateAsync({
+		type: "nodebuffer",
+		compression: "DEFLATE",
+		compressionOptions: { level: 9 },
+	});
+	writeFileSync(zipPath, buf);
+	return buf.length;
 }
 
 export async function createZip(archiveDir, zipPath) {
@@ -249,14 +262,31 @@ export async function createZip(archiveDir, zipPath) {
 	}
 
 	addRecursive(archiveDir, zip);
+	return writeZip(zip, zipPath);
+}
 
-	const buf = await zip.generateAsync({
-		type: "nodebuffer",
-		compression: "DEFLATE",
-		compressionOptions: { level: 9 },
-	});
-	writeFileSync(zipPath, buf);
-	return buf.length;
+/**
+ * Package the maps of a hidden-sourcemap build into <id>-<version>-srcmap.zip next to the plugin
+ * ZIP, stamped with the plugin id and version so a collected bundle stays identifiable.
+ * Decode a stack trace against it with scripts/resolve-stack.js.
+ * @returns Path of the ZIP, or null when the build emitted no maps
+ */
+export async function createSourcemapZip(outDir, pluginDir, manifest) {
+	const maps = readdirSync(outDir).filter((name) => name.endsWith(".map"));
+	if (maps.length === 0) {
+		return null;
+	}
+
+	const { default: JSZip } = await import("jszip");
+	const zip = new JSZip();
+	for (const name of maps) {
+		zip.file(name, readFileSync(join(outDir, name)));
+	}
+	zip.file("version.txt", `${manifest.id} ${manifest.version}\n`);
+
+	const zipPath = resolve(pluginDir, `${manifest.id}-${manifest.version}-srcmap.zip`);
+	await writeZip(zip, zipPath);
+	return zipPath;
 }
 
 // #endregion
@@ -404,7 +434,7 @@ if (import.meta.url === pathToFileURL(process.argv[1]).href) {
 		process.exit(1);
 	}
 
-	const { outDir, jsFile, cssFile } = await buildPlugin(resolvedPluginDir, manifest, entryFile);
+	const { outDir, jsFile, cssFile, hiddenSourcemaps } = await buildPlugin(resolvedPluginDir, manifest, entryFile);
 
 	// Build a simple ZIP containing compiled chunks + optional extra
 	// directories + plugin.json. File lists are NOT populated - use
@@ -415,11 +445,11 @@ if (import.meta.url === pathToFileURL(process.argv[1]).href) {
 
 	let filesAdded = false;
 
-	// Copy JS (+ sourcemap when emitted)
+	// Copy JS (+ sourcemap when shipped)
 	if (jsFile) {
 		const jsPath = join(outDir, jsFile);
 		cpSync(jsPath, join(assembleDir, "dwc", "js", jsFile));
-		if (existsSync(`${jsPath}.map`)) {
+		if (!hiddenSourcemaps && existsSync(`${jsPath}.map`)) {
 			cpSync(`${jsPath}.map`, join(assembleDir, "dwc", "js", `${jsFile}.map`));
 		}
 		filesAdded = true;
@@ -429,7 +459,7 @@ if (import.meta.url === pathToFileURL(process.argv[1]).href) {
 	if (cssFile) {
 		const cssPath = join(outDir, cssFile);
 		cpSync(cssPath, join(assembleDir, "dwc", "css", cssFile));
-		if (existsSync(`${cssPath}.map`)) {
+		if (!hiddenSourcemaps && existsSync(`${cssPath}.map`)) {
 			cpSync(`${cssPath}.map`, join(assembleDir, "dwc", "css", `${cssFile}.map`));
 		}
 		filesAdded = true;
@@ -460,6 +490,13 @@ if (import.meta.url === pathToFileURL(process.argv[1]).href) {
 	} catch (e) {
 		console.log(`\nPlugin assembled in: ${assembleDir}`);
 		console.warn(`ZIP creation failed: ${e?.message ?? e}`);
+	}
+
+	if (hiddenSourcemaps) {
+		const srcmapPath = await createSourcemapZip(outDir, resolvedPluginDir, manifest);
+		if (srcmapPath) {
+			console.log(`Sourcemaps: ${srcmapPath}`);
+		}
 	}
 
 	console.log("Done!");

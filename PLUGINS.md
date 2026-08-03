@@ -14,14 +14,15 @@ If you wrote plugins against earlier DWC versions (v3.4 / v3.5 / v3.6 / v3.7), s
 6. [Entry point](#entry-point)
 7. [Importing from DWC](#importing-from-dwc)
 8. [Registration APIs](#registration-apis)
-9. [Using Vuetify and DWC components in templates](#using-vuetify-and-dwc-components-in-templates)
-10. [Plugin data persistence](#plugin-data-persistence)
-11. [Internationalisation (i18n)](#internationalisation-i18n)
-12. [Plain-JavaScript plugins (no build step)](#plain-javascript-plugins-no-build-step)
-13. [Building + packaging](#building--packaging)
-14. [Installing](#installing)
-15. [Migrating from earlier DWC](#migrating-from-earlier-dwc)
-16. [Reference implementations](#reference-implementations)
+9. [Object model patching and code interception](#object-model-patching-and-code-interception)
+10. [Using Vuetify and DWC components in templates](#using-vuetify-and-dwc-components-in-templates)
+11. [Plugin data persistence](#plugin-data-persistence)
+12. [Internationalisation (i18n)](#internationalisation-i18n)
+13. [Plain-JavaScript plugins (no build step)](#plain-javascript-plugins-no-build-step)
+14. [Building + packaging](#building--packaging)
+15. [Installing](#installing)
+16. [Migrating from earlier DWC](#migrating-from-earlier-dwc)
+17. [Reference implementations](#reference-implementations)
 
 ---
 
@@ -374,6 +375,108 @@ Merge the plugin's i18n messages into DWC's shared vue-i18n instance under `plug
 
 Call `registerPluginData(pluginId, key, defaultValue)` on either the cache store or the settings store. See [Plugin data persistence](#plugin-data-persistence).
 
+## Object model patching and code interception
+
+Two hooks let a plugin present hardware DWC knows nothing about as if the firmware reported it: one augments the object model as updates come in, the other rewrites or answers codes on their way out. Together they cover setups where a peripheral - a chamber heater on an external PID controller, a bed run by a separate box - is controlled by something other than the Duet, without touching config.g.
+
+**Read this first.** Interception only sees codes issued by DWC. A code from a job file, a macro, `daemon.g`, a trigger or PanelDue is executed by the firmware and never reaches the browser, so a peripheral built this way responds to the UI but not to a sliced job's own `M141`. If you need that too, the interception has to happen in DSF instead, which means an SBC installation and a DSF plugin intercepting on the code channel - a DWC plugin cannot do it.
+
+### `registerModelPatch(id, patch)` / `unregisterModelPatch(id)`
+
+```ts
+registerModelPatch("MyPlugin", (payload: any, model: ObjectModel) => {
+	// payload is the incoming update, modified in place before it is merged
+});
+```
+
+The callback runs on every update payload before it is merged into the typed model, including the full model that arrives on connect - which is why injected data survives a reconnect without further bookkeeping. It runs at the connector's poll rate, so keep it cheap, and it must not call `patchModel` itself.
+
+`model` is the typed object model as it still is, before the payload is applied, for patches that depend on the current state. A callback that throws is logged and skipped; updates keep flowing.
+
+### `patchModel(payload)`
+
+Merge a payload into the object model as if the machine had sent it. Use this for data that arrives on your own schedule - a temperature polled from an external controller - rather than keeping it in a closure that the next model patch reads:
+
+```ts
+patchModel({ sensors: { analog: [null, null, { lastReading: 87.5 }] } });
+```
+
+### `registerCodeInterceptor(id, interceptor)` / `unregisterCodeInterceptor(id)`
+
+```ts
+registerCodeInterceptor("MyPlugin", (code: string) => {
+	if (code.startsWith("M141")) {
+		return { code: `M118 P1 S"${code}"` };    // send this instead
+	}
+	if (code === "M999") {
+		return { reply: "Rebooting external controller" };    // handled, do not send
+	}
+	// returning nothing lets the code pass unchanged
+});
+```
+
+Returning `{ code }` replaces the code, `{ reply }` keeps it from being sent at all and hands that reply back to whoever called `sendCode` - the console logs it like a real one. Interceptors run in registration order, a rewritten code is passed on to the remaining ones, and the first reply ends the chain. The callback may be async, for talking to a device over HTTP before answering. One that throws is logged and skipped, so a broken plugin cannot make the machine uncontrollable.
+
+DWC logs and reports the original code, not the rewritten one - what the rest of the UI asked for is what the user sees.
+
+### How object model collections merge
+
+Injecting into a collection means playing by the merge rules the model applies to any update, and getting them wrong silently destroys real data:
+
+| Entry in the update | Effect on that index |
+| --- | --- |
+| `{}` | keeps the existing item untouched |
+| `{ ... }` | merges those properties into the existing item |
+| `null` | clears the slot |
+| missing (array is shorter) | truncates the collection to the array's length |
+
+An array left out of the update entirely is not touched at all. The consequences for an injected item: pick an index above anything `config.g` configures, pad the gap with `null`, fill the real entries with `{}` so they survive, and re-append on **every** update that carries the collection - any payload with a shorter `heat.heaters` truncates the injected heater away again.
+
+### Example: a chamber heater on an external controller
+
+The plugin owns a heater index the firmware does not use, answers `M141` by pushing the setpoint to the external device, and feeds the measured temperature back into the model so the standard chamber controls render:
+
+```ts
+import { patchModel, registerCodeInterceptor, registerModelPatch } from "DuetWebControl";
+
+const HEATER = 4, SENSOR = 4;
+let active = 0, current = 0;
+
+registerModelPatch("VirtualChamber", (payload, model) => {
+	const heaters = payload.heat?.heaters ?? model.heat.heaters.map(() => ({}));
+	const sensors = payload.sensors?.analog ?? model.sensors.analog.map(() => ({}));
+	while (heaters.length < HEATER) {
+		heaters.push(null);
+	}
+	while (sensors.length < SENSOR) {
+		sensors.push(null);
+	}
+
+	heaters[HEATER] = { active, current, max: 120, min: -10, sensor: SENSOR, standby: 0, state: (active > 0) ? "active" : "off" };
+	sensors[SENSOR] = { name: "Chamber (external)", lastReading: current };
+	payload.heat = { ...payload.heat, heaters, chamberHeaters: [HEATER] };
+	payload.sensors = { ...payload.sensors, analog: sensors };
+});
+
+registerCodeInterceptor("VirtualChamber", async (code) => {
+	const match = /^M141(?:\s+P\d+)?\s+S(-?\d+(?:\.\d+)?)/i.exec(code);
+	if (match === null) {
+		return;
+	}
+
+	active = parseFloat(match[1]);
+	await fetch(`http://chamber.local/setpoint?value=${active}`);
+	return { reply: "" };
+});
+
+setInterval(async () => {
+	current = parseFloat(await (await fetch("http://chamber.local/temperature")).text());
+	patchModel({});    // an empty payload just re-runs the patches
+}, 2000);
+```
+
+Two practical notes: the injected values live in the plugin's own variables because the patch has to reassert them on every update, and cross-origin requests to the external device need CORS headers on that device, see [Cross-origin requests](#cross-origin-requests-and-mixed-content).
+
 ## Using Vuetify and DWC components in templates
 
 Templates inside your plugin's `.vue` files can use Vuetify components and DWC components by tag name - no explicit import needed:
@@ -585,12 +688,23 @@ After either script:
 
 ```
 <plugin-dir>/
-  dist/                  - compiled IIFE bundle + CSS
-  pkg/                   - staging directory matching the ZIP layout
-  <id>-<version>.zip     - the installable file
+  dist/                      - compiled IIFE bundle + CSS
+  pkg/                       - staging directory matching the ZIP layout
+  <id>-<version>.zip         - the installable file
+  <id>-<version>-srcmap.zip  - sourcemaps of a stable build, see below
 ```
 
 Both `dist/` and `pkg/` can be safely deleted between builds.
+
+### Sourcemaps
+
+Prerelease versions (`-alpha`/`-beta`/`-rc`) ship their sourcemaps inside the plugin ZIP, so a browser resolves stack traces on an installed plugin by itself. Stable versions build the maps in hidden mode instead: nothing references them, they stay out of the plugin ZIP, and they are packaged as `<id>-<version>-srcmap.zip` next to it. Keep that file for the releases you publish - a stack trace from a user's console decodes against it with
+
+```bash
+node scripts/resolve-stack.js --maps MyPlugin-1.0.0-srcmap.zip trace.txt
+```
+
+which prints the original file, line and source line for every frame. `DWC_SOURCEMAP=1` forces shipped maps for a stable build, `DWC_SOURCEMAP=0` skips them entirely.
 
 ## Installing
 

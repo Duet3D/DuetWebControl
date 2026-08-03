@@ -407,6 +407,11 @@ async function ensurePluginExtras(): Promise<void> {
 // #region Plugin registration API
 // These functions are called directly by plugins (both built-in and external)
 
+// Object model patching and code interception live in their own module because the machine store
+// consumes them - re-exported here so they reach plugins on the same window.DWC surface
+export { registerModelPatch, unregisterModelPatch, patchModel, registerCodeInterceptor, unregisterCodeInterceptor } from "./interception";
+export type { ModelPatch, CodeInterceptor, CodeInterceptionResult } from "./interception";
+
 /**
  * Register a new route and menu item.
  *

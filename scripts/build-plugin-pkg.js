@@ -25,6 +25,7 @@
  *   <plugin-dir>/dist/                 - compiled IIFE bundle + optional CSS
  *   <plugin-dir>/pkg/                  - assembled package directory
  *   <plugin-dir>/<id>-<ver>.zip        - ZIP archive
+ *   <plugin-dir>/<id>-<ver>-srcmap.zip - sourcemaps of a stable build, held back from the archive
  */
 
 import { existsSync, mkdirSync, writeFileSync, cpSync, readdirSync, lstatSync } from "fs";
@@ -36,6 +37,7 @@ import {
 	findEntryFile,
 	buildPlugin,
 	createZip,
+	createSourcemapZip,
 	typeCheckPlugin,
 } from "./build-plugin.js";
 
@@ -75,7 +77,7 @@ if (!typeCheckPlugin(resolvedPluginDir)) {
 	process.exit(1);
 }
 
-const { outDir, jsFile, cssFile } = await buildPlugin(resolvedPluginDir, manifest, entryFile);
+const { outDir, jsFile, cssFile, hiddenSourcemaps } = await buildPlugin(resolvedPluginDir, manifest, entryFile);
 
 const assembleDir = resolve(resolvedPluginDir, "pkg");
 mkdirSync(join(assembleDir, "dwc", "js"), { recursive: true });
@@ -91,10 +93,10 @@ if (jsFile) {
 	const jsPath = join(outDir, jsFile);
 	cpSync(jsPath, join(assembleDir, "dwc", "js", jsFile));
 	manifest.dwcFiles.push(`js/${jsFile}`);
-	// Ship the sourcemap alongside (when emitted) and list it so it gets uploaded to the board -
+	// Ship the sourcemap alongside (when not hidden) and list it so it gets uploaded to the board -
 	// the browser fetches it via the bundle's sourceMappingURL. It is not a .js/.css, so the
 	// plugin loader skips it when loading resources
-	if (existsSync(`${jsPath}.map`)) {
+	if (!hiddenSourcemaps && existsSync(`${jsPath}.map`)) {
 		cpSync(`${jsPath}.map`, join(assembleDir, "dwc", "js", `${jsFile}.map`));
 		manifest.dwcFiles.push(`js/${jsFile}.map`);
 	}
@@ -105,7 +107,7 @@ if (cssFile) {
 	const cssPath = join(outDir, cssFile);
 	cpSync(cssPath, join(assembleDir, "dwc", "css", cssFile));
 	manifest.dwcFiles.push(`css/${cssFile}`);
-	if (existsSync(`${cssPath}.map`)) {
+	if (!hiddenSourcemaps && existsSync(`${cssPath}.map`)) {
 		cpSync(`${cssPath}.map`, join(assembleDir, "dwc", "css", `${cssFile}.map`));
 		manifest.dwcFiles.push(`css/${cssFile}.map`);
 	}
@@ -147,6 +149,13 @@ try {
 } catch (e) {
 	console.log(`\nPlugin package assembled in: ${assembleDir}`);
 	console.warn(`ZIP creation failed: ${e?.message ?? e}`);
+}
+
+if (hiddenSourcemaps) {
+	const srcmapPath = await createSourcemapZip(outDir, resolvedPluginDir, manifest);
+	if (srcmapPath) {
+		console.log(`Sourcemaps: ${srcmapPath}`);
+	}
 }
 
 console.log("\nDone! Manifest file lists:");
