@@ -103,7 +103,7 @@ node scripts/build-plugin.js /path/to/MyPlugin
 
 Same output - `MyPlugin-<version>.zip` in the plugin directory.
 
-The standalone layout is the right choice for distribution: your plugin has its own git history, its own `package.json` if you need plugin-only deps, and DWC contributors don't have to know about it. The in-tree layout is just a convenience for fast iteration.
+The standalone layout is the right choice for distribution: your plugin has its own git history, its own `package.json` for plugin-only deps (see [npm dependencies](#npm-dependencies)), and DWC contributors don't have to know about it. The in-tree layout is just a convenience for fast iteration.
 
 ## Plugin layout
 
@@ -153,6 +153,21 @@ Field reference:
 | `dwcDependencies` | string[] | Optional - other DWC plugins that must be loaded first |
 | `sbcDependencies` | string[] | Optional - DSF dependencies |
 | `dwcFiles` / `dsfFiles` / `rrfFiles` | string[] | Bundled file lists. `build-plugin-pkg.js` populates these automatically; `build-plugin.js` leaves them empty |
+
+### npm dependencies
+
+A plugin may import any npm package on top of what DWC exposes. There is no manifest field for this - npm packages are a build-time concern and `plugin.json` describes the installed plugin, so a standalone plugin declares them in its own `package.json` like any other npm project:
+
+```bash
+cd /path/to/MyPlugin
+npm install --save chart.js
+```
+
+The packages end up compiled into the plugin's own chunk. Nothing is installed on the Duet or the SBC - by the time a plugin is packaged there is nothing left to fetch.
+
+The build resolves the dependencies your `package.json` declares, and if any are missing it runs `npm install` for you and removes again what it installed once the bundle is written, transitive packages included. A plugin directory that keeps its `node_modules` around is left exactly as it was, one that does not stays clean, and either way `package.json` and both lock files come out unchanged. Keeping the dependencies installed yourself is the faster path during development - the build then has nothing to do.
+
+In-tree plugins are exempt: they resolve against DWC's `node_modules`, and installing into it would leave your DWC checkout dirty. A missing package is reported there instead, for you to install into the DWC tree yourself.
 
 ## Entry point
 
@@ -672,7 +687,7 @@ Two things to know: pure-JavaScript plugins are not type-checked (no opt-in to t
 node scripts/build-plugin.js /path/to/plugin
 ```
 
-Compiles the plugin into an IIFE bundle (`dwc/js/<id>.js` + optional `dwc/css/<id>.css`), copies any `dsf/`, `dwc/`, or `sd/` extras into a `pkg/` staging directory, and zips it up as `<id>-<version>.zip`. The manifest is copied as-is - file list fields stay empty.
+Compiles the plugin into an IIFE bundle (`dwc/js/<id>.js` + optional `dwc/css/<id>.css`), copies any `dsf/`, `dwc/`, or `sd/` extras into a `pkg/` staging directory, and zips it up as `<id>-<version>.zip`. The manifest is copied as-is - file list fields stay empty. Dependencies the plugin's `package.json` declares are installed before the type check if they are missing and removed again once the bundle is written, see [npm dependencies](#npm-dependencies).
 
 ### `scripts/build-plugin-pkg.js` - the full package
 

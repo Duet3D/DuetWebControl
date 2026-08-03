@@ -38,6 +38,7 @@ import {
 	buildPlugin,
 	createZip,
 	createSourcemapZip,
+	installPluginDependencies,
 	typeCheckPlugin,
 } from "./build-plugin.js";
 
@@ -73,11 +74,23 @@ const entryFile = findEntryFile(resolvedPluginDir);
 console.log(`Building plugin package: ${manifest.id} (${manifest.name}) v${manifest.version}`);
 console.log(`Entry point: ${entryFile}`);
 
-if (!typeCheckPlugin(resolvedPluginDir)) {
+// process.exit() would skip the finally block, so the type check result is acted on after cleanup
+const cleanupNpm = installPluginDependencies(resolvedPluginDir);
+let typeCheckPassed = false;
+let buildOutput = null;
+try {
+	typeCheckPassed = typeCheckPlugin(resolvedPluginDir);
+	if (typeCheckPassed) {
+		buildOutput = await buildPlugin(resolvedPluginDir, manifest, entryFile);
+	}
+} finally {
+	cleanupNpm();
+}
+if (!typeCheckPassed) {
 	process.exit(1);
 }
 
-const { outDir, jsFile, cssFile, hiddenSourcemaps } = await buildPlugin(resolvedPluginDir, manifest, entryFile);
+const { outDir, jsFile, cssFile, hiddenSourcemaps } = buildOutput;
 
 const assembleDir = resolve(resolvedPluginDir, "pkg");
 mkdirSync(join(assembleDir, "dwc", "js"), { recursive: true });

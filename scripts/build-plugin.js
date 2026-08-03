@@ -11,6 +11,10 @@
  * Unlike build-plugin-pkg.js, this script does NOT auto-populate the
  * dwcFiles/dsfFiles/rrfFiles arrays in the manifest.
  *
+ * A plugin that brings its own package.json gets its dependencies
+ * installed before the build if they are missing and removed again
+ * afterwards, so they end up bundled without leaving anything behind.
+ *
  * The plugin source directory must contain:
  *   - plugin.json       (manifest)
  *   - An entry point:   index.ts / index.js / src/index.ts / dwc-src/index.ts
@@ -42,7 +46,7 @@
  */
 
 import { existsSync, readFileSync, writeFileSync, readdirSync, statSync, mkdirSync, cpSync, rmSync } from "fs";
-import { resolve, join, relative, sep } from "path";
+import { resolve, join, dirname, relative, sep } from "path";
 import { pathToFileURL } from "url";
 import { spawnSync } from "child_process";
 import { build } from "vite";
@@ -145,6 +149,115 @@ export function resolveVersionPlaceholders(manifest) {
 		manifest.rrfVersion = resolveVersion(manifest.rrfVersion, dwcPackageJson.version);
 	}
 	return dwcPackageJson;
+}
+
+function isPackageInstalled(pluginDir, name) {
+	for (let dir = pluginDir; ; dir = dirname(dir)) {
+		if (existsSync(join(dir, "node_modules", name))) {
+			return true;
+		}
+		if (dirname(dir) === dir) {
+			return false;
+		}
+	}
+}
+
+/**
+ * List the contents of a node_modules directory. Scope and .bin directories are listed themselves and
+ * expanded one level, so that restoring can tell a package added inside a pre-existing scope from a scope
+ * directory that npm created outright
+ */
+function listModuleEntries(modulesDir) {
+	const entries = new Set();
+	for (const entry of readdirSync(modulesDir)) {
+		entries.add(entry);
+		if (entry.startsWith("@") || entry === ".bin") {
+			for (const child of readdirSync(join(modulesDir, entry))) {
+				entries.add(`${entry}/${child}`);
+			}
+		}
+	}
+	return entries;
+}
+
+function restoreFile(path, contents) {
+	if (contents === null) {
+		rmSync(path, { force: true });
+	} else {
+		writeFileSync(path, contents);
+	}
+}
+
+function restorePluginDir(pluginDir, before) {
+	const modulesDir = join(pluginDir, "node_modules");
+	if (before.entries === null) {
+		rmSync(modulesDir, { recursive: true, force: true });
+	} else if (existsSync(modulesDir)) {
+		// A scope directory npm created outright is removed as a whole, which takes its children with it -
+		// hence force, the child entries of the same listing are gone by the time their turn comes
+		for (const entry of listModuleEntries(modulesDir)) {
+			if (!before.entries.has(entry)) {
+				rmSync(join(modulesDir, entry), { recursive: true, force: true });
+			}
+		}
+	}
+
+	restoreFile(join(pluginDir, "package.json"), before.packageJson);
+	restoreFile(join(pluginDir, "package-lock.json"), before.lock);
+	restoreFile(join(modulesDir, ".package-lock.json"), before.innerLock);
+}
+
+/**
+ * Install the plugin's own npm dependencies so the type check and the bundler can resolve them, and return
+ * a callback that undoes the install afterwards.
+ *
+ * The plugin's package.json is authoritative, so version ranges, integrity hashes and transitive
+ * dependencies are all npm's business rather than ours. npm only runs when something is missing, and what
+ * it added is removed again by diffing the node_modules listing against a snapshot taken beforehand - a
+ * plugin directory that carries its dependencies around stays as it was.
+ *
+ * In-tree plugins are exempt: they resolve against DWC's own node_modules, and installing into that during
+ * development would leave the DWC checkout dirty. There the missing packages are reported instead.
+ *
+ * @returns Callback that restores the plugin directory, or a no-op when nothing had to be installed
+ */
+export function installPluginDependencies(pluginDir) {
+	const packageJsonPath = join(pluginDir, "package.json");
+	if (!existsSync(packageJsonPath)) {
+		return () => {};
+	}
+
+	const packageJson = JSON.parse(readFileSync(packageJsonPath, "utf-8"));
+	const missing = [...Object.keys(packageJson.dependencies ?? {}), ...Object.keys(packageJson.devDependencies ?? {})].filter((name) => !isPackageInstalled(pluginDir, name));
+	if (missing.length === 0) {
+		return () => {};
+	}
+
+	if ((resolve(pluginDir) + sep).startsWith(DWC_ROOT + sep)) {
+		console.error(`Missing npm dependencies of in-tree plugin: ${missing.join(", ")}`);
+		console.error(`Install them in the DWC checkout first: npm install ${missing.join(" ")}`);
+		process.exit(1);
+	}
+
+	const modulesDir = join(pluginDir, "node_modules");
+	const before = {
+		packageJson: readFileSync(packageJsonPath),
+		lock: existsSync(join(pluginDir, "package-lock.json")) ? readFileSync(join(pluginDir, "package-lock.json")) : null,
+		innerLock: existsSync(join(modulesDir, ".package-lock.json")) ? readFileSync(join(modulesDir, ".package-lock.json")) : null,
+		entries: existsSync(modulesDir) ? listModuleEntries(modulesDir) : null,
+	};
+
+	console.log(`Installing npm dependencies (missing: ${missing.join(", ")})`);
+	if (spawnSync("npm", ["install", "--no-audit", "--no-fund"], { cwd: pluginDir, stdio: "inherit" }).status !== 0) {
+		restorePluginDir(pluginDir, before);
+		console.error("Failed to install npm dependencies");
+		process.exit(1);
+	}
+
+	return () => {
+		console.log("Removing temporarily installed npm dependencies");
+		restorePluginDir(pluginDir, before);
+	};
 }
 
 export function findEntryFile(pluginDir) {
@@ -430,11 +543,23 @@ if (import.meta.url === pathToFileURL(process.argv[1]).href) {
 	console.log(`Building plugin: ${manifest.id} (${manifest.name}) v${manifest.version}`);
 	console.log(`Entry point: ${entryFile}`);
 
-	if (!typeCheckPlugin(resolvedPluginDir)) {
+	// process.exit() would skip the finally block, so the type check result is acted on after cleanup
+	const cleanupNpm = installPluginDependencies(resolvedPluginDir);
+	let typeCheckPassed = false;
+	let buildOutput = null;
+	try {
+		typeCheckPassed = typeCheckPlugin(resolvedPluginDir);
+		if (typeCheckPassed) {
+			buildOutput = await buildPlugin(resolvedPluginDir, manifest, entryFile);
+		}
+	} finally {
+		cleanupNpm();
+	}
+	if (!typeCheckPassed) {
 		process.exit(1);
 	}
 
-	const { outDir, jsFile, cssFile, hiddenSourcemaps } = await buildPlugin(resolvedPluginDir, manifest, entryFile);
+	const { outDir, jsFile, cssFile, hiddenSourcemaps } = buildOutput;
 
 	// Build a simple ZIP containing compiled chunks + optional extra
 	// directories + plugin.json. File lists are NOT populated - use
