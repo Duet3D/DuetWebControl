@@ -14,7 +14,7 @@ interface ParsedVersion {
 
 function parse(v: string): ParsedVersion | null {
 	const stripped = v.trim().replace(/^[vV]/, "");
-	const match = stripped.match(/^(\d+)(?:\.(\d+))?(?:\.(\d+))?(?:[-+](.*))?$/);
+	const match = stripped.match(/^(\d+)(?:\.(\d+))?(?:\.(\d+))?(?:-([^+]*))?(?:\+.*)?$/);
 	if (!match) {
 		return null;
 	}
@@ -26,9 +26,9 @@ function parse(v: string): ParsedVersion | null {
 	};
 }
 
-// Returns the highest level at which two versions differ, or null if equal. Leading "v"
-// and prerelease/build tags are tolerated; missing minor/patch components are treated as 0
-// so e.g. "3.5" matches "3.5.0"
+// Returns the highest level at which two versions differ, or null if equal. Leading "v" is
+// tolerated and build metadata is ignored as per semver, so "3.6.0" equals "3.6.0+1"; missing
+// minor/patch components are treated as 0 so e.g. "3.5" matches "3.5.0"
 export function versionDiff(a: string, b: string): VersionDiff {
 	const pa = parse(a);
 	const pb = parse(b);
