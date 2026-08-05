@@ -13,6 +13,7 @@ import type { JSZipObject } from "jszip";
 import i18n from "@/i18n";
 import { useMachineStore } from "@/stores/machine";
 import { useUiStore } from "@/stores/ui";
+import { ZipExtractionError } from "@/utils/errors";
 import Path from "@/utils/path";
 
 // Static list of extensions that always belong under /www on the board. Files matching one of
@@ -150,7 +151,12 @@ export function useFirmwareInstall() {
 	// hand them to the plugin pipeline instead
 	async function expandZip(file: File): Promise<Array<File>> {
 		const { default: JSZipLib } = await import("jszip");
-		const archive = await JSZipLib.loadAsync(file, { checkCRC32: true });
+		let archive: JSZip;
+		try {
+			archive = await JSZipLib.loadAsync(file, { checkCRC32: true });
+		} catch (e) {
+			throw new ZipExtractionError(file.name, e);
+		}
 
 		let isPlugin = false;
 		archive.forEach((relativePath: string) => {
@@ -173,7 +179,11 @@ export function useFirmwareInstall() {
 				entries.push(new File([blob], relativePath));
 			})());
 		});
-		await Promise.all(promises);
+		try {
+			await Promise.all(promises);
+		} catch (e) {
+			throw new ZipExtractionError(file.name, e);
+		}
 		return entries;
 	}
 

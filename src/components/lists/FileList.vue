@@ -489,7 +489,7 @@ import { ContextMenuType, FileTransferType, LogLevel, useUiStore } from "@/store
 import { copyToClipboard } from "@/utils/clipboard";
 import { displaySize } from "@/utils/display";
 import { saveBlob } from "@/utils/download";
-import { getErrorMessage } from "@/utils/errors";
+import { getErrorMessage, ZipExtractionError } from "@/utils/errors";
 import Events from "@/utils/events";
 import Path from "@/utils/path";
 
@@ -1127,6 +1127,9 @@ async function uploadFiles(files: Array<File>) {
 	} catch (e) {
 		if (!(e instanceof OperationCancelledError)) {
 			console.warn(e);
+		}
+		// Zip expansion is the only step that does not report its own failures
+		if (e instanceof ZipExtractionError) {
 			uiStore.notifyError(e, i18n.global.t("notification.decompress.errorTitle"));
 		}
 	} finally {
@@ -1171,20 +1174,24 @@ async function runFirmwareUpload(files: Array<File>) {
 
 async function extractZip(zip: File, dir: string): Promise<Array<{ filename: string; content: Blob }>> {
 	const { default: JSZip } = await import("jszip");
-	const archive = await JSZip.loadAsync(zip);
-	const entries: Array<{ filename: string; content: Blob }> = [];
-	const promises: Array<Promise<void>> = [];
-	archive.forEach((relativePath, entry) => {
-		if (entry.dir) {
-			return;
-		}
-		promises.push((async () => {
-			const blob = await entry.async("blob");
-			entries.push({ filename: Path.combine(dir, relativePath), content: blob });
-		})());
-	});
-	await Promise.all(promises);
-	return entries;
+	try {
+		const archive = await JSZip.loadAsync(zip);
+		const entries: Array<{ filename: string; content: Blob }> = [];
+		const promises: Array<Promise<void>> = [];
+		archive.forEach((relativePath, entry) => {
+			if (entry.dir) {
+				return;
+			}
+			promises.push((async () => {
+				const blob = await entry.async("blob");
+				entries.push({ filename: Path.combine(dir, relativePath), content: blob });
+			})());
+		});
+		await Promise.all(promises);
+		return entries;
+	} catch (e) {
+		throw new ZipExtractionError(zip.name, e);
+	}
 }
 
 // dragover is prevented globally by useFileDrag, so the drop fires here without this list

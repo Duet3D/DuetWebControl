@@ -26,6 +26,17 @@ export function getErrorMessage<B extends boolean | undefined = undefined>(
 	return String(e) as Result;
 }
 
+/**
+ * Error thrown when a ZIP archive could not be read or expanded
+ */
+export class ZipExtractionError extends Error {
+	override name: string = "ZipExtractionError";
+
+	constructor(filename: string, cause: unknown) {
+		super(`${filename}: ${getErrorMessage(cause)}`);
+	}
+}
+
 //#region Heightmap errors
 
 /**

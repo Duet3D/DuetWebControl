@@ -20,6 +20,7 @@ import i18n from "@/i18n";
 import { useMachineStore } from "@/stores/machine";
 import { LogLevel, useUiStore } from "@/stores/ui";
 import { isPrinting } from "@/utils/enums";
+import { ZipExtractionError } from "@/utils/errors";
 import Events from "@/utils/events";
 
 export interface FirmwareInstallController {
@@ -73,21 +74,28 @@ export function useFirmwareInstallController(): FirmwareInstallController {
 			}
 		}
 
+		let plan: FirmwareUpdatePlan;
 		try {
-			let plan: FirmwareUpdatePlan;
-			try {
-				plan = await firmwareInstall.planFiles(files);
-			} catch (e) {
-				if (e instanceof PluginBundleDetectedError) {
-					// Detour into the install wizard so the user sees the manifest preview /
-					// prerequisites check / disclaimer before the bundle reaches the machine.
-					// PluginInstallDialog listens for this event and opens the modal
-					Events.emit("installPlugin", { zipFilename: e.file.name, zipBlob: e.file, zipFile: e.archive, start: true });
-					return;
-				}
-				throw e;
+			plan = await firmwareInstall.planFiles(files);
+		} catch (e) {
+			if (e instanceof PluginBundleDetectedError) {
+				// Detour into the install wizard so the user sees the manifest preview /
+				// prerequisites check / disclaimer before the bundle reaches the machine.
+				// PluginInstallDialog listens for this event and opens the modal
+				Events.emit("installPlugin", { zipFilename: e.file.name, zipBlob: e.file, zipFile: e.archive, start: true });
+				return;
 			}
+			if (!(e instanceof OperationCancelledError)) {
+				console.warn(e);
+			}
+			// SBC package installs are dispatched from the classifier and report their own failures
+			if (e instanceof ZipExtractionError) {
+				uiStore.notifyError(e, i18n.global.t("notification.decompress.errorTitle"));
+			}
+			return;
+		}
 
+		try {
 			if (plan.files.length > 0) {
 				// Auto-dismiss the transfer progress dialog when a follow-up prompt is about to replace it
 				await machineStore.upload(plan.files, true, true, true, firmwareInstall.hasPendingUpdates(plan) || plan.configReplaced);
@@ -106,9 +114,9 @@ export function useFirmwareInstallController(): FirmwareInstallController {
 				location.reload();
 			}
 		} catch (e) {
+			// upload() notifies about every file it failed to transfer, so no extra message here
 			if (!(e instanceof OperationCancelledError)) {
 				console.warn(e);
-				uiStore.notifyError(e, i18n.global.t("notification.decompress.errorTitle"));
 			}
 		}
 	}
