@@ -114,7 +114,7 @@ function scanUsedComponents(srcDir: string): Set<string> {
 }
 
 export default function dwcVuetifySplit(): VitePlugin {
-	const srcDir = resolve(__dirname, "../src");
+	const srcDir = resolve(import.meta.dirname, "../src");
 
 	let allComponents: Array<string> = [];
 	let coreSet: Set<string> = new Set();

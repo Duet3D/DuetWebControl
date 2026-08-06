@@ -27,7 +27,7 @@ const VIRTUAL_ID = "virtual:dwc-components";
 const RESOLVED_ID = "\0" + VIRTUAL_ID;
 
 export default function dwcComponents(): VitePlugin {
-	const componentsDir = resolve(__dirname, "../src/components");
+	const componentsDir = resolve(import.meta.dirname, "../src/components");
 
 	function discover(): Array<{ name: string; importPath: string }> {
 		const entries: Array<{ name: string; importPath: string }> = [];

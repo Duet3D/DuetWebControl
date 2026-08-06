@@ -33,13 +33,13 @@ const VIRTUAL_MODULE_ID = "virtual:dwc-builtin-plugins";
 const RESOLVED_VIRTUAL_MODULE_ID = "\0" + VIRTUAL_MODULE_ID;
 
 export default function dwcPlugins(): VitePlugin {
-	const pluginsDir = resolve(__dirname, "../src/plugins");
+	const pluginsDir = resolve(import.meta.dirname, "../src/plugins");
 
 	// Built-in plugin manifests use "auto" to mean "track the DWC version" so they don't have
 	// to be bumped every release; resolved at build time from package.json
 	const pkgVersion = (() => {
 		try {
-			return JSON.parse(readFileSync(resolve(__dirname, "../package.json"), "utf-8")).version as string;
+			return JSON.parse(readFileSync(resolve(import.meta.dirname, "../package.json"), "utf-8")).version as string;
 		} catch {
 			return "0.0.0";
 		}

@@ -110,7 +110,7 @@ function resolveLocalModule(fromFile: string, specifier: string): string | null 
 }
 
 export default function dwcPluginApi(): VitePlugin {
-	const srcDir = resolve(__dirname, "../src");
+	const srcDir = resolve(import.meta.dirname, "../src");
 
 	// Scan a flat src subdirectory (composables, stores) and return one module entry per .ts file,
 	// keyed by the `@/<subdir>/<base>` import path the build externalises to the flat DWC global
