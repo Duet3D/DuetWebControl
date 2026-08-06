@@ -144,6 +144,20 @@ const canvasRef = ref<HTMLCanvasElement | null>(null);
 let chart: Chart<"line"> | null = null;
 let lastUpdate = 0;
 
+// chart.js hooks the push/shift calls on every dataset's data array and resolves the owning
+// dataset by index, so a series dropped from sampleSeries leaves those hooks pointing past the end
+// of the array until the next redraw. Redraws are throttled to 1 Hz, so the following sample
+// throws from inside chart.js and takes down the object-model update that emitted it - which in
+// turn strands the reconnect that was waiting on it. Hand the chart a snapshot so its indices only
+// ever change while it is updating
+function updateChart() {
+	if (!chart) {
+		return;
+	}
+	chart.data.datasets = [...sampleSeries];
+	chart.update();
+}
+
 // Temperatures is always present; Webcam is offered whenever a webcam is configured, matching
 // the visibility condition of the Webcam menu item
 const titles = computed(() => {
@@ -217,7 +231,7 @@ function applyChartTheme() {
 	chart.options!.scales!.x!.grid!.color = gridColor;
 	chart.options!.scales!.y!.grid!.color = gridColor;
 
-	chart.update();
+	updateChart();
 }
 
 function refresh() {
@@ -240,7 +254,7 @@ function refresh() {
 	y2.min = settings.value.customChartRightAxis.min;
 	y2.max = settings.value.customChartRightAxis.max;
 
-	chart.update();
+	updateChart();
 	lastUpdate = now;
 }
 
@@ -315,7 +329,7 @@ function applyTouchTooltip() {
 	});
 	chart.setActiveElements(active);
 	chart.tooltip?.setActiveElements(active, touchTooltipPos);
-	chart.update();
+	updateChart();
 }
 
 // Touch has no pointer-leave event, so a tapped tooltip would stay on screen indefinitely. Clear
@@ -327,7 +341,7 @@ function hideTooltip() {
 	}
 	chart.setActiveElements([]);
 	chart.tooltip?.setActiveElements([], { x: 0, y: 0 });
-	chart.update();
+	updateChart();
 }
 
 let unsubscribeSampleListener: (() => void) | null = null;
@@ -403,7 +417,7 @@ onMounted(() => {
 		},
 		data: {
 			labels: sampleTimes,
-			datasets: sampleSeries
+			datasets: [...sampleSeries]
 		}
 	});
 

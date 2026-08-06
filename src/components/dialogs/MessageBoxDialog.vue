@@ -109,13 +109,38 @@ const { numMoveSteps, moveSteps, showMoveStepDialog } = useMoveSteps(settings);
 const messageBox = reactive(new MessageBox()), shown = ref(false);
 const numberInput = ref(0), stringInput = ref("");
 
+// Vuetify's dialog transition drives its open/close animations from requestAnimationFrame, which
+// browsers pause in hidden tabs. A box that opens and closes again in the background leaves both
+// animations stalled half-way, and they only thaw out into a scrimless flash once the tab is
+// reactivated. Hold back firmware-driven changes until the tab can animate them; the button
+// handlers below write to shown directly since those require a visible tab anyway
+let deferredShown: boolean | null = null;
+
+function setShown(value: boolean) {
+	if (document.visibilityState === "visible") {
+		shown.value = value;
+	} else {
+		deferredShown = value;
+	}
+}
+
+function onVisibilityChange() {
+	if (document.visibilityState === "visible" && deferredShown !== null) {
+		shown.value = deferredShown;
+		deferredShown = null;
+	}
+}
+
+onMounted(() => document.addEventListener("visibilitychange", onVisibilityChange));
+onBeforeUnmount(() => document.removeEventListener("visibilitychange", onVisibilityChange));
+
 // Observers for message box data
 watch(() => machineStore.isReconnecting, (to) => {
 	if (to) {
-		shown.value = false;
+		setShown(false);
 	} else if (machineStore.model.state.messageBox !== null && machineStore.model.state.messageBox.mode !== null) {
 		// A box still open across a reconnect keeps its reference, so the messageBox watcher won't re-fire it
-		shown.value = true;
+		setShown(true);
 	}
 });
 
@@ -124,9 +149,9 @@ watch(() => machineStore.model.state.messageBox, (to) => {
 		numberInput.value = (typeof to.default === "number") ? to.default : 0;
 		stringInput.value = (typeof to.default === "string") ? to.default : "";
 		messageBox.update(to);
-		shown.value = true;
+		setShown(true);
 	} else {
-		shown.value = false;
+		setShown(false);
 	}
 }, { deep: true });
 

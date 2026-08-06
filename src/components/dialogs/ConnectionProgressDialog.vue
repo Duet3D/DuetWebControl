@@ -50,10 +50,31 @@ const machineStore = useMachineStore();
 
 // General UI
 
-const shown = computed(() => {
+const shouldBeShown = computed(() => {
 	return (machineStore.isConnecting || machineStore.connectingProgress >= 0 || machineStore.isReconnecting || machineStore.isDisconnecting ||
 		machineStore.model.state.status === MachineStatus.halted || machineStore.model.state.status === MachineStatus.updating);
 });
+
+// Vuetify's dialog transition drives its open/close animations from requestAnimationFrame, which
+// browsers pause in hidden tabs. A tab-throttled poll times out in the background, so the dialog
+// opens and closes again while nobody is looking - both animations stall half-way and only thaw
+// out when the tab is reactivated, leaving a scrimless card on screen. Latch the state instead so
+// the dialog only ever animates while the tab can show it
+const documentVisible = ref(document.visibilityState === "visible");
+const shown = ref(false);
+
+watchEffect(() => {
+	if (documentVisible.value) {
+		shown.value = shouldBeShown.value;
+	}
+});
+
+function onVisibilityChange() {
+	documentVisible.value = document.visibilityState === "visible";
+}
+
+onMounted(() => document.addEventListener("visibilitychange", onVisibilityChange));
+onBeforeUnmount(() => document.removeEventListener("visibilitychange", onVisibilityChange));
 
 const isPersistent = computed(() => {
 	if (!(displayReset.value && machineStore.isConnected)) {
@@ -63,7 +84,7 @@ const isPersistent = computed(() => {
 	return false;
 });
 
-const message = computed(() => {
+const currentMessage = computed(() => {
 	if (machineStore.isConnecting || machineStore.connectingProgress >= 0) {
 		return i18n.global.t("dialog.connectionProgress.connecting");
 	}
@@ -77,6 +98,16 @@ const message = computed(() => {
 		return i18n.global.t("dialog.connectionProgress.disconnecting");
 	}
 	return i18n.global.t("dialog.connectionProgress.standBy");
+});
+
+// Every connection flag clears in the same tick that hides the dialog, so a live caption drops to
+// the halted fallback for the duration of the closing animation. Keep the last one that applied
+const message = ref("");
+
+watchEffect(() => {
+	if (shown.value) {
+		message.value = currentMessage.value;
+	}
 });
 
 const isUpdating = computed(() => machineStore.model.state.status === MachineStatus.updating && machineStore.boardsBeingUpdated.length > 0);
