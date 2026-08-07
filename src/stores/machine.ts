@@ -359,8 +359,8 @@ export const useMachineStore = defineStore("machine", {
 					onReconnected(connector: BaseConnector): void {
 						useUiStore().closeNotifications(true);
 					},
-					onUpdate(connector: BaseConnector, data: any): void {
-						that.updateModel(data);
+					onUpdate(connector: BaseConnector, data: any, authoritative?: boolean): void {
+						that.updateModel(data, authoritative);
 					},
 					onVolumeChanged(connector: BaseConnector, volumeIndex: number): void {
 						Events.emit("filesOrDirectoriesChanged", { volume: volumeIndex });
@@ -557,6 +557,17 @@ export const useMachineStore = defineStore("machine", {
 			}
 
 			return this.connector.request(method, path, params, responseType, body, timeout, filename, cancellationToken, onProgress, retry);
+		},
+
+		/**
+		 * Set whether object model queries ask for fields flagged as verbose. Enabling this refreshes the
+		 * model so those fields are fetched again, hence it must only be set while something displays them
+		 * @param verbose Whether verbose fields are wanted
+		 */
+		setVerboseQueries(verbose: boolean) {
+			if (this.connector !== null) {
+				this.connector.verboseQueries = verbose;
+			}
 		},
 
 		/**
@@ -1134,7 +1145,7 @@ export const useMachineStore = defineStore("machine", {
 		 * @param context Action context
 		 * @param payload Updated model data
 		 */
-		updateModel(payload: any) {
+		updateModel(payload: any, authoritative: boolean = false) {
 			const lastBeepFrequency = this.model.state.beep ? this.model.state.beep.frequency : null;
 			const lastBeepDuration = this.model.state.beep ? this.model.state.beep.duration : null;
 			const lastDisplayMessage = this.model.state.displayMessage; const lastStatus = this.model.state.status;
@@ -1197,7 +1208,7 @@ export const useMachineStore = defineStore("machine", {
 			applyModelPatches(payload, this.model);
 
 			// Update typed state
-			this.model.update(payload);
+			this.model.update(payload, authoritative);
 			Events.emit("modelUpdated", this.model);
 
 			// Follow the HTTP input channel's motion system, but only when it actually changes -

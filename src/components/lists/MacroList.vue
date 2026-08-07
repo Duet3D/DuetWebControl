@@ -82,6 +82,13 @@
 						</template>
 						<v-list-item-title>{{ $t("list.macro.openInExplorer") }}</v-list-item-title>
 					</v-list-item>
+					<v-divider />
+					<v-list-item :disabled="uiStore.uiFrozen" @click="deleteMacro(contextMenu.item)">
+						<template #prepend>
+							<v-icon>mdi-delete</v-icon>
+						</template>
+						<v-list-item-title>{{ $t("button.delete.caption") }}</v-list-item-title>
+					</v-list-item>
 				</v-list>
 			</v-menu>
 		</v-card-text>
@@ -118,6 +125,7 @@ import { DirectoryNotFoundError, DisconnectedError, FileListItem } from "@duet3d
 import { Volume } from "@duet3d/objectmodel";
 
 import { useComponentSettings } from "@/composables/useComponentSettings";
+import { showConfirmDialog } from "@/composables/useConfirmDialog";
 import i18n from "@/i18n";
 import { useMachineStore } from "@/stores/machine";
 import { useUiStore } from "@/stores/ui";
@@ -310,6 +318,24 @@ function openContextMenu(item: MacroItem, x: number, y: number) {
 function editMacro(item: MacroItem | null) {
 	if (item) {
 		router.push(Path.editRoute(Path.combine(directory.value, item.name)));
+	}
+}
+
+async function deleteMacro(item: MacroItem | null) {
+	if (!item) {
+		return;
+	}
+
+	if (await showConfirmDialog(i18n.global.t("dialog.delete.title"), i18n.global.t("dialog.delete.promptSingle", [item.displayName]), "mdi-delete")) {
+		try {
+			// Directories are removed recursively so a non-empty one does not raise a second prompt
+			await machineStore.delete(Path.combine(directory.value, item.name), item.isDirectory);
+		} catch (e) {
+			if (!(e instanceof DisconnectedError)) {
+				console.warn(e);
+				uiStore.notifyError(e, i18n.global.t("notification.delete.errorTitle", [item.displayName]));
+			}
+		}
 	}
 }
 

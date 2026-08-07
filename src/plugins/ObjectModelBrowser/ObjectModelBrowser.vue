@@ -447,4 +447,12 @@ watch(
 	},
 	{ immediate: true }
 );
+
+// Fields flagged as verbose are only kept up to date while something shows them, and this page is
+// the only thing that does. Both lifecycle pairs are wired up so it keeps working if the route is
+// ever cached by keep-alive
+onMounted(() => machineStore.setVerboseQueries(true));
+onActivated(() => machineStore.setVerboseQueries(true));
+onDeactivated(() => machineStore.setVerboseQueries(false));
+onBeforeUnmount(() => machineStore.setVerboseQueries(false));
 </script>
