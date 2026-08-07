@@ -94,6 +94,11 @@
 				   :size="isLargeButtons ? 'large' : undefined"
 				   :aria-label="$t('layout.backToHub')" @click="goHub" />
 
+			<v-btn v-if="canListDevices" icon="mdi-devices" variant="text"
+				   :size="isLargeButtons ? 'large' : undefined"
+				   :title="$t('layout.listDevices')" :aria-label="$t('layout.listDevices')"
+				   @click="listDevices" />
+
 			<div id="title" class="text-truncate machine-name"
 				 :class="[isLargeButtons ? 'text-headline-medium' : 'text-title-large',
 						  isLargeButtons ? 'ms-5 me-2' : 'ms-3 me-1']"
@@ -232,6 +237,7 @@ import { type MenuBadge, type MenuCategoryDef, type MenuItem, useMenuStore } fro
 import { useSettingsStore } from "@/stores/settings";
 import { useUiStore } from "@/stores/ui";
 import { isPaused, isPrinting } from "@/utils/enums";
+import { canListDevices, listDevices } from "@/utils/nativeApp";
 
 const cacheStore = useCacheStore();
 const machineStore = useMachineStore();

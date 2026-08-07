@@ -404,6 +404,7 @@
 	},
 	"layout": {
 		"backToHub": "Zur Startseite",
+		"listDevices": "Zurück zur Geräteliste",
 		"statusPanel": "Status",
 		"showStatusPanel": "Statusbereich anzeigen",
 		"hideStatusPanel": "Statusbereich ausblenden",

@@ -402,6 +402,7 @@
 	},
 	"layout": {
 		"backToHub": "Back to home",
+		"listDevices": "Back to device list",
 		"statusPanel": "Status",
 		"showStatusPanel": "Show status panel",
 		"hideStatusPanel": "Hide status panel",
