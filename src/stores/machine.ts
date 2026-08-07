@@ -571,6 +571,17 @@ export const useMachineStore = defineStore("machine", {
 		},
 
 		/**
+		 * Set whether object model queries ask for fields flagged as obsolete. Handled like
+		 * {@link setVerboseQueries}, only wanted by consumers that display deprecated fields
+		 * @param obsolete Whether obsolete fields are wanted
+		 */
+		setObsoleteQueries(obsolete: boolean) {
+			if (this.connector !== null) {
+				this.connector.obsoleteQueries = obsolete;
+			}
+		},
+
+		/**
 		 * Wait for the next full object model update to be processed
 		 */
 		waitForModelUpdate(): Promise<void> {

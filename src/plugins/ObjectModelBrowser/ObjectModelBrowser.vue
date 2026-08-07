@@ -450,9 +450,23 @@ watch(
 
 // Fields flagged as verbose are only kept up to date while something shows them, and this page is
 // the only thing that does. Both lifecycle pairs are wired up so it keeps working if the route is
-// ever cached by keep-alive
-onMounted(() => machineStore.setVerboseQueries(true));
-onActivated(() => machineStore.setVerboseQueries(true));
-onDeactivated(() => machineStore.setVerboseQueries(false));
-onBeforeUnmount(() => machineStore.setVerboseQueries(false));
+// ever cached by keep-alive. Obsolete fields are not fetched up front because they only exist for
+// backwards compatibility, so selecting one is taken as the user asking for its value
+const obsoleteSelected = ref(false);
+watch(active, (to) => {
+	if (!obsoleteSelected.value && to.some(item => isDeprecated(item))) {
+		obsoleteSelected.value = true;
+		machineStore.setObsoleteQueries(true);
+	}
+});
+
+function setQueryDetail(wanted: boolean) {
+	machineStore.setVerboseQueries(wanted);
+	machineStore.setObsoleteQueries(wanted && obsoleteSelected.value);
+}
+
+onMounted(() => setQueryDetail(true));
+onActivated(() => setQueryDetail(true));
+onDeactivated(() => setQueryDetail(false));
+onBeforeUnmount(() => setQueryDetail(false));
 </script>
