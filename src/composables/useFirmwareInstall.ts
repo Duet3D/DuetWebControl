@@ -6,7 +6,7 @@
 // reloads DWC when its own web bundle was just replaced
 
 import { DisconnectedError } from "@duet3d/connectors";
-import { type Board, MachineStatus, NetworkInterfaceType } from "@duet3d/objectmodel";
+import { type Board, MachineStatus, MainBoard, NetworkInterfaceType } from "@duet3d/objectmodel";
 import type JSZip from "jszip";
 import type { JSZipObject } from "jszip";
 
@@ -73,6 +73,7 @@ interface ClassifyContext {
 	hasSbc: boolean;
 	hasWifi: boolean;
 	boards: ReadonlyArray<Board | null>;
+	mainboard: MainBoard | null;
 	mainboardIsGenuineDuet: boolean;
 }
 
@@ -86,7 +87,7 @@ export function useFirmwareInstall() {
 		const model = machineStore.model;
 		// The main board reports a name like "Duet 3 MB6HC"; LPC/STM32 ports configured via board.txt
 		// report a non-Duet name, which is how we tell a genuine board from a fork
-		const mainboard = model.boards[0] ?? null;
+		const mainboard = (model.boards[0] instanceof MainBoard) ? model.boards[0] : null;
 		return {
 			directories: {
 				firmware: model.directories.firmware,
@@ -96,6 +97,7 @@ export function useFirmwareInstall() {
 			hasSbc: model.sbc !== null,
 			hasWifi: model.network.interfaces.some((iface) => iface !== null && iface.type === NetworkInterfaceType.wifi),
 			boards: model.boards as ReadonlyArray<Board | null>,
+			mainboard,
 			mainboardIsGenuineDuet: mainboard !== null && mainboard.name.includes("Duet"),
 		};
 	}
@@ -124,13 +126,8 @@ export function useFirmwareInstall() {
 	function findBoardBinary(ctx: ClassifyContext, key: "iapFileNameSBC" | "iapFileNameSD",
 		fileName: string): string | null
 	{
-		for (const board of ctx.boards) {
-			const value = board ? board[key] : null;
-			if (typeof value === "string" && value.length > 0 && matchesBoardBinary(value, fileName)) {
-				return value;
-			}
-		}
-		return null;
+		const value = ctx.mainboard ? ctx.mainboard[key] : null;
+		return (typeof value === "string" && value.length > 0 && matchesBoardBinary(value, fileName)) ? value : null;
 	}
 
 	function isWebFile(fileName: string): boolean {
@@ -235,8 +232,7 @@ export function useFirmwareInstall() {
 
 		// WiFi server / display binaries are matched against board metadata too
 		if (!ctx.hasSbc && ctx.hasWifi) {
-			const wifiServerName = ctx.boards.find((board) => board && board.wifiFirmwareFileName === name);
-			if (wifiServerName) {
+			if (ctx.mainboard !== null && ctx.mainboard.wifiFirmwareFileName === name) {
 				plan.wifiServer = true;
 				return Path.combine(ctx.directories.firmware, name);
 			}

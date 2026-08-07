@@ -95,6 +95,41 @@ export async function getObjectModelDocumentation(path: string): Promise<ObjectM
 	return { summary: entry.summary ?? null, remarks: entry.remarks ?? null, values: entry.values ?? null };
 }
 
+// URLs in the sidecar are plain text because they come straight from the XML docs
+const URL_REGEX = /https?:\/\/[^\s<>"']+/g;
+
+function escapeHtml(text: string): string {
+	return text.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;");
+}
+
+/**
+ * Render a documentation string as HTML with its URLs turned into links that open in a new tab
+ * @param text Documentation text
+ * @returns Escaped HTML
+ */
+export function toDocumentationHtml(text: string): string {
+	let html = "", index = 0;
+	for (const match of text.matchAll(URL_REGEX)) {
+		let url = match[0];
+
+		// Sentence punctuation following a URL is not part of it, and neither is a closing
+		// parenthesis unless the URL opened one itself
+		while (url.length > 0) {
+			const lastChar = url[url.length - 1];
+			if (".,;:!?".includes(lastChar) || (lastChar === ")" && !url.includes("("))) {
+				url = url.slice(0, -1);
+			} else {
+				break;
+			}
+		}
+
+		const matchIndex = match.index ?? 0;
+		html += escapeHtml(text.slice(index, matchIndex)) + `<a href="${escapeHtml(url)}" target="_blank" rel="noopener noreferrer">${escapeHtml(url)}</a>`;
+		index = matchIndex + url.length;
+	}
+	return html + escapeHtml(text.slice(index));
+}
+
 /**
  * Combined hover blob (summary, italic remarks and a Markdown value list) for the Monaco hover
  * provider, or null if the path isn't documented. The provider renders the result as an

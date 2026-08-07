@@ -83,14 +83,14 @@ input[readonly] {
 					variant="outlined" class="pa-3">
 				<template v-if="apiDocumentationSummary !== null">
 					<div class="text-title-medium mb-1">{{ $t("plugins.objectModelBrowser.summary") }}</div>
-					<div v-html="apiDocumentationSummary" />
+					<div v-html="toDocumentationHtml(apiDocumentationSummary)" />
 				</template>
 
 				<template v-if="apiDocumentationRemarks !== null">
 					<div :class="['text-title-medium', 'mb-1', apiDocumentationSummary !== null ? 'mt-3' : '']">
 						{{ $t("plugins.objectModelBrowser.remarks") }}
 					</div>
-					<div v-html="apiDocumentationRemarks" />
+					<div v-html="toDocumentationHtml(apiDocumentationRemarks)" />
 				</template>
 
 				<template v-if="apiDocumentationValues !== null">
@@ -99,7 +99,7 @@ input[readonly] {
 					</div>
 					<ul class="ms-4">
 						<li v-for="(description, value) in apiDocumentationValues" :key="value">
-							<code>{{ value }}</code><template v-if="description"> - {{ description }}</template>
+							<code>{{ value }}</code><template v-if="description"> - <span v-html="toDocumentationHtml(description)" /></template>
 						</li>
 					</ul>
 				</template>
@@ -125,7 +125,7 @@ import i18n from "@/i18n";
 import { useMachineStore } from "@/stores/machine";
 import { useSettingsStore } from "@/stores/settings";
 import { copyToClipboard } from "@/utils/clipboard";
-import { getObjectModelDocumentation } from "@/utils/objectModelDoc";
+import { getObjectModelDocumentation, toDocumentationHtml } from "@/utils/objectModelDoc";
 
 interface ModelTreeItem {
 	id: string;
