@@ -990,6 +990,8 @@
 				"toBottom": "Immer ganz nach unten scrollen",
 				"viewerPages": "Nur auf Ansichtsseiten"
 			},
+			"scrollPanelIntoView": "Panels in den Sichtbereich scrollen",
+			"scrollPanelIntoViewHint": "Beim Scrollen über einem bildschirmfüllenden Panel zuerst die Seite nach unten scrollen, sodass das gesamte Panel sichtbar ist, bevor sein Inhalt gescrollt wird",
 			"numericInputs": "Zahleneingaben",
 			"numericInputsHint": "In den Lüfter-, Geschwindigkeitsfaktor- und Extrusionsfaktor-Panels Zahlenfelder statt der Schieberegler anzeigen",
 			"lockableSliders": "Sperrbare Schieberegler",

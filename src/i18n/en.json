@@ -992,6 +992,8 @@
 				"toBottom": "Always scroll to bottom",
 				"viewerPages": "Only on viewer pages"
 			},
+			"scrollPanelIntoView": "Scroll panels into view",
+			"scrollPanelIntoViewHint": "When you start scrolling on a panel that fills the screen, scroll the page down first so the whole panel is visible before its content scrolls",
 			"numericInputs": "Numeric inputs",
 			"numericInputsHint": "Show numeric entry fields instead of the sliders in the fan, speed factor and extrusion factor panels",
 			"lockableSliders": "Lockable sliders",

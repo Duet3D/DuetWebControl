@@ -130,6 +130,10 @@
 												  :label="$t('settings.behaviour.autoScrollMode')"
 												  v-hint="$t('settings.behaviour.autoScrollModeHint')"
 												  variant="outlined" density="comfortable" hide-details class="mt-4" />
+										<v-switch v-model="settingsStore.behaviour.scrollPanelIntoView" color="primary"
+												  :label="$t('settings.behaviour.scrollPanelIntoView')"
+												  v-hint="$t('settings.behaviour.scrollPanelIntoViewHint')"
+												  density="comfortable" hide-details class="mt-4" />
 									</v-card-text>
 								</v-card>
 							</v-col>

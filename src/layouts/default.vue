@@ -3,7 +3,7 @@
 </template>
 
 <script setup lang="ts">
-import { computed, onMounted, watch } from "vue";
+import { computed, onBeforeUnmount, onMounted, watch } from "vue";
 import { useRoute, useRouter } from "vue-router";
 
 import BuiltInShell from "@/layouts/builtin.vue";
@@ -27,7 +27,46 @@ watch(activeShell, () => {
 	router.replace(route.fullPath);
 });
 
+// Firefox reports wheel deltas in lines and pages rather than pixels
+function pixelDelta(e: WheelEvent): number {
+	switch (e.deltaMode) {
+		case WheelEvent.DOM_DELTA_LINE:
+			return e.deltaY * 16;
+		case WheelEvent.DOM_DELTA_PAGE:
+			return e.deltaY * window.innerHeight;
+		default:
+			return e.deltaY;
+	}
+}
+
+// A viewport-filling panel starts below the status row, so its bottom edge hangs below the fold
+// until the page is scrolled down by the height of that row. Scrolling on such a panel would
+// otherwise scroll its content while part of it stays out of sight, hence scroll input is routed
+// to the page until the panel is flush and to the panel afterwards - the inverse of the browser's
+// own scroll chaining. Only as much of each delta as the panel still hangs below the fold is
+// taken, so a touchpad fling spends a few pixels on getting there and keeps the rest of its
+// momentum for the content. Listening in the bubble phase leaves panels that consume the wheel
+// themselves (the G-code viewer zoom) alone
+function onWheel(e: WheelEvent) {
+	if (!settingsStore.behaviour.scrollPanelIntoView || e.defaultPrevented || e.deltaY <= 0 || e.ctrlKey) {
+		return;
+	}
+
+	const panel = (e.target instanceof Element) ? e.target.closest(".dwc-page-fill") : null;
+	if (panel === null) {
+		return;
+	}
+
+	const overflow = panel.getBoundingClientRect().bottom - window.innerHeight;
+	if (overflow > 1) {
+		e.preventDefault();
+		window.scrollBy(0, Math.min(pixelDelta(e), overflow));
+	}
+}
+
 onMounted(() => {
+	window.addEventListener("wheel", onWheel, { passive: false });
+
 	Events.on("dwcPluginsLoaded", () => {
 		if (settingsStore.useCustomLayout && !uiStore.activeLayout) {
 			// System-initiated recovery: the user opted into a custom layout but no matching plugin
@@ -40,5 +79,9 @@ onMounted(() => {
 			uiStore.log(LogLevel.warning, i18n.global.t("layout.customLayoutMissing"));
 		}
 	});
+});
+
+onBeforeUnmount(() => {
+	window.removeEventListener("wheel", onWheel);
 });
 </script>

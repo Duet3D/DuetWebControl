@@ -294,6 +294,13 @@ export const useSettingsStore = defineStore("settings", {
 			 *   kicks in when the page being left was itself scrolled to its bottom edge
 			 */
 			autoScrollMode: AutoScrollMode.viewerPages as AutoScrollMode,
+
+			/**
+			 * Scroll a viewport-filling panel fully into view when the user starts scrolling on it,
+			 * instead of scrolling its content while its bottom edge still sits below the fold.
+			 * Only takes effect where autoScrollMode did not already scroll the page flush
+			 */
+			scrollPanelIntoView: true,
 		},
 
 		/**
