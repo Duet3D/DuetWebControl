@@ -560,6 +560,16 @@ export const useMachineStore = defineStore("machine", {
 		},
 
 		/**
+		 * Wait for the next full object model update to be processed
+		 */
+		waitForModelUpdate(): Promise<void> {
+			if (this.connector === null) {
+				throw new OperationFailedError("waitForModelUpdate is not available in default machine module");
+			}
+			return this.connector.waitForModelUpdate();
+		},
+
+		/**
 		 * Send a code and log the result (if applicable).
 		 * Plugins may rewrite or answer the code before it goes out, see registerCodeInterceptor
 		 * @param code Code to send

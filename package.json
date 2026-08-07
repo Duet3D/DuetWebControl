@@ -19,7 +19,7 @@
     "@babylonjs/core": "^9.17.0",
     "@babylonjs/gui": "^9.17.0",
     "@babylonjs/materials": "^9.17.0",
-    "@duet3d/connectors": "~3.7.0-beta.1",
+    "@duet3d/connectors": "~3.7.0-beta.2",
     "@duet3d/gcodeviewer": "~3.7.0-beta.1",
     "@duet3d/monacotokens": "~3.7.0-beta.2",
     "@duet3d/motionanalysis": "~3.7.0-beta.1",

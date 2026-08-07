@@ -29,7 +29,7 @@
 
 <script setup lang="ts">
 import { DisconnectedError } from "@duet3d/connectors";
-import type { Tool } from "@duet3d/objectmodel";
+import { CodeChannel, InputChannelState, type Tool } from "@duet3d/objectmodel";
 
 import i18n from "@/i18n";
 import { useMachineStore } from "@/stores/machine";
@@ -92,6 +92,32 @@ async function loadFilaments() {
 	loading.value = false;
 }
 
+// RRF throws away codes that arrive on an input channel while that channel is waiting for a message
+// box to be acknowledged, so a batch like M702 + M291 + M701 loses everything after the M291 - be it
+// the one below or one from a user's own unload.g. Replies cannot be matched to the codes that caused
+// them either, hence the individual steps are sequenced by watching the HTTP channel go idle again.
+// DSF keeps codes of the same channel in order and resolves them only when they are really done, so
+// this is only needed in standalone mode. See RepRapFirmware#1224 and RepRapFirmware#925
+async function waitForHttpChannel() {
+	if (machineStore.model.sbc !== null) {
+		return;
+	}
+
+	// The first update is awaited unconditionally because the channel may not have picked up the
+	// codes that were just sent, which would make it look idle although it is about to become busy
+	do {
+		await machineStore.waitForModelUpdate();
+	} while (isHttpChannelBusy());
+}
+
+// inMacro is checked as well because a channel that is between two codes of a running macro reports
+// itself as idle. stackDepth would cover that too but it stays up after a plain M120, so waiting for
+// it to drop to zero could never finish
+function isHttpChannelBusy(): boolean {
+	const httpInput = machineStore.model.inputs[CodeChannel.http];
+	return (httpInput !== null && (httpInput.state !== InputChannelState.idle || httpInput.inMacro || machineStore.model.state.messageBox !== null));
+}
+
 async function filamentClick(filament: string) {
 	hide();
 
@@ -99,27 +125,33 @@ async function filamentClick(filament: string) {
 		return;
 	}
 
-	const currentTool = machineStore.currentTool;
-	let code = "";
-	if (currentTool !== props.tool) {
-		code = `T${props.tool.number}\n`;
-	}
-
-	const currentFilament = getCurrentFilament();
-	if (currentFilament) {
-		code += props.runMacros ? "M702\n" : "M702 P0\n";
-
-		// Prompt the user between unload and load so they have a chance to swap the spool before
-		// the new filament is fed. Gated on the panel setting so an experienced user can opt out
-		// of the extra confirmation
-		if (props.runMacros && props.promptDuringChange) {
-			code += `M400 M291 P"${i18n.global.t("dialog.filament.changePrompt.message")}" R"${i18n.global.t("dialog.filament.changePrompt.title")}" S2\n`;
-		}
-	}
-
-	code += props.runMacros ? `M701 S"${filament}"\nM703` : `M701 P0 S"${filament}"\nM703`;
 	try {
-		await machineStore.sendCode(code);
+		if (machineStore.currentTool !== props.tool) {
+			await machineStore.sendCode(`T${props.tool.number}`);
+			await waitForHttpChannel();
+		}
+
+		if (!props.runMacros) {
+			await machineStore.sendCode(getCurrentFilament() ? `M702 P0\nM701 P0 S"${filament}"\nM703` : `M701 P0 S"${filament}"\nM703`);
+			return;
+		}
+
+		if (getCurrentFilament()) {
+			await machineStore.sendCode("M702");
+			await waitForHttpChannel();
+
+			// Prompt the user between unload and load so they have a chance to swap the spool before
+			// the new filament is fed. Gated on the panel setting so an experienced user can opt out
+			// of the extra confirmation
+			if (props.promptDuringChange) {
+				await machineStore.sendCode(`M400\nM291 P"${i18n.global.t("dialog.filament.changePrompt.message")}" R"${i18n.global.t("dialog.filament.changePrompt.title")}" S2`);
+				await waitForHttpChannel();
+			}
+		}
+
+		await machineStore.sendCode(`M701 S"${filament}"`);
+		await waitForHttpChannel();
+		await machineStore.sendCode("M703");
 	} catch {
 		// handled before we get here
 	}
