@@ -678,12 +678,15 @@ function probeHeight(probe: Probe): number | null {
 }
 
 function probeDisplay(probe: Probe): string | number {
+	if (probe.force !== null) {
+		return display(probe.force, 1, "g");
+	}
 	const height = probeHeight(probe);
 	return (height !== null) ? displayZ(height) : formatProbeValues(probe.value);
 }
 
 function probeTooltip(probe: Probe): string | undefined {
-	if (probeHeight(probe) !== null) {
+	if (probe.force !== null || probeHeight(probe) !== null) {
 		return `${formatProbeValues(probe.value)}`;
 	}
 	return (probe.measuredHeight !== null) ? displayZ(probe.measuredHeight) : undefined;
