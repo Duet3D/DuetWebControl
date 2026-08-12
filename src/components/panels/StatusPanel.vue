@@ -677,9 +677,21 @@ function probeComparisonValue(probe: Probe): number | null {
 	return (probe.value.length > 0) ? probe.value[0] : null;
 }
 
+// A negative threshold means the probe triggers when the value falls to it, so all comparisons follow the threshold sign
+function isProbeTriggered(probe: Probe): boolean {
+	const value = probeComparisonValue(probe);
+	if (value === null) {
+		return false;
+	}
+	return (probe.threshold >= 0) ? value >= probe.threshold : value <= probe.threshold;
+}
+
 function isProbeNearTrigger(probe: Probe): boolean {
 	const value = probeComparisonValue(probe);
-	return value !== null && value > probe.threshold * 0.9 && value < probe.threshold;
+	if (value === null) {
+		return false;
+	}
+	return (probe.threshold >= 0) ? value > probe.threshold * 0.9 && value < probe.threshold : value < probe.threshold * 0.9 && value > probe.threshold;
 }
 
 function probeHeight(probe: Probe): number | null {
@@ -706,9 +718,8 @@ function probeSpanClasses(probe: Probe, isFirstItem: boolean): Array<string> {
 	if (!isFirstItem) {
 		result.push("ml-2");
 	}
-	const value = probeComparisonValue(probe);
-	if (!isPrinting(machineStore.model.state.status) && value !== null) {
-		if (value >= probe.threshold) {
+	if (!isPrinting(machineStore.model.state.status)) {
+		if (isProbeTriggered(probe)) {
 			result.push(settingsStore.darkTheme ? "bg-red-darken-3" : "bg-red-lighten-4");
 		} else if (isProbeNearTrigger(probe)) {
 			result.push(settingsStore.darkTheme ? "bg-orange-darken-2" : "bg-orange-lighten-4");
