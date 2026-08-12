@@ -669,8 +669,17 @@ function formatProbeValues(values: Array<number>): string | number {
 	return `${values[0]} (${values.slice(1).join(", ")})`;
 }
 
+// Load cell probes report force and threshold in grams while value[0] stays raw counts, so compare whichever pair shares the unit
+function probeComparisonValue(probe: Probe): number | null {
+	if (probe.force !== null) {
+		return probe.force;
+	}
+	return (probe.value.length > 0) ? probe.value[0] : null;
+}
+
 function isProbeNearTrigger(probe: Probe): boolean {
-	return probe.value.length > 0 && probe.value[0] > probe.threshold * 0.9 && probe.value[0] < probe.threshold;
+	const value = probeComparisonValue(probe);
+	return value !== null && value > probe.threshold * 0.9 && value < probe.threshold;
 }
 
 function probeHeight(probe: Probe): number | null {
@@ -697,8 +706,9 @@ function probeSpanClasses(probe: Probe, isFirstItem: boolean): Array<string> {
 	if (!isFirstItem) {
 		result.push("ml-2");
 	}
-	if (!isPrinting(machineStore.model.state.status) && probe.value.length > 0) {
-		if (probe.value[0] >= probe.threshold) {
+	const value = probeComparisonValue(probe);
+	if (!isPrinting(machineStore.model.state.status) && value !== null) {
+		if (value >= probe.threshold) {
 			result.push(settingsStore.darkTheme ? "bg-red-darken-3" : "bg-red-lighten-4");
 		} else if (isProbeNearTrigger(probe)) {
 			result.push(settingsStore.darkTheme ? "bg-orange-darken-2" : "bg-orange-lighten-4");
