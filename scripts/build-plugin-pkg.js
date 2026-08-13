@@ -28,7 +28,7 @@
  *   <plugin-dir>/<id>-<ver>-srcmap.zip - sourcemaps of a stable build, held back from the archive
  */
 
-import { existsSync, mkdirSync, writeFileSync, cpSync, readdirSync, lstatSync } from "fs";
+import { existsSync, mkdirSync, writeFileSync, cpSync, readdirSync, lstatSync, rmSync } from "fs";
 import { resolve, join } from "path";
 import {
 	parsePluginDir,
@@ -92,7 +92,9 @@ if (!typeCheckPassed) {
 
 const { outDir, jsFile, cssFile, hiddenSourcemaps } = buildOutput;
 
+// Wipe the assemble dir first, else content-hashed chunks of earlier builds linger and end up in the ZIP
 const assembleDir = resolve(resolvedPluginDir, "pkg");
+rmSync(assembleDir, { recursive: true, force: true });
 mkdirSync(join(assembleDir, "dwc", "js"), { recursive: true });
 mkdirSync(join(assembleDir, "dwc", "css"), { recursive: true });
 

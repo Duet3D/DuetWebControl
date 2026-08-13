@@ -299,6 +299,7 @@ export async function buildPlugin(pluginDir, manifest, entryFile) {
 				entry: entryFile,
 				name: manifest.id,
 				formats: ["iife"],
+				cssFileName: manifest.id,
 			},
 			rollupOptions: {
 				// The `@/composables*`, `@/i18n`, `@/plugins`, `@/stores*` paths flatten to one
@@ -564,7 +565,10 @@ if (import.meta.url === pathToFileURL(process.argv[1]).href) {
 	// Build a simple ZIP containing compiled chunks + optional extra
 	// directories + plugin.json. File lists are NOT populated - use
 	// build-plugin-pkg.js for that
+
+	// Wipe the assemble dir first, else content-hashed chunks of earlier builds linger and end up in the ZIP
 	const assembleDir = resolve(resolvedPluginDir, "pkg");
+	rmSync(assembleDir, { recursive: true, force: true });
 	mkdirSync(join(assembleDir, "dwc", "js"), { recursive: true });
 	mkdirSync(join(assembleDir, "dwc", "css"), { recursive: true });
 
