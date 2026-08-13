@@ -669,10 +669,10 @@ function formatProbeValues(values: Array<number>): string | number {
 	return `${values[0]} (${values.slice(1).join(", ")})`;
 }
 
-// Load cell probes report force and threshold in grams while value[0] stays raw counts, so compare whichever pair shares the unit
+// Load cell probes report force and threshold in grams while value[0] stays counts, so compare whichever pair shares the unit
 function probeComparisonValue(probe: Probe): number | null {
-	if (probe.force !== null) {
-		return probe.force;
+	if (probe.loadCell !== null) {
+		return probe.loadCell.force;
 	}
 	return (probe.value.length > 0) ? probe.value[0] : null;
 }
@@ -699,15 +699,15 @@ function probeHeight(probe: Probe): number | null {
 }
 
 function probeDisplay(probe: Probe): string | number {
-	if (probe.force !== null) {
-		return display(probe.force, 1, "g");
+	if (probe.loadCell !== null) {
+		return display(probe.loadCell.force, 1, "g");
 	}
 	const height = probeHeight(probe);
 	return (height !== null) ? displayZ(height) : formatProbeValues(probe.value);
 }
 
 function probeTooltip(probe: Probe): string | undefined {
-	if (probe.force !== null || probeHeight(probe) !== null) {
+	if (probe.loadCell !== null || probeHeight(probe) !== null) {
 		return `${formatProbeValues(probe.value)}`;
 	}
 	return (probe.measuredHeight !== null) ? displayZ(probe.measuredHeight) : undefined;
