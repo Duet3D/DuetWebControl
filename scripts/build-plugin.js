@@ -60,6 +60,7 @@ const DWC_ROOT = resolve(import.meta.dirname, "..");
 const PLUGIN_GLOBALS = {
 	"DuetWebControl": "DWC",
 	"DuetWebControl/components": "DWC.Components",
+	"vuetify": "DWC.Vuetify",
 	"vuetify/components": "DWC.VuetifyComponents",
 	"vue": "DWC.Vue",
 	"vue-router": "DWC.VueRouter",

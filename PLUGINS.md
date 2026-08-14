@@ -229,6 +229,7 @@ What's available:
 | `vue` (and `ref`, `computed`, `watch`, `defineComponent`, etc.) | `DWC.Vue` |
 | `vue-router`, `pinia`, `vue-i18n` | `DWC.VueRouter`, `DWC.Pinia`, `DWC.VueI18n` |
 | `@duet3d/objectmodel`, `@duet3d/connectors` | `DWC.ObjectModel`, `DWC.Connectors` |
+| `vuetify` (composables: `useDisplay`, `useTheme`, `useLocale`, ...) | `DWC.Vuetify` |
 | `vuetify/components` (every Vuetify component) | `DWC.VuetifyComponents` |
 | `DuetWebControl/components` (DWC's public component palette) | `DWC.Components` |
 

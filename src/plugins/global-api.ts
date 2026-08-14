@@ -18,6 +18,7 @@ import * as Pinia from "pinia";
 import * as Vue from "vue";
 import * as VueI18n from "vue-i18n";
 import * as VueRouter from "vue-router";
+import * as Vuetify from "vuetify";
 
 import i18n from "@/i18n";
 import beep from "@/utils/beep";
@@ -47,6 +48,7 @@ type DwcGlobal = Record<string, unknown> & {
 	VueRouter: typeof VueRouter;
 	Pinia: typeof Pinia;
 	VueI18n: typeof VueI18n;
+	Vuetify: typeof Vuetify;
 	ObjectModel: typeof ObjectModel;
 	Connectors: typeof Connectors;
 	i18n: typeof i18n;
@@ -84,7 +86,7 @@ export function exposeGlobalAPI() {
 		buildPluginApiSurface(),
 		{
 			version: packageInfo.version,
-			Vue, VueRouter, Pinia, VueI18n, ObjectModel, Connectors,
+			Vue, VueRouter, Pinia, VueI18n, Vuetify, ObjectModel, Connectors,
 			i18n,
 			Beep: beep, Colors, Csv: CSV, Display, Download, Enums, Errors, Events,
 			Expression, Gcode, Numbers, Path, Time, Version,
