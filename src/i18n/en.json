@@ -616,7 +616,9 @@
 		"explorer": {
 			"newTab": "Open new tab",
 			"closeTab": "Close tab",
-			"volume": "Volume"
+			"volume": "Volume",
+			"splitRight": "Split right",
+			"closeSplit": "Close split"
 		}
 	},
 	"jobProgress": {
