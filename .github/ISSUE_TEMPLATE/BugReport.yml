@@ -35,6 +35,16 @@ body:
       ### Please complete the following form to the best of your ability. Provide as much detail as possible. 
       
       ## Thank you for taking the time to file a bug report.
+- type: checkboxes
+  id: Verification
+  attributes:
+    label: Verification
+    description: Please confirm the following before submitting. Reports that fail these checks will be closed.
+    options:
+      - label: I have reproduced this problem on the latest stable or beta release, and checked the release notes and the existing issues
+        required: true
+      - label: Every statement in this report is one I verified myself. If I used an AI assistant to draft it, I checked each of its claims against the current code and documentation of this project
+        required: true
 - type: input
   id: ForumLink
   attributes:

@@ -14,6 +14,18 @@ body:
       https://forum.duet3d.com/category/11/duet-web-control-wishlist
      
       ## Thank you for taking the time to submit a feature request.
+- type: checkboxes
+  id: Verification
+  attributes:
+    label: Verification
+    description: Please confirm the following before submitting. Requests that fail these checks will be closed.
+    options:
+      - label: I have checked that this is not already implemented in the latest beta release or on the current development branch
+        required: true
+      - label: I have searched the existing issues and pull requests for a duplicate
+        required: true
+      - label: Every statement in this request is one I verified myself. If I used an AI assistant to draft it, I checked each of its claims against the current code and documentation of this project
+        required: true
 - type: textarea
   id: ProblemDescription
   attributes:
