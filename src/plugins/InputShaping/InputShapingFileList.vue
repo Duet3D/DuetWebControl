@@ -107,11 +107,10 @@
 </template>
 
 <script setup lang="ts">
-import { analyzeAccelerometerData } from "@duet3d/motionanalysis";
+import { AccelerometerDataset, analyzeAccelerometerDatasets, parseAccelerometerCsv } from "@duet3d/motionanalysis";
 
 import { useMachineStore } from "@/stores/machine";
 import { useUiStore } from "@/stores/ui";
-import CSV from "@/utils/csv";
 import Path from "@/utils/path";
 
 interface ProfileFile {
@@ -129,11 +128,6 @@ interface Profile {
 	secondSubtitle: string | null;
 	files: Array<ProfileFile>;
 	lastModified: string;
-}
-
-interface SampleData {
-	samplingRate: number;
-	samples: number[][];
 }
 
 const props = defineProps<{
@@ -311,77 +305,20 @@ async function deleteFile(filename: string) {
 	emit("refresh");
 }
 
-async function getSamples(filename: string): Promise<SampleData> {
+async function getSamples(filename: string): Promise<AccelerometerDataset> {
 	const csvFile = await machineStore.download({
 		filename: Path.combine(Path.accelerometer, filename),
 		type: "text",
 	}, false, false, false);
-	const csv = new CSV(csvFile as string);
-	if (csv.headers.length < 4 || csv.headers[0] !== "Sample" || csv.content.length < 4) {
-		throw new Error("Invalid accelerometer CSV");
-	}
-
-	// Sampling rate + overflow flag live in the final line (RRF appends them after the samples)
-	const details = /Rate (\d+) overflows (\d)/.exec(csv.content[csv.content.length - 1].reduce((a, b) => a + b));
-	if (!details) {
-		throw new Error("Failed to read rate and overflows");
-	}
-	const samplingRate = parseFloat(details[1]);
-	const overflows = parseFloat(details[2]);
-	if (overflows > 0) {
+	const dataset = parseAccelerometerCsv(csvFile as string);
+	if (dataset.overflows > 0) {
 		hadOverflowModel.value = true;
 	}
-
-	const result: SampleData = {
-		samplingRate,
-		samples: Array.from({ length: csv.content[0].length - 1 }, () => [] as number[]),
-	};
-	for (let sample = 0; sample < csv.content.length - 1; sample++) {
-		const sampleValues = csv.content[sample];
-		for (let axis = 1; axis < sampleValues.length; axis++) {
-			result.samples[axis - 1].push(parseFloat(sampleValues[axis]));
-		}
-	}
-	return result;
+	return dataset;
 }
 
-function getFrequencyResponse(datasets: Array<SampleData>) {
-	if (!datasets || datasets.length === 0) {
-		return {} as { frequencies?: number[]; amplitudes?: number[][] };
-	}
-
-	// RRF can vary the sampling rate per file - average them so multi-file FFT lines up
-	const samplingRate = datasets.length > 1
-		? datasets.map((d) => d.samplingRate).reduce((a, b) => a + b) / datasets.length
-		: datasets[0].samplingRate;
-
-	const numAxes = datasets[0].samples.length;
-	const numSamples = datasets[0].samples[0].length;
-	for (let i = 1; i < datasets.length; i++) {
-		if (datasets[i].samples.length !== numAxes) {
-			throw new Error("Datasets must have the same number of axes");
-		}
-		if (datasets[i].samples[0].length !== numSamples) {
-			throw new Error("Datasets must have the same number of samples");
-		}
-	}
-
-	const first = analyzeAccelerometerData(datasets[0].samples, samplingRate, wideBandModel.value);
-	const frequencies = first.frequencies;
-	const amplitudes = first.amplitudes;
-	for (let i = 1; i < datasets.length; i++) {
-		const result = analyzeAccelerometerData(datasets[i].samples, samplingRate, wideBandModel.value);
-		for (let axis = 0; axis < result.amplitudes.length; axis++) {
-			for (let k = 0; k < result.amplitudes[axis].length; k++) {
-				amplitudes[axis][k] += result.amplitudes[axis][k];
-			}
-		}
-	}
-
-	return {
-		frequencies,
-		amplitudes: amplitudes.map((axisValues) => axisValues.map((amplitude) => amplitude / datasets.length)),
-	};
+function toAxisValues(axes: string[], values: number[][]): Record<string, number[]> {
+	return Object.fromEntries(axes.map((axis, index) => [axis, values[index]]));
 }
 
 async function update() {
@@ -407,11 +344,7 @@ async function update() {
 				selectedFiles.value = [...selection.value];
 			}
 			frequenciesModel.value = null;
-			valueModel.value = {
-				X: result.samples[0],
-				Y: result.samples[1],
-				Z: result.samples[2],
-			};
+			valueModel.value = toAxisValues(result.axes, result.samples);
 		} finally {
 			progress.value = 1;
 		}
@@ -420,7 +353,7 @@ async function update() {
 
 	progressMax.value = selection.value.length + 1;
 	try {
-		const datasets: Array<SampleData> = [];
+		const datasets: Array<AccelerometerDataset> = [];
 		for (const filename of selection.value) {
 			datasets.push(await getSamples(filename));
 			progress.value++;
@@ -434,16 +367,10 @@ async function update() {
 			}
 		}
 
-		const response = getFrequencyResponse(datasets);
+		const response = analyzeAccelerometerDatasets(datasets, wideBandModel.value);
 		selectedFiles.value = [...selection.value];
-		frequenciesModel.value = response.frequencies ?? null;
-		if (response.amplitudes) {
-			valueModel.value = {
-				X: response.amplitudes[0],
-				Y: response.amplitudes[1],
-				Z: response.amplitudes[2],
-			};
-		}
+		frequenciesModel.value = response.frequencies;
+		valueModel.value = toAxisValues(datasets[0].axes, response.amplitudes);
 	} finally {
 		progress.value = progressMax.value;
 	}
