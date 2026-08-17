@@ -88,7 +88,7 @@
 			<div ref="splitContainer" class="explorer-panes">
 				<template v-for="(group, gi) in groups" :key="group.id">
 					<div class="explorer-pane"
-						 :class="{ 'explorer-pane--hidden': groups.length > 1 && !mdAndUp && group.id !== focusedGroupId }"
+						 :class="{ 'explorer-pane--hidden': groups.length > 1 && !lgAndUp && group.id !== focusedGroupId }"
 						 :style="(groups.length > 1 && gi === 0) ? { flex: `0 0 ${splitRatio * 100}%` } : undefined">
 						<v-toolbar v-if="tabsInGroup(group.id).length > 1 || groups.length > 1"
 								   density="compact" color="surface" class="flex-shrink-0">
@@ -120,7 +120,7 @@
 								   @click="addTab(defaultVolume, group.id)">
 								<v-icon>mdi-plus</v-icon>
 							</v-btn>
-							<v-btn v-if="groups.length === 1 && mdAndUp" variant="text" icon :disabled="!canSplit"
+							<v-btn v-if="groups.length === 1 && lgAndUp" variant="text" icon :disabled="!canSplit"
 								   :title="$t('list.explorer.splitRight')" @click="splitRight">
 								<v-icon>mdi-dock-right</v-icon>
 							</v-btn>
@@ -436,7 +436,7 @@ const settingsStore = useSettingsStore();
 const uiStore = useUiStore();
 const cacheStore = useCacheStore();
 const { controlDensity } = useLargeButtons();
-const { mdAndUp } = useDisplay();
+const { lgAndUp } = useDisplay();
 const route = useRoute("/Explorer/[[tab]]/[[volume]]/[[...path]]");
 const router = useRouter();
 
