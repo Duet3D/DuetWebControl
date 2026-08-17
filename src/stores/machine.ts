@@ -162,7 +162,13 @@ export const useMachineStore = defineStore("machine", {
 		 * (toolchanger/IDEX) expose `move.motionSystems[]`; this picks which one is the "current" one
 		 * for status displays. Defaults to 0; the settings page exposes the chooser
 		 */
-		selectedMotionSystem: 0
+		selectedMotionSystem: 0,
+
+		/**
+		 * File position of the job move being executed, held over the gaps in which the firmware
+		 * reports none. Maintained by updateModel and cleared whenever no job is running
+		 */
+		lastMoveFilePosition: null as number | null
 	}),
 	getters: {
 		/**
@@ -215,13 +221,13 @@ export const useMachineStore = defineStore("machine", {
 		},
 
 		/**
-		 * File position being printed. `move.currentMove.filePosition` is the code being executed and
-		 * is null while that code is not a move; `job.filePosition` is the position everything has
-		 * been read up to, which runs ahead of execution
+		 * File position being printed, i.e. the last one reported for the move being executed.
+		 * `job.filePosition` is only a fallback for firmware that does not report the executing move:
+		 * it is the position everything has been read up to, which runs ahead of execution
 		 * @param state Store state
 		 * @returns File position being printed or null if unknown
 		 */
-		printingFilePosition: state => state.model.move.currentMove.filePosition ?? state.model.job.filePosition,
+		printingFilePosition: state => state.lastMoveFilePosition ?? state.model.job.filePosition,
 
 		/**
 		 * Fraction printed in per cent (0..1)
@@ -443,6 +449,7 @@ export const useMachineStore = defineStore("machine", {
 			this.updateInProgress = false;
 			this.reconnectingAfterUpdate = false;
 			this.model = initObject(ObjectModel, DefaultObjectModel);
+			this.lastMoveFilePosition = null;
 			this.model.network.hostname = hostname;
 			this.model.network.name = `(${hostname})`;
 
@@ -1220,6 +1227,17 @@ export const useMachineStore = defineStore("machine", {
 
 			// Update typed state
 			this.model.update(payload, authoritative);
+
+			// The firmware reports move.currentMove.filePosition only while a move read from the job
+			// file is being executed, so it is null between short segments, during retractions and
+			// throughout macros. Following job.filePosition over those gaps would jump ahead by the
+			// whole read-ahead and back again, so keep the last position that was actually reported
+			if (!isPrinting(this.model.state.status)) {
+				this.lastMoveFilePosition = null;
+			} else if (this.model.move.currentMove.filePosition !== null) {
+				this.lastMoveFilePosition = Number(this.model.move.currentMove.filePosition);
+			}
+
 			Events.emit("modelUpdated", this.model);
 
 			// Follow the HTTP input channel's motion system, but only when it actually changes -
