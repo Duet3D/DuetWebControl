@@ -29,12 +29,14 @@
 								{{ $t("plugins.accelerometer.help") }}
 							</a>
 						</v-alert>
-						<v-alert v-if="!allAxesHomed" type="warning" variant="tonal" class="my-3 d-flex align-center"
-								 density="compact">
-							{{ $t("plugins.accelerometer.notHomed") }}
-							<v-btn class="float-right" size="small" color="warning" @click="sendHomeAll">
-								{{ $t("plugins.accelerometer.homeAll") }}
-							</v-btn>
+						<v-alert v-if="!allAxesHomed" type="warning" variant="tonal" class="my-3" density="compact">
+							<div class="d-flex align-center">
+								{{ $t("plugins.accelerometer.notHomed") }}
+								<v-spacer />
+								<CodeButton code="G28" size="small" color="warning" variant="flat" class="ml-3">
+									{{ $t("plugins.accelerometer.homeAll") }}
+								</CodeButton>
+							</div>
 						</v-alert>
 						<v-alert v-if="accelerometers.length > 0 && allAxesHomed" type="success" variant="tonal"
 								 density="compact" class="my-3">
@@ -197,9 +199,11 @@
 
 <script setup lang="ts">
 import { OperationCancelledError } from "@duet3d/connectors";
-import { Axis, type Board, KinematicsName, MachineStatus, type Tool } from "@duet3d/objectmodel";
+import { Axis, KinematicsName, MachineStatus, type Tool } from "@duet3d/objectmodel";
 
 import { useMachineStore } from "@/stores/machine";
+
+import { useAccelerometer } from "./useAccelerometer";
 
 const MoveState = {
 	idle: "idle",
@@ -230,9 +234,9 @@ const emit = defineEmits<{
 }>();
 
 const machineStore = useMachineStore();
+const { accelerometers, hasExternalAccelerometers, doCode, waitForAccelerometerRun } = useAccelerometer();
 
 // #region OM-derived computeds
-const boards = computed<Array<Board>>(() => machineStore.model.boards.filter((b): b is Board => b !== null));
 const move = computed(() => machineStore.model.move);
 const tools = computed(() => machineStore.model.tools);
 const machineState = computed(() => machineStore.model.state);
@@ -275,12 +279,6 @@ const delaysLabel = computed(() => {
 });
 
 const allAxesHomed = computed(() => !move.value.axes.some((axis) => axis.visible && !axis.homed));
-
-const accelerometers = computed<Array<string>>(() => boards.value
-	.filter((b) => b.accelerometer !== null)
-	.map((b) => (b.canAddress ? `${b.canAddress}.0` : "0")));
-
-const hasExternalAccelerometers = computed(() => boards.value.some((b) => b.canAddress !== 0 && !!b.accelerometer));
 
 // VSelect's value-comparator path gets tangled when items reference live OM Tool instances, so
 // expose a numeric index per option instead and round-trip the Tool through toolFromIndex
@@ -490,13 +488,6 @@ function getMax(m: MoveItem, start: boolean): number | null {
 // #endregion
 
 // #region Recording loop
-async function doCode(code: string) {
-	const reply = await machineStore.sendCode(code);
-	if (typeof reply === "string" && reply.indexOf("Error") === 0) {
-		throw new Error(`Code ${code} failed: ${reply}`);
-	}
-}
-
 function getMoveFilename(m: MoveItem): string {
 	let filename = run.value.toString();
 	if (m.tool) {
@@ -508,35 +499,6 @@ function getMoveFilename(m: MoveItem): string {
 	}
 	filename += ".csv";
 	return filename;
-}
-
-// Resolve when the board's accelerometer.runs counter advances - i.e. the firmware finished
-// writing the CSV. Polled rather than watched-on-the-board because the OM proxy doesn't expose
-// a path-based watch for nested fields without reactive scaffolding inside this component
-async function waitForAccelerometerRun(accelerometerId: string) {
-	if (cancelled.value) {
-		throw new OperationCancelledError();
-	}
-	const matches = /(\d+)(\.\d+)?/.exec(accelerometerId);
-	if (!matches) {
-		throw new Error("Failed to get accelerometer board ID");
-	}
-	const boardId = parseInt(matches[1]);
-	const board = boards.value.find((b) => (!b.canAddress && !boardId) || b.canAddress === boardId);
-	if (!board) {
-		throw new Error("Failed to get accelerometer board");
-	}
-
-	return new Promise<void>((resolve, reject) => {
-		const stop = watch(() => board.accelerometer?.runs ?? 0, () => {
-			if (cancelled.value) {
-				reject(new OperationCancelledError());
-			} else {
-				resolve();
-			}
-			stop();
-		});
-	});
 }
 
 async function recordMove(moveIndex: number, hadSelectedTool = false) {
@@ -582,7 +544,7 @@ async function recordMove(moveIndex: number, hadSelectedTool = false) {
 		} else {
 			await doCode(`G1 ${endParams} F${maxSpeed.value} M400 M956 P${m.accelerometer} S1000 A0 F"${getMoveFilename(m)}"`);
 		}
-		await waitForAccelerometerRun(m.accelerometer!);
+		await waitForAccelerometerRun(m.accelerometer!, cancelled);
 
 		m.state = MoveState.finished;
 		if (moveIndex + 1 < moves.value.length) {
@@ -608,14 +570,6 @@ function getMoveIcon(m: MoveItem): string {
 		case MoveState.cancelled: return "mdi-close";
 	}
 	return "mdi-help-circle-outline";
-}
-
-async function sendHomeAll() {
-	try {
-		await machineStore.sendCode("G28");
-	} catch (e) {
-		console.warn(e);
-	}
 }
 
 function cancel() {

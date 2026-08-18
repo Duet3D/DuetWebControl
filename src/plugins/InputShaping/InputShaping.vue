@@ -39,7 +39,12 @@
 }
 
 /* Let the v-window inner element grow into the page-fill card and propagate that to each
-   window-item so charts can size against the actual viewport-relative height */
+   window-item so charts can size against the actual viewport-relative height. The window must
+   also be allowed to shrink below its content (flex items default to min-height: auto), or a
+   long tab pushes the tab bar out of the card instead of scrolling inside */
+.input-shaping-window {
+	min-height: 0;
+}
 .input-shaping-window :deep(.v-window__container),
 .input-shaping-window :deep(.v-window-item) {
 	height: 100%;
@@ -48,7 +53,7 @@
 
 <template>
 	<v-row class="ma-0">
-		<v-col cols="12" md="9" lg="9" xl="10">
+		<v-col cols="12" :md="showShaperList ? 9 : 12" :xl="showShaperList ? 10 : 12">
 			<!-- Page-fill only on md+ - at xs/sm the inner layout stacks (file list above chart)
 				 and forcing viewport height would push the chart off the bottom of the card -->
 			<v-card :class="['d-flex', 'flex-column', { 'dwc-page-fill': mdAndUp }]">
@@ -61,16 +66,20 @@
 						<v-icon class="mr-1">mdi-file</v-icon>
 						{{ $t("plugins.accelerometer.motionAnalysis") }}
 					</v-tab>
+					<v-tab value="motor">
+						<v-icon class="mr-1">mdi-axis-arrow</v-icon>
+						{{ $t("plugins.accelerometer.motorAnalysis") }}
+					</v-tab>
 
 					<v-btn color="success" class="align-self-center ml-auto mr-2 d-none d-md-inline-flex"
-						   :disabled="uiStore.uiFrozen" @click="showDataCollection = true">
+						   :disabled="uiStore.uiFrozen" @click="showRecordDialog">
 						<v-icon class="mr-1">mdi-record</v-icon>
-						{{ $t("plugins.accelerometer.recordButton") }}
+						{{ tab === "motor" ? $t("plugins.accelerometer.recordMotorButton") : $t("plugins.accelerometer.recordButton") }}
 					</v-btn>
 					<v-btn color="success" icon variant="text"
 						   class="align-self-center ml-auto mr-2 d-md-none"
-						   :disabled="uiStore.uiFrozen" :title="$t('plugins.accelerometer.recordButton')"
-						   @click="showDataCollection = true">
+						   :disabled="uiStore.uiFrozen" :title="tab === 'motor' ? $t('plugins.accelerometer.recordMotorButton') : $t('plugins.accelerometer.recordButton')"
+						   @click="showRecordDialog">
 						<v-icon>mdi-record</v-icon>
 					</v-btn>
 				</v-tabs>
@@ -105,7 +114,7 @@
 							<v-alert v-if="filesError" type="error" class="mb-0 flex-grow-0" variant="tonal">
 								{{ filesError }}
 							</v-alert>
-							<div v-else-if="files.length === 0 && !loadingFiles" class="empty-state flex-grow-1">
+							<div v-else-if="motionFiles.length === 0 && !loadingFiles" class="empty-state flex-grow-1">
 								<v-icon size="64" color="info" class="mb-4">mdi-file-search</v-icon>
 								<div class="text-body-1 text-medium-emphasis mb-6">
 									{{ $t("plugins.accelerometer.noMotionProfiles") }}
@@ -119,11 +128,11 @@
 									{{ $t("plugins.accelerometer.recordButton") }}
 								</v-btn>
 							</div>
-							<v-row v-if="files.length > 0" class="content pa-2 ma-0 flex-grow-1">
+							<v-row v-if="motionFiles.length > 0" class="content pa-2 ma-0 flex-grow-1">
 								<v-col cols="12" md="6" lg="5" xl="4" class="d-flex pa-0">
 									<InputShapingFileList class="flex-grow-1" :title="$t('plugins.accelerometer.motionProfiles')"
-														  can-delete :files="files"
-														  :files-last-modified="filesLastModified"
+														  can-delete :files="motionFiles"
+														  :files-last-modified="motionFilesLastModified"
 														  v-model:selectedFiles="filesToAnalyze"
 														  v-model:frequencies="fileFrequenciesToAnalyze"
 														  v-model="fileDataToAnalyze"
@@ -133,17 +142,37 @@
 														  v-model:estimateShaperEffect="estimateShaperEffect"
 														  v-model:showOriginalValues="showOriginalValues"
 														  v-model:wideBand="wideBand"
+														  v-model:individualFiles="individualFiles"
+														  v-model:showSamples="showSamples"
 														  @refresh="refresh" />
 								</v-col>
-								<v-col v-if="filesToAnalyze.length === 0" cols="12" md="6" lg="7" xl="8"
-									   class="d-flex align-center justify-center">
-									{{ $t("plugins.accelerometer.pickProfile") }}
-								</v-col>
-								<v-col v-else cols="12" md="6" lg="7" xl="8" class="d-flex flex-column pa-0 analysis-chart-col">
+								<v-col cols="12" md="6" lg="7" xl="8" class="d-flex flex-column pa-0 analysis-chart-col">
+									<div v-if="filesToAnalyze.length > 0" class="d-flex flex-wrap align-center px-3 pt-2">
+										<template v-if="!individualFiles">
+											<v-checkbox v-model="estimateShaperEffect" :label="$t('plugins.accelerometer.estimateShaperEffect')"
+														hide-details density="compact" color="primary" class="me-4" />
+											<v-checkbox v-if="estimateShaperEffect" v-model="showOriginalValues" :label="$t('plugins.accelerometer.showOriginalValues')"
+														hide-details density="compact" color="primary" class="me-4" />
+										</template>
+										<template v-else>
+											<v-checkbox v-model="showSamples" :label="$t('plugins.accelerometer.showSamples')"
+														hide-details density="compact" color="primary" class="me-4" />
+											<v-btn v-if="showSamples" color="primary" size="small" :disabled="filesToAnalyze.length === 0" class="me-4"
+												   @click="showSamples = false">
+												<v-icon class="mr-1" size="small">mdi-poll</v-icon>
+												{{ $t("plugins.accelerometer.analyze") }}
+											</v-btn>
+										</template>
+										<v-checkbox v-model="wideBand" :label="$t('plugins.accelerometer.wideBand')"
+													hide-details density="compact" color="primary" />
+									</div>
+									<div v-if="filesToAnalyze.length === 0" class="d-flex flex-grow-1 align-center justify-center">
+										{{ $t("plugins.accelerometer.pickProfile") }}
+									</div>
 									<v-alert v-if="hadOverflow" type="warning" variant="tonal" class="mb-0 flex-grow-0">
 										{{ $t("plugins.accelerometer.overflowWarning") }}
 									</v-alert>
-									<div class="d-block fill-height pa-2">
+									<div v-if="filesToAnalyze.length > 0" class="d-block fill-height pa-2">
 										<InputShapingChart can-show-samples
 														   v-model:sampleStartIndex="sampleStartIndex"
 														   v-model:sampleEndIndex="sampleEndIndex"
@@ -161,11 +190,34 @@
 							</v-row>
 						</div>
 					</v-window-item>
+
+					<v-window-item value="motor" class="h-100">
+						<div class="d-flex flex-column h-100">
+							<v-progress-linear :active="loadingFiles" indeterminate />
+							<v-alert v-if="filesError" type="error" class="mb-0 flex-grow-0" variant="tonal">
+								{{ filesError }}
+							</v-alert>
+							<div v-else-if="motorFiles.length === 0 && !loadingFiles" class="empty-state flex-grow-1">
+								<v-icon size="64" color="info" class="mb-4">mdi-axis-arrow</v-icon>
+								<div class="text-body-1 text-medium-emphasis mb-6">
+									{{ $t("plugins.accelerometer.noMotorProfiles") }}
+									<a href="javascript:void(0)" class="text-decoration-underline ml-1" @click="refresh">
+										{{ $t("plugins.accelerometer.refreshLink") }}
+									</a>
+								</div>
+								<v-btn color="success" size="large" :disabled="uiStore.uiFrozen" @click="showMotorDataCollection = true">
+									<v-icon class="mr-1">mdi-record</v-icon>
+									{{ $t("plugins.accelerometer.recordMotorButton") }}
+								</v-btn>
+							</div>
+							<MotorAnalysis v-else :files="motorFiles" :files-last-modified="motorFilesLastModified" @refresh="refresh" />
+						</div>
+					</v-window-item>
 				</v-window>
 			</v-card>
 		</v-col>
 
-		<v-col cols="12" md="3" lg="3" xl="2">
+		<v-col v-if="showShaperList" cols="12" md="3" xl="2">
 			<v-card>
 				<v-card-title class="pb-2">
 					<v-icon class="mr-1">mdi-transition</v-icon>
@@ -274,6 +326,8 @@
 
 		<RecordMotionProfileDialog :last-run="lastRun" v-model:shown="showDataCollection"
 								   @finished="recordingFinished" />
+		<RecordMotorProfileDialog :last-run="lastMotorRun" v-model:shown="showMotorDataCollection"
+								  @finished="motorRecordingFinished" />
 	</v-row>
 </template>
 
@@ -292,7 +346,10 @@ import Path from "@/utils/path";
 import InputShaperCheckbox from "./InputShaperCheckbox.vue";
 import InputShapingChart from "./InputShapingChart.vue";
 import InputShapingFileList from "./InputShapingFileList.vue";
+import MotorAnalysis from "./MotorAnalysis.vue";
+import { parseMotorProfileFilename } from "./motorProfiles";
 import RecordMotionProfileDialog from "./RecordMotionProfileDialog.vue";
+import RecordMotorProfileDialog from "./RecordMotorProfileDialog.vue";
 
 const machineStore = useMachineStore();
 const uiStore = useUiStore();
@@ -304,8 +361,10 @@ const isInputShapingEnabled = computed(() => shaping.value.type !== InputShaping
 // 81 entries cover 10-90Hz at 1Hz resolution - the default sweep for the "Current Settings" tab
 const currentFrequencies = computed(() => Array.from({ length: 81 }, (_, index) => index + 10));
 
-const tab = ref<"current" | "analysis">("current");
+const tab = ref<"current" | "analysis" | "motor">("current");
+const showShaperList = computed(() => tab.value !== "motor");
 const showDataCollection = ref(false);
+const showMotorDataCollection = ref(false);
 
 const inputShapers = ref<Array<string>>([]);
 const customAmplitudes = ref<Array<number>>([]);
@@ -329,20 +388,29 @@ const sampleStartIndex = ref<number | null>(null);
 const sampleEndIndex = ref<number | null>(null);
 const hadOverflow = ref(false);
 const wideBand = ref(false);
+const individualFiles = ref(false);
+const showSamples = ref(false);
 
-const lastRun = computed(() => {
+// Motor profiles live in the same directory but are analyzed separately
+const motorFileIndices = computed(() => files.value.map((filename, index) => parseMotorProfileFilename(filename) ? index : -1).filter((index) => index >= 0));
+const motionFiles = computed(() => files.value.filter((_, index) => !motorFileIndices.value.includes(index)));
+const motionFilesLastModified = computed(() => filesLastModified.value.filter((_, index) => !motorFileIndices.value.includes(index)));
+const motorFiles = computed(() => motorFileIndices.value.map((index) => files.value[index]));
+const motorFilesLastModified = computed(() => motorFileIndices.value.map((index) => filesLastModified.value[index]));
+
+function getLastRun(filenames: Array<string>, pattern: RegExp): number {
 	let last = 0;
-	for (const filename of files.value) {
-		const match = /^(\d+)-/.exec(filename);
+	for (const filename of filenames) {
+		const match = pattern.exec(filename);
 		if (match) {
-			const run = parseInt(match[1]);
-			if (run > last) {
-				last = run;
-			}
+			last = Math.max(last, parseInt(match[1]));
 		}
 	}
 	return last;
-});
+}
+
+const lastRun = computed(() => getLastRun(motionFiles.value, /^(\d+)-/));
+const lastMotorRun = computed(() => getLastRun(motorFiles.value, /^M(\d+)-/));
 
 const numCustomCoefficients = computed<number>({
 	get: () => customAmplitudes.value.length,
@@ -478,8 +546,21 @@ function filesOrDirectoriesChanged(payload: { files?: Array<string> }) {
 	}
 }
 
+function showRecordDialog() {
+	if (tab.value === "motor") {
+		showMotorDataCollection.value = true;
+	} else {
+		showDataCollection.value = true;
+	}
+}
+
 function recordingFinished() {
 	tab.value = "analysis";
+	refresh();
+}
+
+function motorRecordingFinished() {
+	tab.value = "motor";
 	refresh();
 }
 

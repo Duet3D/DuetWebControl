@@ -23,7 +23,7 @@ interface InputShapingDataset extends ChartDataset<"line"> {
 	isCustom?: boolean;
 }
 
-const props = defineProps<{
+const props = withDefaults(defineProps<{
 	frequencies?: Array<number>;
 	ringingFrequency?: number;
 	value?: Record<string, number[]> | null;
@@ -35,7 +35,9 @@ const props = defineProps<{
 	customDelays?: Array<number>;
 	estimateShaperEffect?: boolean;
 	wideBand?: boolean;
-}>();
+}>(), {
+	showValues: true
+});
 
 const sampleStartIndex = defineModel<number | null>("sampleStartIndex", { default: null });
 const sampleEndIndex = defineModel<number | null>("sampleEndIndex", { default: null });

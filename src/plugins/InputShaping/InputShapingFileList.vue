@@ -82,36 +82,19 @@
 
 		<v-spacer />
 
-		<v-checkbox v-if="!individualFiles && estimateEffect" v-model="showOriginalValuesModel"
-					:label="$t('plugins.accelerometer.showOriginalValues')" hide-details
-					density="compact" color="primary" class="ma-3 mb-0" />
-		<v-checkbox v-if="!individualFiles" v-model="estimateEffect"
-					:label="$t('plugins.accelerometer.estimateShaperEffect')" hide-details
-					density="compact" color="primary" class="ma-3 mb-0" />
-
-		<div v-if="individualFiles" class="d-flex justify-space-between ma-3 mb-0">
-			<v-checkbox v-model="showSamples" :label="$t('plugins.accelerometer.showSamples')" hide-details
-						density="compact" color="primary" class="mt-0" />
-			<v-btn v-if="showSamples" color="primary" size="small" :disabled="selection.length === 0"
-				   @click="showSamples = false">
-				<v-icon class="mr-1" size="small">mdi-poll</v-icon>
-				{{ $t("plugins.accelerometer.analyze") }}
-			</v-btn>
-		</div>
-
 		<v-checkbox v-model="individualFiles" :label="$t('plugins.accelerometer.individualFiles')"
-					density="compact" color="primary" hide-details class="mx-3" />
-		<v-checkbox v-model="wideBandModel" :label="$t('plugins.accelerometer.wideBand')"
 					density="compact" color="primary" hide-details class="ma-3" />
 	</v-card>
 </template>
 
 <script setup lang="ts">
-import { AccelerometerDataset, analyzeAccelerometerDatasets, parseAccelerometerCsv } from "@duet3d/motionanalysis";
+import { type AccelerometerDataset, analyzeAccelerometerDatasets } from "@duet3d/motionanalysis";
 
 import { useMachineStore } from "@/stores/machine";
 import { useUiStore } from "@/stores/ui";
 import Path from "@/utils/path";
+
+import { useAccelerometer } from "./useAccelerometer";
 
 interface ProfileFile {
 	title: string;
@@ -147,6 +130,8 @@ const hadOverflowModel = defineModel<boolean>("hadOverflow", { default: false })
 const estimateShaperEffectModel = defineModel<boolean>("estimateShaperEffect", { default: false });
 const showOriginalValuesModel = defineModel<boolean>("showOriginalValues", { default: true });
 const wideBandModel = defineModel<boolean>("wideBand", { default: false });
+const individualFiles = defineModel<boolean>("individualFiles", { default: false });
+const showSamples = defineModel<boolean>("showSamples", { default: false });
 
 const emit = defineEmits<{
 	refresh: [];
@@ -154,13 +139,11 @@ const emit = defineEmits<{
 
 const machineStore = useMachineStore();
 const uiStore = useUiStore();
+const { loadAccelerometerFile } = useAccelerometer();
 
 const selection = ref<Array<string>>([]);
 const progress = ref(0);
 const progressMax = ref(0);
-const estimateEffect = ref(false);
-const individualFiles = ref(false);
-const showSamples = ref(false);
 
 // Parse the filename of each run into a structured profile entry; the leading number groups
 // related files into one profile. Filenames that don't match either regex fall into an
@@ -306,11 +289,7 @@ async function deleteFile(filename: string) {
 }
 
 async function getSamples(filename: string): Promise<AccelerometerDataset> {
-	const csvFile = await machineStore.download({
-		filename: Path.combine(Path.accelerometer, filename),
-		type: "text",
-	}, false, false, false);
-	const dataset = parseAccelerometerCsv(csvFile as string);
+	const dataset = await loadAccelerometerFile(filename);
 	if (dataset.overflows > 0) {
 		hadOverflowModel.value = true;
 	}
@@ -397,9 +376,8 @@ watch(selectedFiles, (to) => {
 	}
 });
 
-watch(estimateEffect, (to) => {
+watch(estimateShaperEffectModel, (to) => {
 	showOriginalValuesModel.value = !to;
-	estimateShaperEffectModel.value = to;
 });
 
 watch(individualFiles, (to) => {

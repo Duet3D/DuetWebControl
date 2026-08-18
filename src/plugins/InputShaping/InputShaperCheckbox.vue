@@ -18,11 +18,13 @@
 import { useMachineStore } from "@/stores/machine";
 import { useUiStore } from "@/stores/ui";
 
-const props = defineProps<{
+const props = withDefaults(defineProps<{
 	value: string;
 	current?: string;
 	canApply?: boolean;
-}>();
+}>(), {
+	canApply: true
+});
 
 const selected = defineModel<Array<string>>({ default: () => [] });
 
@@ -42,27 +44,16 @@ const label = computed(() => {
 	return props.value.toUpperCase();
 });
 
-// "none" is the special "shaping disabled" sentinel; it's checked when the firmware reports
-// type === "none" rather than tracked via the selected-shapers array. Every other row reflects
-// whether its key is in the array. Driving the checkbox via a plain boolean (instead of the
-// dual model-value + value props pair) avoids Vuetify's array-mode toggling silently dropping
+// "none" is not part of the selected-shapers array, it only mirrors the firmware state and is applied via its
+// chip. Every other row reflects whether its key is in the array. Driving the checkbox via a plain boolean
+// (instead of the dual model-value + value props pair) avoids Vuetify's array-mode toggling silently dropping
 // the update event when value mismatches model-value's runtime type
-const isChecked = computed(() => {
-	if (props.value === "none") {
-		return shapingType.value === "none";
-	}
-	return selected.value.includes(props.value);
-});
+const isChecked = computed(() => (props.value === "none") ? (shapingType.value === "none") : selected.value.includes(props.value));
 
-const showApply = computed(() => {
-	const enabled = props.canApply ?? true;
-	return enabled && !uiStore.uiFrozen && shapingType.value !== props.value && shapingFrequency.value > 0;
-});
+const showApply = computed(() => props.canApply && !uiStore.uiFrozen && shapingType.value !== props.value && shapingFrequency.value > 0);
 
 function onChange(next: boolean | null) {
 	if (props.value === "none") {
-		// The "none" row is read-only - clearing all shapers happens via M593 P"none" through the
-		// Apply chip rather than the checkbox itself
 		return;
 	}
 	const checked = next === true;

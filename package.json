@@ -22,7 +22,7 @@
     "@duet3d/connectors": "~3.7.0-beta.7",
     "@duet3d/gcodeviewer": "~3.7.0-beta.1",
     "@duet3d/monacotokens": "~3.7.0-beta.2",
-    "@duet3d/motionanalysis": "~3.7.0-beta.3",
+    "@duet3d/motionanalysis": "~3.7.0-beta.4",
     "@duet3d/objectmodel": "~3.7.0-beta.14",
     "@fontsource/roboto": "^5.2.10",
     "@mdi/font": "7.4.47",
