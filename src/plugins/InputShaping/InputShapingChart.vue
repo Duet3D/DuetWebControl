@@ -46,6 +46,7 @@ const settingsStore = useSettingsStore();
 
 const chartCanvas = ref<HTMLCanvasElement | null>(null);
 let chart: Chart<"line"> | undefined;
+let stickyScaleKey = "", stickyMax = 0;
 let dragStart: number | null = null;
 let isUpdating = false;
 
@@ -274,7 +275,7 @@ function updateDatasets() {
 			}
 
 			const factors = getInputShaperFactors(shaperType as InputShaperType, props.inputShaperFrequency, props.inputShaperDamping ?? 0.1);
-			const damping = getInputShaperDamping(props.frequencies, factors.amplitudes, factors.durations);
+			const damping = getInputShaperDamping(props.frequencies, factors.amplitudes, factors.durations, props.inputShaperDamping ?? 0.1);
 
 			if (props.estimateShaperEffect && props.value) {
 				for (const key of Object.keys(props.value)) {
@@ -311,7 +312,7 @@ function updateDatasets() {
 	if (props.inputShapers?.includes("custom") && props.frequencies && props.frequencies.length > 0
 		&& props.customAmplitudes && props.customDelays
 		&& props.customAmplitudes.length > 0 && props.customDelays.length > 0) {
-		const damping = getInputShaperDamping(props.frequencies, props.customAmplitudes, props.customDelays);
+		const damping = getInputShaperDamping(props.frequencies, props.customAmplitudes, props.customDelays, props.inputShaperDamping ?? 0.1);
 		if (props.estimateShaperEffect && props.value) {
 			for (const key of Object.keys(props.value)) {
 				chart.data.datasets.push({
@@ -388,6 +389,27 @@ function updateDatasets() {
 	scales.y!.display = !!props.value;
 	scales.damping!.display = showReduction.value;
 	scales.damping!.position = props.value ? "right" : "left";
+
+	// In the frequency view keep the largest amplitude seen as the y axis maximum so that profiles stay comparable when switching between them; the sample view autoscales
+	if (props.frequencies && props.frequencies.length > 0) {
+		const scaleKey = `${props.wideBand}/${props.showValues}`;
+		if (scaleKey !== stickyScaleKey) {
+			stickyScaleKey = scaleKey;
+			stickyMax = 0;
+		}
+		for (const dataset of chart.data.datasets) {
+			if (dataset.yAxisID !== "damping") {
+				for (const value of dataset.data) {
+					if (typeof value === "number" && isFinite(value) && value > stickyMax) {
+						stickyMax = value;
+					}
+				}
+			}
+		}
+		scales.y!.max = (stickyMax > 0) ? stickyMax * 1.05 : undefined;
+	} else {
+		scales.y!.max = undefined;
+	}
 
 	for (const dataset of chart.data.datasets) {
 		if (hiddenLabels.includes(dataset.label)) {
@@ -535,7 +557,7 @@ watch(() => props.customAmplitudes, () => {
 		for (const dataset of chart.data.datasets) {
 			if ((dataset as InputShapingDataset).isCustom) {
 				(dataset as InputShapingDataset).data = props.frequencies
-					? getInputShaperDamping(props.frequencies, props.customAmplitudes, props.customDelays)
+					? getInputShaperDamping(props.frequencies, props.customAmplitudes, props.customDelays, props.inputShaperDamping ?? 0.1)
 					: [];
 				scheduleUpdate();
 				return;
@@ -553,7 +575,7 @@ watch(() => props.customDelays, () => {
 		for (const dataset of chart.data.datasets) {
 			if ((dataset as InputShapingDataset).isCustom) {
 				(dataset as InputShapingDataset).data = props.frequencies
-					? getInputShaperDamping(props.frequencies, props.customAmplitudes, props.customDelays)
+					? getInputShaperDamping(props.frequencies, props.customAmplitudes, props.customDelays, props.inputShaperDamping ?? 0.1)
 					: [];
 				scheduleUpdate();
 				return;

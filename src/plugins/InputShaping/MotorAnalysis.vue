@@ -34,6 +34,9 @@
 	flex: 1 1 0;
 	min-height: 260px;
 }
+.result-col > .result-hint {
+	flex: 1 1 auto;
+}
 .result-col > .summary-table {
 	flex: 1 1 0;
 	min-height: 120px;
@@ -109,7 +112,7 @@
 						<v-select v-model="numHarmonics" :items="[2, 4, 8, 12, 16]" :label="$t('plugins.accelerometer.numHarmonics')" density="compact" variant="outlined" hide-details />
 					</v-col>
 				</v-row>
-				<div v-if="!selectedRun" class="d-flex flex-grow-1 align-center justify-center">
+				<div v-if="!selectedRun" class="result-hint d-flex align-center justify-center">
 					{{ $t("plugins.accelerometer.pickMotorRun") }}
 				</div>
 				<template v-else>
@@ -174,7 +177,7 @@
 						<v-select v-model="numHarmonics" :items="[2, 4, 8, 12, 16]" :label="$t('plugins.accelerometer.numHarmonics')" density="compact" variant="outlined" hide-details />
 					</v-col>
 				</v-row>
-				<div v-if="!selectedProfile" class="d-flex flex-grow-1 align-center justify-center">
+				<div v-if="!selectedProfile" class="result-hint d-flex align-center justify-center">
 					{{ $t("plugins.accelerometer.pickMotorProfile") }}
 				</div>
 				<template v-else>
@@ -233,6 +236,7 @@ import Path from "@/utils/path";
 import MotorAnalysisChart from "./MotorAnalysisChart.vue";
 import { getConstantSpeedWindow, getMotorFeedrate, type MotorProfile, type MotorSweepResult, type MotorView, parseMotorProfileFilename } from "./motorProfiles";
 import { useAccelerometer } from "./useAccelerometer";
+import { useMotorAnalysisSettings } from "./useMotorAnalysisSettings";
 
 // Standard gravity in mm/s^2 for converting g into displacement
 const gravity = 9806.65;
@@ -300,8 +304,7 @@ const loading = ref(false);
 const error = ref<string | null>(null);
 const datasets = ref(new Map<string, AccelerometerDataset>());
 const view = ref<MotorView>("harmonics");
-const showDisplacement = ref(false);
-const numHarmonics = ref(4);
+const { showDisplacement, numHarmonics } = useMotorAnalysisSettings();
 
 function getNominalFrequency(profile: MotorProfile): number {
 	return getFullStepFrequency(getMotorFeedrate(profile), profile.fullStepsPerMm, 1);
@@ -372,39 +375,52 @@ const summary = computed<MotorSweepSummary | null>(() => {
 
 const displayedSummary = computed<MotorSweepSummary | null>(() => summary.value ? { ...summary.value, amplitudes: summary.value.amplitudes.map((row) => row.map((amplitude, index) => (amplitude !== null) ? toDisplayedAmplitude(amplitude, summary.value!.frequencies[index]) : null)) } : null);
 
-// Mean ratio of an order to the full-step amplitude over all absolute frequencies where both exist
-function getMeanRatio(order: number): number | null {
+interface OrderLevel {
+	displacement: number;
+	frequency: number;
+	ratio: number | null;
+	level: "low" | "moderate" | "high";
+}
+
+// Worst displacement of an order over all absolute frequencies. Displacement is speed-independent, unlike acceleration, so fixed thresholds in um make sense:
+// below 0.5um the motor is as good as it gets, above 2um the error is visible in prints. The ratio to the full-step vibration is reported for context only
+function getOrderLevel(orders: Array<number>): OrderLevel | null {
 	if (!summary.value) {
 		return null;
 	}
-	const ratios = (summary.value.ratios[summary.value.orders.indexOf(order)] ?? []).filter((ratio): ratio is number => ratio !== null);
-	return (ratios.length > 0) ? ratios.reduce((sum, ratio) => sum + ratio, 0) / ratios.length : null;
+	let worst: OrderLevel | null = null;
+	for (const order of orders) {
+		const orderIndex = summary.value.orders.indexOf(order);
+		if (orderIndex < 0) {
+			continue;
+		}
+		summary.value.amplitudes[orderIndex].forEach((amplitude, index) => {
+			if (amplitude !== null) {
+				const displacement = getDisplacementAmplitude(amplitude * gravity, summary.value!.frequencies[index]) * 1000;
+				if (!worst || displacement > worst.displacement) {
+					worst = { displacement, frequency: summary.value!.frequencies[index], ratio: summary.value!.ratios[orderIndex][index], level: (displacement < 0.5) ? "low" : (displacement < 2) ? "moderate" : "high" };
+				}
+			}
+		});
+	}
+	return worst;
 }
 
-function getLevel(ratio: number): "low" | "moderate" | "high" {
-	return (ratio < 0.1) ? "low" : (ratio < 0.3) ? "moderate" : "high";
-}
-
-// Plain-language reading of the sub-orders: 0.5x = coil imbalance, 0.25x/0.75x = current waveform shape, 2x = step ripple harmonics
+// Plain-language reading of the orders: 1x = detent torque and step ripple, 0.5x = coil imbalance, 0.25x/0.75x = current waveform shape
 const findings = computed<Array<Finding>>(() => {
 	const result: Array<Finding> = [];
 	if (!summary.value || !selectedMotor.value) {
 		return result;
 	}
-	const phase = getMeanRatio(0.5);
-	if (phase !== null) {
-		const level = getLevel(phase);
-		result.push({ type: (level === "high") ? "warning" : "info", text: i18n.global.t("plugins.accelerometer.findingPhase", [selectedMotor.value, Math.round(phase * 100), i18n.global.t(`plugins.accelerometer.level.${level}`)]) });
-	}
-	const waveform = [getMeanRatio(0.25), getMeanRatio(0.75)].filter((ratio): ratio is number => ratio !== null);
-	if (waveform.length > 0) {
-		const ratio = Math.max(...waveform), level = getLevel(ratio);
-		result.push({ type: (level === "high") ? "warning" : "info", text: i18n.global.t("plugins.accelerometer.findingWaveform", [selectedMotor.value, Math.round(ratio * 100), i18n.global.t(`plugins.accelerometer.level.${level}`)]) });
-	}
-	const second = getMeanRatio(2);
-	if (second !== null) {
-		result.push({ type: "info", text: i18n.global.t("plugins.accelerometer.findingHarmonics", [selectedMotor.value, Math.round(second * 100)]) });
-	}
+	const push = (key: string, orderLevel: OrderLevel | null) => {
+		if (orderLevel) {
+			const args = [selectedMotor.value, orderLevel.displacement.toFixed(2), Math.round(orderLevel.frequency), (orderLevel.ratio !== null) ? Math.round(orderLevel.ratio * 100) : "-", i18n.global.t(`plugins.accelerometer.level.${orderLevel.level}`)];
+			result.push({ type: (orderLevel.level === "high") ? "warning" : (orderLevel.level === "low") ? "success" : "info", text: i18n.global.t(`plugins.accelerometer.${key}`, args) });
+		}
+	};
+	push("findingFullStep", getOrderLevel([1]));
+	push("findingPhase", getOrderLevel([0.5]));
+	push("findingWaveform", getOrderLevel([0.25, 0.75]));
 	return result;
 });
 // #endregion
@@ -502,7 +518,7 @@ async function loadProfiles(toLoad: Array<MotorProfile>) {
 	try {
 		for (const profile of toLoad) {
 			if (!datasets.value.has(profile.filename)) {
-				const loaded = await loadAccelerometerFile(profile.filename);
+				const loaded = await loadAccelerometerFile(profile.filename, 4);
 				datasets.value.set(profile.filename, loaded);
 			}
 		}

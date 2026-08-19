@@ -42,6 +42,7 @@ const props = defineProps<{
 const settingsStore = useSettingsStore();
 const canvas = ref<HTMLCanvasElement | null>(null);
 let chart: Chart<"bar" | "line"> | null = null;
+let stickyScaleKey = "", stickyMax = 0;
 
 function getColor(index: number): string {
 	const colors = ["#4dc9f6", "#f67019", "#f53794", "#537bc4", "#acc236", "#166a8f", "#00a950", "#58595b", "#8549ba"];
@@ -173,6 +174,22 @@ function updateChart() {
 		chart.data.datasets = [];
 		chart.config.lineAtIndex = [];
 	}
+
+	// Keep the largest amplitude seen per view and unit as the y axis maximum so that profiles stay comparable when switching between them
+	const scaleKey = `${props.view}/${props.yAxisTitle}`;
+	if (scaleKey !== stickyScaleKey) {
+		stickyScaleKey = scaleKey;
+		stickyMax = 0;
+	}
+	for (const dataset of chart.data.datasets) {
+		for (const value of dataset.data) {
+			const y = (typeof value === "number") ? value : (value && typeof value === "object" && "y" in value) ? (value as { y: number }).y : NaN;
+			if (isFinite(y) && y > stickyMax) {
+				stickyMax = y;
+			}
+		}
+	}
+	scales.y!.max = (stickyMax > 0) ? stickyMax * 1.05 : undefined;
 	chart.update();
 }
 

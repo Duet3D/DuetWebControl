@@ -71,13 +71,24 @@
 						{{ $t("plugins.accelerometer.motorAnalysis") }}
 					</v-tab>
 
-					<v-btn color="success" class="align-self-center ml-auto mr-2 d-none d-md-inline-flex"
+					<v-btn v-if="tab === 'motor'" color="primary" class="align-self-center ml-auto mr-2 d-none d-md-inline-flex"
+						   :disabled="uiStore.uiFrozen" @click="showTuneDialog = true">
+						<v-icon class="mr-1">mdi-tune</v-icon>
+						{{ $t("plugins.accelerometer.tuneMotorButton") }}
+					</v-btn>
+					<v-btn v-if="tab === 'motor'" color="primary" icon variant="text"
+						   class="align-self-center ml-auto mr-2 d-md-none"
+						   :disabled="uiStore.uiFrozen" :title="$t('plugins.accelerometer.tuneMotorButton')"
+						   @click="showTuneDialog = true">
+						<v-icon>mdi-tune</v-icon>
+					</v-btn>
+					<v-btn color="success" :class="['align-self-center', 'mr-2', 'd-none', 'd-md-inline-flex', { 'ml-auto': tab !== 'motor' }]"
 						   :disabled="uiStore.uiFrozen" @click="showRecordDialog">
 						<v-icon class="mr-1">mdi-record</v-icon>
 						{{ tab === "motor" ? $t("plugins.accelerometer.recordMotorButton") : $t("plugins.accelerometer.recordButton") }}
 					</v-btn>
 					<v-btn color="success" icon variant="text"
-						   class="align-self-center ml-auto mr-2 d-md-none"
+						   :class="['align-self-center', 'mr-2', 'd-md-none', { 'ml-auto': tab !== 'motor' }]"
 						   :disabled="uiStore.uiFrozen" :title="tab === 'motor' ? $t('plugins.accelerometer.recordMotorButton') : $t('plugins.accelerometer.recordButton')"
 						   @click="showRecordDialog">
 						<v-icon>mdi-record</v-icon>
@@ -111,10 +122,10 @@
 					<v-window-item value="analysis" class="h-100">
 						<div class="d-flex flex-column h-100">
 							<v-progress-linear :active="loadingFiles" indeterminate />
-							<v-alert v-if="filesError" type="error" class="mb-0 flex-grow-0" variant="tonal">
+							<v-alert v-if="filesError" type="error" class="mb-0 flex-grow-0 flex-shrink-0" variant="tonal">
 								{{ filesError }}
 							</v-alert>
-							<div v-else-if="motionFiles.length === 0 && !loadingFiles" class="empty-state flex-grow-1">
+							<div v-else-if="!hasMotionProfiles && !loadingFiles" class="empty-state flex-grow-1">
 								<v-icon size="64" color="info" class="mb-4">mdi-file-search</v-icon>
 								<div class="text-body-1 text-medium-emphasis mb-6">
 									{{ $t("plugins.accelerometer.noMotionProfiles") }}
@@ -128,7 +139,8 @@
 									{{ $t("plugins.accelerometer.recordButton") }}
 								</v-btn>
 							</div>
-							<v-row v-if="motionFiles.length > 0" class="content pa-2 ma-0 flex-grow-1">
+							<!-- nowrap on md+ so that the single flex line stretches to the row height and the columns can scroll internally -->
+							<v-row v-if="hasMotionProfiles" class="content pa-2 ma-0 flex-grow-1 flex-md-nowrap">
 								<v-col cols="12" md="6" lg="5" xl="4" class="d-flex pa-0">
 									<InputShapingFileList class="flex-grow-1" :title="$t('plugins.accelerometer.motionProfiles')"
 														  can-delete :files="motionFiles"
@@ -147,9 +159,30 @@
 														  @refresh="refresh" />
 								</v-col>
 								<v-col cols="12" md="6" lg="7" xl="8" class="d-flex flex-column pa-0 analysis-chart-col">
-									<div v-if="filesToAnalyze.length > 0" class="d-flex flex-wrap align-center px-3 pt-2">
+									<div v-if="filesToAnalyze.length === 0" class="d-flex flex-grow-1 align-center justify-center">
+										{{ $t("plugins.accelerometer.pickProfile") }}
+									</div>
+									<v-alert v-if="hadOverflow" type="warning" variant="tonal" class="mb-0 flex-grow-0 flex-shrink-0">
+										{{ $t("plugins.accelerometer.overflowWarning") }}
+									</v-alert>
+									<div v-if="filesToAnalyze.length > 0" class="d-block fill-height pa-2">
+										<InputShapingChart can-show-samples
+														   v-model:sampleStartIndex="sampleStartIndex"
+														   v-model:sampleEndIndex="sampleEndIndex"
+														   :frequencies="fileFrequenciesToAnalyze ?? undefined"
+														   :value="fileDataToAnalyze"
+														   :ringing-frequency="chartFrequency"
+														   :input-shapers="inputShapers"
+														   :input-shaper-frequency="chartFrequency"
+														   :input-shaper-damping="chartDamping"
+														   :estimate-shaper-effect="estimateShaperEffect"
+														   :show-values="showOriginalValues"
+														   :wide-band="wideBand" />
+									</div>
+									<div v-if="filesToAnalyze.length > 0" class="d-flex flex-wrap align-center flex-shrink-0 px-3 pb-2">
 										<template v-if="!individualFiles">
-											<v-checkbox v-model="estimateShaperEffect" :label="$t('plugins.accelerometer.estimateShaperEffect')"
+											<v-checkbox v-model="estimateShaperEffect" :label="$t('plugins.accelerometer.estimateShaperEffect')" :disabled="selectionShaped"
+														:title="selectionShaped ? $t('plugins.accelerometer.estimateNeedsUnshaped') : undefined"
 														hide-details density="compact" color="primary" class="me-4" />
 											<v-checkbox v-if="estimateShaperEffect" v-model="showOriginalValues" :label="$t('plugins.accelerometer.showOriginalValues')"
 														hide-details density="compact" color="primary" class="me-4" />
@@ -166,26 +199,6 @@
 										<v-checkbox v-model="wideBand" :label="$t('plugins.accelerometer.wideBand')"
 													hide-details density="compact" color="primary" />
 									</div>
-									<div v-if="filesToAnalyze.length === 0" class="d-flex flex-grow-1 align-center justify-center">
-										{{ $t("plugins.accelerometer.pickProfile") }}
-									</div>
-									<v-alert v-if="hadOverflow" type="warning" variant="tonal" class="mb-0 flex-grow-0">
-										{{ $t("plugins.accelerometer.overflowWarning") }}
-									</v-alert>
-									<div v-if="filesToAnalyze.length > 0" class="d-block fill-height pa-2">
-										<InputShapingChart can-show-samples
-														   v-model:sampleStartIndex="sampleStartIndex"
-														   v-model:sampleEndIndex="sampleEndIndex"
-														   :frequencies="fileFrequenciesToAnalyze ?? undefined"
-														   :value="fileDataToAnalyze"
-														   :ringing-frequency="frequency"
-														   :input-shapers="inputShapers"
-														   :input-shaper-frequency="frequency"
-														   :input-shaper-damping="damping"
-														   :estimate-shaper-effect="estimateShaperEffect"
-														   :show-values="showOriginalValues"
-														   :wide-band="wideBand" />
-									</div>
 								</v-col>
 							</v-row>
 						</div>
@@ -194,7 +207,7 @@
 					<v-window-item value="motor" class="h-100">
 						<div class="d-flex flex-column h-100">
 							<v-progress-linear :active="loadingFiles" indeterminate />
-							<v-alert v-if="filesError" type="error" class="mb-0 flex-grow-0" variant="tonal">
+							<v-alert v-if="filesError" type="error" class="mb-0 flex-grow-0 flex-shrink-0" variant="tonal">
 								{{ filesError }}
 							</v-alert>
 							<div v-else-if="motorFiles.length === 0 && !loadingFiles" class="empty-state flex-grow-1">
@@ -328,6 +341,7 @@
 								   @finished="recordingFinished" />
 		<RecordMotorProfileDialog :last-run="lastMotorRun" v-model:shown="showMotorDataCollection"
 								  @finished="motorRecordingFinished" />
+		<TuneMotorDialog v-model:shown="showTuneDialog" />
 	</v-row>
 </template>
 
@@ -347,9 +361,12 @@ import InputShaperCheckbox from "./InputShaperCheckbox.vue";
 import InputShapingChart from "./InputShapingChart.vue";
 import InputShapingFileList from "./InputShapingFileList.vue";
 import MotorAnalysis from "./MotorAnalysis.vue";
+import { getMotionProfileDamping, getMotionProfileFrequency, getMotionProfileShaper, isMotionProfile } from "./motionProfiles";
 import { parseMotorProfileFilename } from "./motorProfiles";
+import { isTuningFile } from "./motorTuning";
 import RecordMotionProfileDialog from "./RecordMotionProfileDialog.vue";
 import RecordMotorProfileDialog from "./RecordMotorProfileDialog.vue";
+import TuneMotorDialog from "./TuneMotorDialog.vue";
 
 const machineStore = useMachineStore();
 const uiStore = useUiStore();
@@ -365,6 +382,7 @@ const tab = ref<"current" | "analysis" | "motor">("current");
 const showShaperList = computed(() => tab.value !== "motor");
 const showDataCollection = ref(false);
 const showMotorDataCollection = ref(false);
+const showTuneDialog = ref(false);
 
 const inputShapers = ref<Array<string>>([]);
 const customAmplitudes = ref<Array<number>>([]);
@@ -394,6 +412,15 @@ const showSamples = ref(false);
 // Motor profiles live in the same directory but are analyzed separately
 const motorFileIndices = computed(() => files.value.map((filename, index) => parseMotorProfileFilename(filename) ? index : -1).filter((index) => index >= 0));
 const motionFiles = computed(() => files.value.filter((_, index) => !motorFileIndices.value.includes(index)));
+const hasMotionProfiles = computed(() => motionFiles.value.some(isMotionProfile));
+
+// The shaper effect estimate multiplies the measured spectrum with the shaper response, which only makes sense for recordings made without input shaping
+const selectionShaped = computed(() => filesToAnalyze.value.some((filename) => (getMotionProfileShaper(filename) ?? "none") !== "none"));
+watch(selectionShaped, (to) => {
+	if (to) {
+		estimateShaperEffect.value = false;
+	}
+});
 const motionFilesLastModified = computed(() => filesLastModified.value.filter((_, index) => !motorFileIndices.value.includes(index)));
 const motorFiles = computed(() => motorFileIndices.value.map((index) => files.value[index]));
 const motorFilesLastModified = computed(() => motorFileIndices.value.map((index) => filesLastModified.value[index]));
@@ -518,7 +545,7 @@ async function refresh() {
 	try {
 		interface FileEntry { isDirectory: boolean; name: string; lastModified: Date; }
 		const list = (await machineStore.getFileList(Path.accelerometer)) as Array<FileEntry>;
-		const filtered = list.filter((file) => !file.isDirectory && file.name !== Path.filamentsFile && file.name.endsWith(".csv"));
+		const filtered = list.filter((file) => !file.isDirectory && file.name !== Path.filamentsFile && file.name.endsWith(".csv") && !isTuningFile(file.name));
 		filtered.sort((a, b) => new Date(b.lastModified).getTime() - new Date(a.lastModified).getTime());
 		files.value = filtered.map((file) => file.name);
 		filesLastModified.value = filtered.map((file) => file.lastModified);
@@ -541,7 +568,7 @@ function filesOrDirectoriesChanged(payload: { files?: Array<string> }) {
 	if (filesToAnalyze.value.some((fileToAnalyze) => payload.files!.includes(Path.combine(Path.accelerometer, fileToAnalyze)))) {
 		// File under analysis was touched - drop the selection so the FileList rebuilds cleanly
 		filesToAnalyze.value = [];
-	} else if (payload.files.some((file) => file.endsWith(".csv")) && Path.filesAffectDirectory(payload.files, Path.accelerometer)) {
+	} else if (payload.files.some((file) => file.endsWith(".csv") && !isTuningFile(file)) && Path.filesAffectDirectory(payload.files, Path.accelerometer)) {
 		refresh();
 	}
 }
@@ -615,7 +642,12 @@ watch(() => shaping.value.delays, (to) => {
 }, { deep: true });
 
 watch(() => shaping.value.frequency, (to) => { frequency.value = to; });
+
 watch(() => shaping.value.damping, (to) => { damping.value = to; });
+
+// The analysis chart renders the shaper a selected profile was recorded with when its filename carries it, the inputs on the right keep mirroring the machine
+const chartFrequency = computed(() => filesToAnalyze.value.map(getMotionProfileFrequency).find((value): value is number => value !== null) ?? frequency.value);
+const chartDamping = computed(() => filesToAnalyze.value.map(getMotionProfileDamping).find((value): value is number => value !== null) ?? damping.value);
 
 // #endregion
 </script>

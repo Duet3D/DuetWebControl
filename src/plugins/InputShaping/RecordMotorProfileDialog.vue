@@ -6,7 +6,7 @@
 </style>
 
 <template>
-	<v-dialog v-model="dialogShown" max-width="720px" no-click-animation>
+	<v-dialog v-model="dialogShown" max-width="720px" no-click-animation :persistent="currentPage === 'collection' && !finished">
 		<v-card>
 			<v-card-title>
 				<v-icon class="mr-2">mdi-record</v-icon>
@@ -96,6 +96,9 @@
 								</template>
 							</v-combobox>
 
+							<v-text-field v-model.number="travelSpeed" type="number" min="1" :max="Math.floor(Math.min(...enabledMoves.map(getMaxSpeed)))" :label="$t('plugins.accelerometer.travelSpeed')"
+										  :hint="$t('plugins.accelerometer.travelSpeedHint')" persistent-hint density="compact" variant="outlined" class="mt-4" />
+
 							<v-table density="compact" class="mt-3">
 								<thead>
 									<tr>
@@ -184,14 +187,14 @@
 </template>
 
 <script setup lang="ts">
-import { OperationCancelledError } from "@duet3d/connectors";
 import { getFullStepFrequency } from "@duet3d/motionanalysis";
-import { type Axis, CoreKinematics, MachineStatus } from "@duet3d/objectmodel";
+import { MachineStatus } from "@duet3d/objectmodel";
 
 import { useMachineStore } from "@/stores/machine";
 
 import { getAxisWords, getConstantSpeedWindow, getMotorFeedrate, getMotorProfileFilename, type MotorMove } from "./motorProfiles";
 import { useAccelerometer } from "./useAccelerometer";
+import { useMotorMoves } from "./useMotorMoves";
 
 const MoveState = {
 	idle: "idle",
@@ -213,20 +216,14 @@ interface MoveConfig {
 	length: number;
 }
 
-// Cartesian direction that drives a single motor at a constant rate
-interface MotorOption {
-	motor: string;
-	label: string;
-	axes: Array<Axis>;
-	direction: Array<number>;
-	stepFactor: number;
-}
-
 // Full-step frequencies the default speeds aim for (in Hz)
 const defaultFullStepFrequencies = [25, 50, 100, 200];
 
 // Longest recording the default lengths aim for and beyond which a warning is shown (in s)
 const defaultMaxDuration = 30, warnDuration = 50;
+
+// Speed of the positioning moves between recordings (in mm/s)
+const defaultTravelSpeed = 100;
 
 const props = defineProps<{
 	lastRun: number;
@@ -239,55 +236,14 @@ const emit = defineEmits<{
 }>();
 
 const machineStore = useMachineStore();
-const { accelerometers, doCode, waitForAccelerometerRun } = useAccelerometer();
+const { accelerometers, getSamplingRate } = useAccelerometer();
+const motorMoves = useMotorMoves();
+const { move, isCoreKinematics, motorOptions, getMotorOption, getCenter, buildMove } = motorMoves;
 
 // #region OM-derived computeds
-const move = computed(() => machineStore.model.move);
 const machineState = computed(() => machineStore.model.state);
 const allAxesHomed = computed(() => !move.value.axes.some((axis) => axis.visible && !axis.homed));
-const travelAcceleration = computed(() => move.value.motionSystems[0]?.travelAcceleration ?? move.value.travelAcceleration);
-const isCoreKinematics = computed(() => move.value.kinematics instanceof CoreKinematics);
-
-// On core kinematics the column of the forward matrix belonging to a motor is the Cartesian direction that drives only this motor,
-// because inverseMatrix * forwardMatrix is the identity. Other kinematics only run all motors at a constant rate on Z moves
-const motorOptions = computed<Array<MotorOption>>(() => {
-	const axes = move.value.axes, options: Array<MotorOption> = [];
-	if (isCoreKinematics.value) {
-		const kinematics = move.value.kinematics as CoreKinematics, identity = axes.map((_, row) => axes.map((_, col) => (row === col) ? 1 : 0));
-		const forwardMatrix = kinematics.forwardMatrix.length > 0 ? kinematics.forwardMatrix : identity, inverseMatrix = kinematics.inverseMatrix.length > 0 ? kinematics.inverseMatrix : identity;
-		for (let motorIndex = 0; motorIndex < axes.length && motorIndex < forwardMatrix.length; motorIndex++) {
-			const column = axes.map((_, axisIndex) => forwardMatrix[axisIndex]?.[motorIndex] ?? 0);
-			const involved = axes.filter((axis, axisIndex) => column[axisIndex] !== 0);
-			if (involved.length === 0 || involved.some((axis) => !axis.visible)) {
-				continue;
-			}
-			const length = Math.sqrt(column.reduce((sum, value) => sum + value * value, 0));
-			const direction = involved.map((axis) => column[axes.indexOf(axis)] / length);
-			if (direction[0] < 0) {
-				direction.forEach((_, index) => { direction[index] = -direction[index]; });
-			}
-			const inverseRow = inverseMatrix[motorIndex] ?? [];
-			options.push({
-				motor: axes[motorIndex].letter,
-				label: involved.map((axis, index) => `${(index > 0) ? ((direction[index] < 0) ? "-" : "+") : ""}${axis.letter}`).join(""),
-				axes: involved,
-				direction,
-				stepFactor: Math.abs(involved.reduce((sum, axis, index) => sum + (inverseRow[axes.indexOf(axis)] ?? 0) * direction[index], 0))
-			});
-		}
-	} else {
-		const zAxis = axes.find((axis) => axis.letter === "Z" && axis.visible);
-		if (zAxis) {
-			options.push({ motor: "Z", label: "Z", axes: [zAxis], direction: [1], stepFactor: 1 });
-		}
-	}
-	return options;
-});
 const motorLetters = computed(() => motorOptions.value.map((option) => option.motor));
-
-function getMotorOption(motor: string): MotorOption | undefined {
-	return motorOptions.value.find((option) => option.motor === motor);
-}
 // #endregion
 
 // #region Wizard state
@@ -295,10 +251,12 @@ const currentPage = ref<"start" | "config" | "feedrates" | "collection">("start"
 const moves = ref<Array<MoveConfig>>([]);
 const enabledMoves = computed(() => moves.value.filter((m) => m.enabled));
 const speeds = ref<Array<number>>([]);
+const travelSpeed = ref(defaultTravelSpeed);
 const recordings = ref<Array<MoveItem>>([]);
 const run = ref(0);
 const finished = ref(false);
 const cancelled = ref(false);
+const samplingRates = new Map<string, number>();
 
 const canGoNext = computed(() => {
 	if (currentPage.value === "start") {
@@ -308,43 +266,25 @@ const canGoNext = computed(() => {
 		return enabledMoves.value.length > 0 && enabledMoves.value.every((m) => !!m.accelerometer && !!getMotorOption(m.motor) && m.length > 0 && m.length <= getMaxLength(m));
 	}
 	if (currentPage.value === "feedrates") {
-		return speeds.value.length > 0 && enabledMoves.value.every((m) => speeds.value.every((speed) => speed > 0 && speed <= getMaxSpeed(m)));
+		return speeds.value.length > 0 && enabledMoves.value.every((m) => travelSpeed.value > 0 && travelSpeed.value <= getMaxSpeed(m) && speeds.value.every((speed) => speed > 0 && speed <= getMaxSpeed(m)));
 	}
 	return false;
 });
 // #endregion
 
 // #region Move building helpers
-function getCenter(option: MotorOption): Array<number> {
-	return option.axes.map((axis) => (axis.min + axis.max) / 2);
-}
-
-// Longest line through the center that keeps every involved axis within its limits
 function getMaxLength(m: MoveConfig): number {
 	const option = getMotorOption(m.motor);
-	return option ? Math.floor(Math.min(...option.axes.map((axis, index) => (axis.max - axis.min) / Math.abs(option.direction[index])))) : 0;
+	return option ? motorMoves.getMaxLength(option) : 0;
 }
 
-// Speed along the path (in mm/s) at which the fastest involved axis reaches its limit
 function getMaxSpeed(m: MoveConfig): number {
 	const option = getMotorOption(m.motor);
-	return option ? Math.min(...option.axes.map((axis, index) => axis.speed / 60 / Math.abs(option.direction[index]))) : 0;
+	return option ? motorMoves.getMaxSpeed(option) : 0;
 }
 
 function toMotorMove(m: MoveConfig, speed: number): MotorMove {
-	const option = getMotorOption(m.motor)!, center = getCenter(option), motorAxis = move.value.axes.find((axis) => axis.letter === m.motor)!;
-	return {
-		accelerometer: m.accelerometer,
-		motor: m.motor,
-		axes: option.axes.map((axis) => axis.letter).join(""),
-		start: center.map((value, index) => Math.round((value - option.direction[index] * m.length / 2) * 100) / 100),
-		end: center.map((value, index) => Math.round((value + option.direction[index] * m.length / 2) * 100) / 100),
-		distance: m.length,
-		feedrate: Math.round(speed * 60),
-		acceleration: Math.floor(Math.min(travelAcceleration.value, ...option.axes.map((axis, index) => axis.acceleration / Math.abs(option.direction[index])))),
-		fullStepsPerMm: Math.round(motorAxis.stepsPerMm / motorAxis.microstepping.value * 1000) / 1000,
-		stepFactor: option.stepFactor
-	};
+	return buildMove(getMotorOption(m.motor)!, m.length, speed, m.accelerometer);
 }
 
 // Sweep the default full-step frequencies of the first motor as far as every enabled move's speed limit and constant-speed requirement allow
@@ -369,7 +309,7 @@ function makeMoves() {
 			enabled: !hasXY || option.motor === "X" || option.motor === "Y",
 			accelerometer: accelerometers.value.length > 0 ? accelerometers.value[0] : null,
 			motor: option.motor,
-			length: Math.round(getMaxLength({ enabled: true, accelerometer: null, motor: option.motor, length: 0 }) / 2)
+			length: Math.round(motorMoves.getMaxLength(option) / 2)
 		}));
 		makeSpeeds();
 
@@ -423,19 +363,10 @@ async function recordMove(moveIndex: number) {
 	const m = recordings.value[moveIndex];
 	m.state = MoveState.recording;
 	try {
-		if (cancelled.value) {
-			throw new OperationCancelledError();
+		if (!samplingRates.has(m.accelerometer!)) {
+			samplingRates.set(m.accelerometer!, await getSamplingRate(m.accelerometer!));
 		}
-		await doCode(`G1 ${getAxisWords(m, m.start)} F${Math.max(...move.value.axes.filter((axis) => m.axes.includes(axis.letter)).map((axis) => axis.speed))}`);
-		await doCode("G4 S1");
-		if (cancelled.value) {
-			throw new OperationCancelledError();
-		}
-
-		// Sample count is generous because the actual sampling rate is only known once the file is written
-		const numSamples = Math.ceil(2000 * (getConstantSpeedWindow(m).moveDuration + 0.5));
-		await doCode(`M400 M956 P${m.accelerometer} S${numSamples} A1 F"${getMotorProfileFilename(run.value, m)}" G1 ${getAxisWords(m, m.end)} F${m.feedrate}`);
-		await waitForAccelerometerRun(m.accelerometer!, cancelled);
+		await motorMoves.recordMove(m, getMotorProfileFilename(run.value, m), travelSpeed.value, samplingRates.get(m.accelerometer!)!, cancelled);
 		m.state = MoveState.finished;
 
 		if (moveIndex + 1 < recordings.value.length) {

@@ -1,7 +1,15 @@
 <style scoped>
+/* Fill the card down to the checkboxes where the columns sit side by side, cap the height where they stack */
 .filelist {
-	overflow-y: scroll;
-	max-height: 480px;
+	overflow-y: auto;
+	flex: 1 1 0;
+	min-height: 0;
+}
+@media (max-width: 839px) {
+	.filelist {
+		flex: 0 1 auto;
+		max-height: 480px;
+	}
 }
 
 .no-overflow {
@@ -78,9 +86,10 @@
 				</v-list-group>
 			</v-list>
 		</template>
-		<v-alert v-else type="info" class="mb-0 flex-grow-0" :title="$t('plugins.accelerometer.noProfiles')" />
-
-		<v-spacer />
+		<template v-else>
+			<v-alert type="info" class="mb-0 flex-grow-0 flex-shrink-0" :title="$t('plugins.accelerometer.noProfiles')" />
+			<v-spacer />
+		</template>
 
 		<v-checkbox v-model="individualFiles" :label="$t('plugins.accelerometer.individualFiles')"
 					density="compact" color="primary" hide-details class="ma-3" />
@@ -94,6 +103,7 @@ import { useMachineStore } from "@/stores/machine";
 import { useUiStore } from "@/stores/ui";
 import Path from "@/utils/path";
 
+import { motionProfileRegex, toolMotionProfileRegex } from "./motionProfiles";
 import { useAccelerometer } from "./useAccelerometer";
 
 interface ProfileFile {
@@ -155,13 +165,13 @@ const profiles = computed<Array<Profile>>(() => {
 	for (let i = 0; i < props.files.length; i++) {
 		const filename = props.files[i];
 		const lastModified = props.filesLastModified[i].toLocaleString();
-		const matches = /^(\d+)-([a-zA-SU-Z]+)(-?\d+\.?\d*)-(-?\d+\.?\d*)-(\d+\.?\d*)-(\w+)-?(\d+\.?\d*)?(Hz)?(-(\d+\.?\d*))?\.csv/.exec(filename);
+		const matches = motionProfileRegex.exec(filename);
 		if (matches) {
 			pushIntoProfile(grouped, lastModified, matches[1], parseMatch(matches, filename, false));
 			continue;
 		}
 
-		const toolMatches = /^(\d+)-T(\d+)-([a-zA-Z]+)(-?\d+\.?\d*)-(-?\d+\.?\d*)-(\d+\.?\d*)-(\w+)[-]?(\d+\.?\d*)?(Hz)?(-(\d+\.?\d*))?\.csv/.exec(filename);
+		const toolMatches = toolMotionProfileRegex.exec(filename);
 		if (toolMatches) {
 			pushIntoProfile(grouped, lastModified, toolMatches[1], parseMatch(toolMatches, filename, true));
 			continue;

@@ -1,5 +1,5 @@
 <template>
-	<v-dialog v-model="dialogShown" max-width="640px" no-click-animation>
+	<v-dialog v-model="dialogShown" max-width="640px" no-click-animation :persistent="currentPage === 'collection' && !finished">
 		<v-card>
 			<v-card-title>
 				<v-icon class="mr-2">mdi-record</v-icon>
@@ -234,7 +234,8 @@ const emit = defineEmits<{
 }>();
 
 const machineStore = useMachineStore();
-const { accelerometers, hasExternalAccelerometers, doCode, waitForAccelerometerRun } = useAccelerometer();
+const { accelerometers, hasExternalAccelerometers, doCode, waitForAccelerometerRun, getSamplingRate } = useAccelerometer();
+const samplingRates = new Map<string, number>();
 
 // #region OM-derived computeds
 const move = computed(() => machineStore.model.move);
@@ -488,6 +489,17 @@ function getMax(m: MoveItem, start: boolean): number | null {
 // #endregion
 
 // #region Recording loop
+// Duration of the recorded move at the configured max speed, capped by the slowest involved axis
+function getMoveDuration(m: MoveItem): number {
+	const axes = m.axis.split("+").map((letter) => move.value.axes.find((axis) => axis.letter === letter)).filter((axis): axis is Axis => !!axis);
+	if (axes.length === 0) {
+		return 1;
+	}
+	const distance = Math.abs(m.end - m.start) * Math.sqrt(axes.length), speed = Math.min(maxSpeed.value, ...axes.map((axis) => axis.speed)) / 60;
+	const acceleration = Math.min(...axes.map((axis) => axis.acceleration)), rampTime = speed / acceleration, rampDistance = speed * rampTime / 2;
+	return (2 * rampDistance >= distance) ? 2 * Math.sqrt(distance / acceleration) : 2 * rampTime + (distance - 2 * rampDistance) / speed;
+}
+
 function getMoveFilename(m: MoveItem): string {
 	let filename = run.value.toString();
 	if (m.tool) {
@@ -532,17 +544,26 @@ async function recordMove(moveIndex: number, hadSelectedTool = false) {
 			}
 		}
 		await doCode(`G1 ${startParams} F${maxSpeed.value}`);
-		await doCode("G4 S1");
+		if (machineStore.isStandaloneMode) {
+			// In standalone mode the code reply does not wait for the move, so give it time to finish before the M400 M956 line is sent
+			await doCode("G4 S1");
+		}
 		if (cancelled.value) {
 			m.state = MoveState.cancelled;
 			throw new OperationCancelledError();
 		}
 
+		// Record 0.75s of ringing (plus the move itself if requested) so that the frequency resolution does not depend on the sampling rate
+		if (!samplingRates.has(m.accelerometer!)) {
+			samplingRates.set(m.accelerometer!, await getSamplingRate(m.accelerometer!));
+		}
+		const samplingRate = samplingRates.get(m.accelerometer!)!;
 		const endParams = moveAxes.map((axis) => `${axis}${m.end}`).join(" ");
 		if (recordWholeMove.value) {
-			await doCode(`M400 M956 P${m.accelerometer} S1000 A0 F"${getMoveFilename(m)}" G1 ${endParams} F${maxSpeed.value}`);
+			const numSamples = Math.ceil(1.05 * samplingRate * (getMoveDuration(m) + 0.75));
+			await doCode(`M400 M956 P${m.accelerometer} S${numSamples} A0 F"${getMoveFilename(m)}" G1 ${endParams} F${maxSpeed.value}`);
 		} else {
-			await doCode(`G1 ${endParams} F${maxSpeed.value} M400 M956 P${m.accelerometer} S1000 A0 F"${getMoveFilename(m)}"`);
+			await doCode(`G1 ${endParams} F${maxSpeed.value} M400 M956 P${m.accelerometer} S${Math.ceil(samplingRate * 0.75)} A0 F"${getMoveFilename(m)}"`);
 		}
 		await waitForAccelerometerRun(m.accelerometer!, cancelled);
 

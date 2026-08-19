@@ -55,13 +55,37 @@ export function useAccelerometer() {
 		});
 	}
 
-	async function loadAccelerometerFile(filename: string): Promise<AccelerometerDataset> {
-		const csvFile = await machineStore.download({
-			filename: Path.combine(Path.accelerometer, filename),
-			type: "text",
-		}, false, false, false);
-		return parseAccelerometerCsv(csvFile as string);
+	// In SBC mode the run counter advances as soon as the close request has been sent, so a freshly written file may still lack its trailer for a moment
+	async function loadAccelerometerFile(filename: string, retries: number = 0): Promise<AccelerometerDataset> {
+		for (let attempt = 0; ; attempt++) {
+			const csvFile = await machineStore.download({
+				filename: Path.combine(Path.accelerometer, filename),
+				type: "text",
+			}, false, false, false);
+			try {
+				return parseAccelerometerCsv(csvFile as string);
+			} catch (e) {
+				if (attempt >= retries) {
+					throw e;
+				}
+				await new Promise((resolve) => setTimeout(resolve, 250));
+			}
+		}
 	}
 
-	return { boards, accelerometers, hasExternalAccelerometers, doCode, waitForAccelerometerRun, loadAccelerometerFile };
+	// Query the sampling rate of an accelerometer via M955, falls back to a generous default if the reply cannot be parsed
+	async function getSamplingRate(accelerometerId: string): Promise<number> {
+		try {
+			const reply = await machineStore.sendCode(`M955 P${accelerometerId}`);
+			const matches = /at (\d+)\s*Hz/.exec(typeof reply === "string" ? reply : "");
+			if (matches) {
+				return parseInt(matches[1]);
+			}
+		} catch (e) {
+			console.warn(e);
+		}
+		return 2000;
+	}
+
+	return { boards, accelerometers, hasExternalAccelerometers, doCode, waitForAccelerometerRun, loadAccelerometerFile, getSamplingRate };
 }
