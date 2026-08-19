@@ -286,7 +286,7 @@
 
 								<v-text-field v-model.number="frequency" type="number" min="10" step="1" max="1000"
 											  :disabled="uiStore.uiFrozen"
-											  :label="$t('plugins.accelerometer.centreFrequency')" class="mt-3"
+											  :label="$t('plugins.accelerometer.centreFrequency')" class="mt-3 flex-grow-0"
 											  hide-details density="compact" variant="outlined"
 											  @keydown.enter.prevent="setFrequency">
 									<template #append-inner>Hz</template>
@@ -297,7 +297,7 @@
 
 								<v-text-field v-model.number="damping" type="number" min="0" step="0.01" max="0.99"
 											  :disabled="uiStore.uiFrozen"
-											  :label="$t('plugins.accelerometer.dampingFactor')" class="mt-3"
+											  :label="$t('plugins.accelerometer.dampingFactor')" class="mt-3 flex-grow-0"
 											  hide-details density="compact" variant="outlined"
 											  @keydown.enter.prevent="setDamping">
 									<template #append>
