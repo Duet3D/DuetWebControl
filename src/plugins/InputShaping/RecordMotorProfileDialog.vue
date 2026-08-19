@@ -217,7 +217,7 @@ interface MoveConfig {
 }
 
 // Full-step frequencies the default speeds aim for (in Hz)
-const defaultFullStepFrequencies = [25, 50, 100, 200];
+const defaultFullStepFrequencies = [25, 50, 100, 200, 400];
 
 // Longest recording the default lengths aim for and beyond which a warning is shown (in s)
 const defaultMaxDuration = 30, warnDuration = 50;

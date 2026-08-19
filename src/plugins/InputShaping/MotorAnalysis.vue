@@ -99,7 +99,7 @@
 					</v-col>
 					<v-col cols="3" class="py-0 px-2">
 						<v-btn-toggle v-model="selectedMotor" density="compact" variant="outlined" mandatory divided class="w-100">
-							<v-btn v-for="motor in runMotors" :key="motor" :value="motor" class="flex-grow-1">{{ $t("plugins.accelerometer.motor") }} {{ motor }}</v-btn>
+							<v-btn v-for="motor in runMotors" :key="motor" :value="motor" class="flex-grow-1">{{ motor }} {{ $t("plugins.accelerometer.motor") }}</v-btn>
 						</v-btn-toggle>
 					</v-col>
 					<v-col cols="3" class="py-0 px-2">
@@ -109,7 +109,7 @@
 						</v-btn-toggle>
 					</v-col>
 					<v-col cols="3" class="py-0 px-2">
-						<v-select v-model="numHarmonics" :items="[2, 4, 8, 12, 16]" :label="$t('plugins.accelerometer.numHarmonics')" density="compact" variant="outlined" hide-details />
+						<v-select v-model="numHarmonics" :items="[2, 4, 8]" :label="$t('plugins.accelerometer.numHarmonics')" density="compact" variant="outlined" hide-details />
 					</v-col>
 				</v-row>
 				<div v-if="!selectedRun" class="result-hint d-flex align-center justify-center">
@@ -174,7 +174,7 @@
 						</v-btn-toggle>
 					</v-col>
 					<v-col cols="4" class="py-0 px-2">
-						<v-select v-model="numHarmonics" :items="[2, 4, 8, 12, 16]" :label="$t('plugins.accelerometer.numHarmonics')" density="compact" variant="outlined" hide-details />
+						<v-select v-model="numHarmonics" :items="[2, 4, 8]" :label="$t('plugins.accelerometer.numHarmonics')" density="compact" variant="outlined" hide-details />
 					</v-col>
 				</v-row>
 				<div v-if="!selectedProfile" class="result-hint d-flex align-center justify-center">
@@ -312,11 +312,11 @@ function getNominalFrequency(profile: MotorProfile): number {
 
 function getRunSubtitle(group: RunGroup): string {
 	const motors = Array.from(new Set(group.profiles.map((profile) => profile.motor))).join(", ");
-	return `${i18n.global.t("plugins.accelerometer.numRecordings", [group.profiles.length])}, ${i18n.global.t("plugins.accelerometer.motor")} ${motors}, ${group.lastModified?.toLocaleString() ?? ""}`;
+	return `${i18n.global.t("plugins.accelerometer.numRecordings", [group.profiles.length])}, ${motors} ${i18n.global.t("plugins.accelerometer.motor")}, ${group.lastModified?.toLocaleString() ?? ""}`;
 }
 
 function getProfileTitle(profile: MotorProfile): string {
-	return `${i18n.global.t("plugins.accelerometer.motor")} ${profile.motor}, ${getNominalFrequency(profile).toFixed(1)} Hz`;
+	return `${profile.motor} ${i18n.global.t("plugins.accelerometer.motor")}, ${getNominalFrequency(profile).toFixed(1)} Hz`;
 }
 
 function getProfileSubtitle(profile: MotorProfile): string {
@@ -383,8 +383,9 @@ interface OrderLevel {
 }
 
 // Worst displacement of an order over all absolute frequencies. Displacement is speed-independent, unlike acceleration, so fixed thresholds in um make sense:
-// below 0.5um the motor is as good as it gets, above 2um the error is visible in prints. The ratio to the full-step vibration is reported for context only
-function getOrderLevel(orders: Array<number>): OrderLevel | null {
+// below 0.5um the motor is as good as it gets, above 2um the error is visible in prints. The ratio to the full-step vibration is reported for context only.
+// Sub-orders only count where that reference exists - this also skips the lowest absolute frequencies, whose tiny accelerations turn noise into huge displacements
+function getOrderLevel(orders: Array<number>, requireRatio: boolean = false): OrderLevel | null {
 	if (!summary.value) {
 		return null;
 	}
@@ -395,7 +396,7 @@ function getOrderLevel(orders: Array<number>): OrderLevel | null {
 			continue;
 		}
 		summary.value.amplitudes[orderIndex].forEach((amplitude, index) => {
-			if (amplitude !== null) {
+			if (amplitude !== null && (!requireRatio || summary.value!.ratios[orderIndex][index] !== null)) {
 				const displacement = getDisplacementAmplitude(amplitude * gravity, summary.value!.frequencies[index]) * 1000;
 				if (!worst || displacement > worst.displacement) {
 					worst = { displacement, frequency: summary.value!.frequencies[index], ratio: summary.value!.ratios[orderIndex][index], level: (displacement < 0.5) ? "low" : (displacement < 2) ? "moderate" : "high" };
@@ -419,8 +420,8 @@ const findings = computed<Array<Finding>>(() => {
 		}
 	};
 	push("findingFullStep", getOrderLevel([1]));
-	push("findingPhase", getOrderLevel([0.5]));
-	push("findingWaveform", getOrderLevel([0.25, 0.75]));
+	push("findingPhase", getOrderLevel([0.5], true));
+	push("findingWaveform", getOrderLevel([0.25, 0.75], true));
 	return result;
 });
 // #endregion

@@ -49,22 +49,31 @@
 .input-shaping-window :deep(.v-window-item) {
 	height: 100%;
 }
+
+.shaper-panel {
+	overflow-y: auto;
+}
+@media (min-width: 960px) {
+	.shaper-panel {
+		width: 300px;
+	}
+	/* Flex children default to min-width auto, so the chart pane would refuse to shrink next to the shaper panel */
+	.main-pane {
+		min-width: 0;
+	}
+}
 </style>
 
 <template>
 	<v-row class="ma-0">
-		<v-col cols="12" :md="showShaperList ? 9 : 12" :xl="showShaperList ? 10 : 12">
+		<v-col cols="12">
 			<!-- Page-fill only on md+ - at xs/sm the inner layout stacks (file list above chart)
 				 and forcing viewport height would push the chart off the bottom of the card -->
 			<v-card :class="['d-flex', 'flex-column', { 'dwc-page-fill': mdAndUp }]">
 				<v-tabs v-model="tab" density="compact">
-					<v-tab value="current">
-						<v-icon class="mr-1">mdi-information</v-icon>
-						{{ $t("plugins.accelerometer.currentSettings") }}
-					</v-tab>
-					<v-tab value="analysis">
-						<v-icon class="mr-1">mdi-file</v-icon>
-						{{ $t("plugins.accelerometer.motionAnalysis") }}
+					<v-tab value="inputshaping">
+						<v-icon class="mr-1">mdi-transition</v-icon>
+						{{ $t("plugins.accelerometer.inputShaping") }}
 					</v-tab>
 					<v-tab value="motor">
 						<v-icon class="mr-1">mdi-axis-arrow</v-icon>
@@ -96,111 +105,206 @@
 				</v-tabs>
 
 				<v-window v-model="tab" :touch="false" class="flex-grow-1 d-flex flex-column input-shaping-window">
-					<v-window-item value="current" class="h-100">
-						<div class="d-flex flex-column h-100">
-							<div v-if="!isInputShapingEnabled" class="empty-state flex-grow-1">
-								<v-icon size="64" color="info" class="mb-4">mdi-tune-variant</v-icon>
-								<div class="text-body-1 text-medium-emphasis mb-6">
-									{{ $t("plugins.accelerometer.notConfigured") }}
+					<v-window-item value="inputshaping" class="h-100">
+						<div class="d-flex flex-column flex-md-row h-100">
+							<div class="d-flex flex-column flex-grow-1 main-pane">
+								<v-progress-linear :active="loadingFiles" indeterminate />
+								<v-alert v-if="filesError" type="error" class="mb-0 flex-grow-0 flex-shrink-0" variant="tonal">
+									{{ filesError }}
+								</v-alert>
+								<div v-else-if="!hasMotionProfiles && !loadingFiles && !isInputShapingEnabled" class="empty-state flex-grow-1">
+									<v-icon size="64" color="info" class="mb-4">mdi-file-search</v-icon>
+									<div class="text-body-1 text-medium-emphasis mb-6">
+										{{ $t("plugins.accelerometer.noMotionProfiles") }}
+										<a href="javascript:void(0)" class="text-decoration-underline ml-1" @click="refresh">
+											{{ $t("plugins.accelerometer.refreshLink") }}
+										</a>
+									</div>
+									<v-btn color="success" size="large" :disabled="uiStore.uiFrozen"
+										   @click="showDataCollection = true">
+										<v-icon class="mr-1">mdi-record</v-icon>
+										{{ $t("plugins.accelerometer.recordButton") }}
+									</v-btn>
 								</div>
-								<v-btn color="success" size="large" :disabled="uiStore.uiFrozen"
-									   @click="showDataCollection = true">
-									<v-icon class="mr-1">mdi-record</v-icon>
-									{{ $t("plugins.accelerometer.recordButton") }}
-								</v-btn>
+								<!-- Current shaper response while no profiles exist -->
+								<div v-else-if="!hasMotionProfiles && !loadingFiles" class="content flex-grow-1 pa-2">
+									<InputShapingChart :frequencies="currentFrequencies" :ringing-frequency="frequency"
+													   :input-shapers="inputShapers" :input-shaper-frequency="frequency"
+													   :input-shaper-damping="damping" :wide-band="false" />
+								</div>
+								<!-- nowrap on md+ so that the single flex line stretches to the row height and the columns can scroll internally -->
+								<v-row v-if="hasMotionProfiles" class="content pa-2 ma-0 flex-grow-1 flex-md-nowrap">
+									<v-col cols="12" md="6" lg="5" xl="4" class="d-flex pa-0">
+										<InputShapingFileList class="flex-grow-1" :title="$t('plugins.accelerometer.motionProfiles')"
+															  can-delete :files="motionFiles"
+															  :files-last-modified="motionFilesLastModified"
+															  v-model:selectedFiles="filesToAnalyze"
+															  v-model:frequencies="fileFrequenciesToAnalyze"
+															  v-model="fileDataToAnalyze"
+															  v-model:sampleStartIndex="sampleStartIndex"
+															  v-model:sampleEndIndex="sampleEndIndex"
+															  v-model:hadOverflow="hadOverflow"
+															  v-model:estimateShaperEffect="estimateShaperEffect"
+															  v-model:showOriginalValues="showOriginalValues"
+															  v-model:wideBand="wideBand"
+															  v-model:individualFiles="individualFiles"
+															  v-model:showSamples="showSamples"
+															  @refresh="refresh" />
+									</v-col>
+									<v-col cols="12" md="6" lg="7" xl="8" class="d-flex flex-column pa-0 analysis-chart-col">
+										<div v-if="filesToAnalyze.length === 0 && !isInputShapingEnabled" class="d-flex flex-grow-1 align-center justify-center">
+											{{ $t("plugins.accelerometer.pickProfile") }}
+										</div>
+										<!-- Current shaper response while no profile is selected -->
+										<div v-else-if="filesToAnalyze.length === 0" class="d-block fill-height pa-2">
+											<InputShapingChart :frequencies="currentFrequencies" :ringing-frequency="frequency"
+															   :input-shapers="inputShapers" :input-shaper-frequency="frequency"
+															   :input-shaper-damping="damping" :wide-band="false" />
+										</div>
+										<v-alert v-if="hadOverflow" type="warning" variant="tonal" class="mb-0 flex-grow-0 flex-shrink-0">
+											{{ $t("plugins.accelerometer.overflowWarning") }}
+										</v-alert>
+										<div v-if="filesToAnalyze.length > 0" class="d-block fill-height pa-2">
+											<InputShapingChart can-show-samples
+															   v-model:sampleStartIndex="sampleStartIndex"
+															   v-model:sampleEndIndex="sampleEndIndex"
+															   :frequencies="fileFrequenciesToAnalyze ?? undefined"
+															   :value="fileDataToAnalyze"
+															   :ringing-frequency="chartFrequency"
+															   :input-shapers="inputShapers"
+															   :input-shaper-frequency="chartFrequency"
+															   :input-shaper-damping="chartDamping"
+															   :estimate-shaper-effect="estimateShaperEffect"
+															   :show-values="showOriginalValues"
+															   :wide-band="wideBand" />
+										</div>
+										<div v-if="filesToAnalyze.length > 0" class="d-flex flex-wrap align-center flex-shrink-0 px-3 pb-2">
+											<template v-if="!individualFiles">
+												<v-checkbox v-model="estimateShaperEffect" :label="$t('plugins.accelerometer.estimateShaperEffect')" :disabled="selectionShaped"
+															:title="selectionShaped ? $t('plugins.accelerometer.estimateNeedsUnshaped') : undefined"
+															hide-details density="compact" color="primary" class="me-4" />
+												<v-checkbox v-if="estimateShaperEffect" v-model="showOriginalValues" :label="$t('plugins.accelerometer.showOriginalValues')"
+															hide-details density="compact" color="primary" class="me-4" />
+											</template>
+											<template v-else>
+												<v-checkbox v-model="showSamples" :label="$t('plugins.accelerometer.showSamples')"
+															hide-details density="compact" color="primary" class="me-4" />
+												<v-btn v-if="showSamples" color="primary" size="small" :disabled="filesToAnalyze.length === 0" class="me-4"
+													   @click="showSamples = false">
+													<v-icon class="mr-1" size="small">mdi-poll</v-icon>
+													{{ $t("plugins.accelerometer.analyze") }}
+												</v-btn>
+											</template>
+											<v-checkbox v-model="wideBand" :label="$t('plugins.accelerometer.wideBand')"
+														hide-details density="compact" color="primary" />
+										</div>
+									</v-col>
+								</v-row>
 							</div>
-							<!-- v-if (not v-show) so the heavy Chart instance only instantiates
-								 when input shaping is actually configured -->
-							<div v-else class="content flex-grow-1 pa-2">
-								<InputShapingChart :frequencies="currentFrequencies" :ringing-frequency="frequency"
-												   :input-shapers="inputShapers" :input-shaper-frequency="frequency"
-												   :input-shaper-damping="damping" :wide-band="false" />
-							</div>
-						</div>
-					</v-window-item>
 
-					<v-window-item value="analysis" class="h-100">
-						<div class="d-flex flex-column h-100">
-							<v-progress-linear :active="loadingFiles" indeterminate />
-							<v-alert v-if="filesError" type="error" class="mb-0 flex-grow-0 flex-shrink-0" variant="tonal">
-								{{ filesError }}
-							</v-alert>
-							<div v-else-if="!hasMotionProfiles && !loadingFiles" class="empty-state flex-grow-1">
-								<v-icon size="64" color="info" class="mb-4">mdi-file-search</v-icon>
-								<div class="text-body-1 text-medium-emphasis mb-6">
-									{{ $t("plugins.accelerometer.noMotionProfiles") }}
-									<a href="javascript:void(0)" class="text-decoration-underline ml-1" @click="refresh">
-										{{ $t("plugins.accelerometer.refreshLink") }}
-									</a>
+							<!-- Input shaper selection -->
+							<div class="d-flex flex-column flex-shrink-0 shaper-panel pa-3">
+								<div class="text-subtitle-1 mb-1">
+									<v-icon class="mr-1">mdi-transition</v-icon>
+									{{ $t("plugins.accelerometer.inputShapers") }}
 								</div>
-								<v-btn color="success" size="large" :disabled="uiStore.uiFrozen"
-									   @click="showDataCollection = true">
-									<v-icon class="mr-1">mdi-record</v-icon>
-									{{ $t("plugins.accelerometer.recordButton") }}
-								</v-btn>
+								<InputShaperCheckbox v-model="inputShapers" value="none" :current="shaping.type" class="mt-0" />
+								<InputShaperCheckbox v-model="inputShapers" value="mzv" :current="shaping.type" />
+								<InputShaperCheckbox v-model="inputShapers" value="zvd" :current="shaping.type" />
+								<InputShaperCheckbox v-model="inputShapers" value="zvdd" :current="shaping.type" />
+								<InputShaperCheckbox v-model="inputShapers" value="zvddd" :current="shaping.type" />
+								<InputShaperCheckbox v-model="inputShapers" value="ei2" :current="shaping.type" />
+								<InputShaperCheckbox v-model="inputShapers" value="ei3" :current="shaping.type" />
+								<InputShaperCheckbox v-model="inputShapers" value="custom" :current="shaping.type">
+									<v-menu v-model="customMenu" :close-on-content-click="false" :max-width="380">
+										<template #activator="{ props: activatorProps }">
+											<v-chip v-if="!uiStore.uiFrozen" v-bind="activatorProps" size="x-small"
+													:color="shaping.type === 'custom' ? 'success' : 'info'">
+												{{ $t("plugins.accelerometer.edit") }}
+											</v-chip>
+										</template>
+
+										<v-card>
+											<v-card-title>{{ $t("plugins.accelerometer.customShaper") }}</v-card-title>
+											<v-card-text class="pb-2">
+												<v-select v-model="numCustomCoefficients"
+														  :label="$t('plugins.accelerometer.numImpulses')"
+														  :items="[0, 1, 2, 3, 4]" hide-details density="compact"
+														  variant="outlined" />
+											</v-card-text>
+
+											<v-table v-if="numCustomCoefficients > 0" density="compact">
+												<thead>
+													<tr>
+														<th class="text-center">{{ $t("plugins.accelerometer.impulse") }}</th>
+														<th>{{ $t("plugins.accelerometer.amplitude") }}</th>
+														<th>{{ $t("plugins.accelerometer.durationMs") }}</th>
+													</tr>
+												</thead>
+												<tbody>
+													<tr v-for="(_, index) in customAmplitudes" :key="index">
+														<td class="text-center">{{ index + 1 }}</td>
+														<td>
+															<v-text-field type="number" min="0" step="0.001"
+																		  :model-value="customAmplitudes[index]"
+																		  density="compact" variant="plain" hide-details
+																		  @update:model-value="(v) => setCustomAmplitude(index, v as string)" />
+														</td>
+														<td>
+															<v-text-field type="number" min="0" step="0.1"
+																		  :model-value="customDelays[index] * 1000"
+																		  density="compact" variant="plain" hide-details
+																		  @update:model-value="(v) => setCustomDuration(index, v as string)" />
+														</td>
+													</tr>
+												</tbody>
+											</v-table>
+											<v-divider v-if="numCustomCoefficients > 0" />
+
+											<v-card-text v-if="customShaperCode" class="pb-0">
+												<label>{{ $t("plugins.accelerometer.resultingCode") }}</label>
+												<div class="d-flex align-center">
+													<input type="text" :value="customShaperCode"
+														   class="flex-grow-1" readonly @click="selectInput" />
+													<v-icon size="small" class="ml-1" @click="copyShaperCode">mdi-content-copy</v-icon>
+												</div>
+											</v-card-text>
+
+											<v-card-actions class="justify-center">
+												<v-btn variant="text" :disabled="!canConfigureCustom"
+													   :loading="configuringCustomShaper" color="primary"
+													   @click="configureCustomShaper">
+													<v-icon class="mr-1">mdi-check</v-icon>
+													{{ $t("plugins.accelerometer.apply") }}
+												</v-btn>
+											</v-card-actions>
+										</v-card>
+									</v-menu>
+								</InputShaperCheckbox>
+
+								<v-divider class="mt-3" />
+
+								<v-text-field v-model.number="frequency" type="number" min="10" step="1" max="1000"
+											  :disabled="uiStore.uiFrozen"
+											  :label="$t('plugins.accelerometer.centreFrequency')" class="mt-3"
+											  hide-details density="compact" variant="outlined"
+											  @keydown.enter.prevent="setFrequency">
+									<template #append-inner>Hz</template>
+									<template #append>
+										<v-icon class="ml-1" :disabled="!canSetFrequency" @click="setFrequency">mdi-check</v-icon>
+									</template>
+								</v-text-field>
+
+								<v-text-field v-model.number="damping" type="number" min="0" step="0.01" max="0.99"
+											  :disabled="uiStore.uiFrozen"
+											  :label="$t('plugins.accelerometer.dampingFactor')" class="mt-3"
+											  hide-details density="compact" variant="outlined"
+											  @keydown.enter.prevent="setDamping">
+									<template #append>
+										<v-icon class="ml-1" :disabled="!canSetDamping" @click="setDamping">mdi-check</v-icon>
+									</template>
+								</v-text-field>
 							</div>
-							<!-- nowrap on md+ so that the single flex line stretches to the row height and the columns can scroll internally -->
-							<v-row v-if="hasMotionProfiles" class="content pa-2 ma-0 flex-grow-1 flex-md-nowrap">
-								<v-col cols="12" md="6" lg="5" xl="4" class="d-flex pa-0">
-									<InputShapingFileList class="flex-grow-1" :title="$t('plugins.accelerometer.motionProfiles')"
-														  can-delete :files="motionFiles"
-														  :files-last-modified="motionFilesLastModified"
-														  v-model:selectedFiles="filesToAnalyze"
-														  v-model:frequencies="fileFrequenciesToAnalyze"
-														  v-model="fileDataToAnalyze"
-														  v-model:sampleStartIndex="sampleStartIndex"
-														  v-model:sampleEndIndex="sampleEndIndex"
-														  v-model:hadOverflow="hadOverflow"
-														  v-model:estimateShaperEffect="estimateShaperEffect"
-														  v-model:showOriginalValues="showOriginalValues"
-														  v-model:wideBand="wideBand"
-														  v-model:individualFiles="individualFiles"
-														  v-model:showSamples="showSamples"
-														  @refresh="refresh" />
-								</v-col>
-								<v-col cols="12" md="6" lg="7" xl="8" class="d-flex flex-column pa-0 analysis-chart-col">
-									<div v-if="filesToAnalyze.length === 0" class="d-flex flex-grow-1 align-center justify-center">
-										{{ $t("plugins.accelerometer.pickProfile") }}
-									</div>
-									<v-alert v-if="hadOverflow" type="warning" variant="tonal" class="mb-0 flex-grow-0 flex-shrink-0">
-										{{ $t("plugins.accelerometer.overflowWarning") }}
-									</v-alert>
-									<div v-if="filesToAnalyze.length > 0" class="d-block fill-height pa-2">
-										<InputShapingChart can-show-samples
-														   v-model:sampleStartIndex="sampleStartIndex"
-														   v-model:sampleEndIndex="sampleEndIndex"
-														   :frequencies="fileFrequenciesToAnalyze ?? undefined"
-														   :value="fileDataToAnalyze"
-														   :ringing-frequency="chartFrequency"
-														   :input-shapers="inputShapers"
-														   :input-shaper-frequency="chartFrequency"
-														   :input-shaper-damping="chartDamping"
-														   :estimate-shaper-effect="estimateShaperEffect"
-														   :show-values="showOriginalValues"
-														   :wide-band="wideBand" />
-									</div>
-									<div v-if="filesToAnalyze.length > 0" class="d-flex flex-wrap align-center flex-shrink-0 px-3 pb-2">
-										<template v-if="!individualFiles">
-											<v-checkbox v-model="estimateShaperEffect" :label="$t('plugins.accelerometer.estimateShaperEffect')" :disabled="selectionShaped"
-														:title="selectionShaped ? $t('plugins.accelerometer.estimateNeedsUnshaped') : undefined"
-														hide-details density="compact" color="primary" class="me-4" />
-											<v-checkbox v-if="estimateShaperEffect" v-model="showOriginalValues" :label="$t('plugins.accelerometer.showOriginalValues')"
-														hide-details density="compact" color="primary" class="me-4" />
-										</template>
-										<template v-else>
-											<v-checkbox v-model="showSamples" :label="$t('plugins.accelerometer.showSamples')"
-														hide-details density="compact" color="primary" class="me-4" />
-											<v-btn v-if="showSamples" color="primary" size="small" :disabled="filesToAnalyze.length === 0" class="me-4"
-												   @click="showSamples = false">
-												<v-icon class="mr-1" size="small">mdi-poll</v-icon>
-												{{ $t("plugins.accelerometer.analyze") }}
-											</v-btn>
-										</template>
-										<v-checkbox v-model="wideBand" :label="$t('plugins.accelerometer.wideBand')"
-													hide-details density="compact" color="primary" />
-									</div>
-								</v-col>
-							</v-row>
 						</div>
 					</v-window-item>
 
@@ -227,113 +331,6 @@
 						</div>
 					</v-window-item>
 				</v-window>
-			</v-card>
-		</v-col>
-
-		<v-col v-if="showShaperList" cols="12" md="3" xl="2">
-			<v-card>
-				<v-card-title class="pb-2">
-					<v-icon class="mr-1">mdi-transition</v-icon>
-					{{ $t("plugins.accelerometer.inputShapers") }}
-				</v-card-title>
-				<v-card-text class="d-flex flex-column">
-					<InputShaperCheckbox v-model="inputShapers" value="none" :current="shaping.type" class="mt-0" />
-					<InputShaperCheckbox v-model="inputShapers" value="mzv" :current="shaping.type" />
-					<InputShaperCheckbox v-model="inputShapers" value="zvd" :current="shaping.type" />
-					<InputShaperCheckbox v-model="inputShapers" value="zvdd" :current="shaping.type" />
-					<InputShaperCheckbox v-model="inputShapers" value="zvddd" :current="shaping.type" />
-					<InputShaperCheckbox v-model="inputShapers" value="ei2" :current="shaping.type" />
-					<InputShaperCheckbox v-model="inputShapers" value="ei3" :current="shaping.type" />
-					<InputShaperCheckbox v-model="inputShapers" value="custom" :current="shaping.type">
-						<v-menu v-model="customMenu" :close-on-content-click="false" :max-width="380">
-							<template #activator="{ props: activatorProps }">
-								<v-chip v-if="!uiStore.uiFrozen" v-bind="activatorProps" size="x-small"
-										:color="shaping.type === 'custom' ? 'success' : 'info'">
-									{{ $t("plugins.accelerometer.edit") }}
-								</v-chip>
-							</template>
-
-							<v-card>
-								<v-card-title>{{ $t("plugins.accelerometer.customShaper") }}</v-card-title>
-								<v-card-text class="pb-2">
-									<v-select v-model="numCustomCoefficients"
-											  :label="$t('plugins.accelerometer.numImpulses')"
-											  :items="[0, 1, 2, 3, 4]" hide-details density="compact"
-											  variant="outlined" />
-								</v-card-text>
-
-								<v-table v-if="numCustomCoefficients > 0" density="compact">
-									<thead>
-										<tr>
-											<th class="text-center">{{ $t("plugins.accelerometer.impulse") }}</th>
-											<th>{{ $t("plugins.accelerometer.amplitude") }}</th>
-											<th>{{ $t("plugins.accelerometer.durationMs") }}</th>
-										</tr>
-									</thead>
-									<tbody>
-										<tr v-for="(_, index) in customAmplitudes" :key="index">
-											<td class="text-center">{{ index + 1 }}</td>
-											<td>
-												<v-text-field type="number" min="0" step="0.001"
-															  :model-value="customAmplitudes[index]"
-															  density="compact" variant="plain" hide-details
-															  @update:model-value="(v) => setCustomAmplitude(index, v as string)" />
-											</td>
-											<td>
-												<v-text-field type="number" min="0" step="0.1"
-															  :model-value="customDelays[index] * 1000"
-															  density="compact" variant="plain" hide-details
-															  @update:model-value="(v) => setCustomDuration(index, v as string)" />
-											</td>
-										</tr>
-									</tbody>
-								</v-table>
-								<v-divider v-if="numCustomCoefficients > 0" />
-
-								<v-card-text v-if="customShaperCode" class="pb-0">
-									<label>{{ $t("plugins.accelerometer.resultingCode") }}</label>
-									<div class="d-flex align-center">
-										<input type="text" :value="customShaperCode"
-											   class="flex-grow-1" readonly @click="selectInput" />
-										<v-icon size="small" class="ml-1" @click="copyShaperCode">mdi-content-copy</v-icon>
-									</div>
-								</v-card-text>
-
-								<v-card-actions class="justify-center">
-									<v-btn variant="text" :disabled="!canConfigureCustom"
-										   :loading="configuringCustomShaper" color="primary"
-										   @click="configureCustomShaper">
-										<v-icon class="mr-1">mdi-check</v-icon>
-										{{ $t("plugins.accelerometer.apply") }}
-									</v-btn>
-								</v-card-actions>
-							</v-card>
-						</v-menu>
-					</InputShaperCheckbox>
-
-					<v-divider class="mt-3" />
-
-					<v-text-field v-model.number="frequency" type="number" min="10" step="1" max="1000"
-								  :disabled="uiStore.uiFrozen"
-								  :label="$t('plugins.accelerometer.centreFrequency')" class="mt-3"
-								  hide-details density="compact" variant="outlined"
-								  @keydown.enter.prevent="setFrequency">
-						<template #append-inner>Hz</template>
-						<template #append>
-							<v-icon class="ml-1" :disabled="!canSetFrequency" @click="setFrequency">mdi-check</v-icon>
-						</template>
-					</v-text-field>
-
-					<v-text-field v-model.number="damping" type="number" min="0" step="0.01" max="0.99"
-								  :disabled="uiStore.uiFrozen"
-								  :label="$t('plugins.accelerometer.dampingFactor')" class="mt-3"
-								  hide-details density="compact" variant="outlined"
-								  @keydown.enter.prevent="setDamping">
-						<template #append>
-							<v-icon class="ml-1" :disabled="!canSetDamping" @click="setDamping">mdi-check</v-icon>
-						</template>
-					</v-text-field>
-				</v-card-text>
 			</v-card>
 		</v-col>
 
@@ -375,11 +372,10 @@ const { mdAndUp } = useDisplay();
 const shaping = computed<InputShapingModel>(() => machineStore.model.move.shaping);
 
 const isInputShapingEnabled = computed(() => shaping.value.type !== InputShapingType.none);
-// 81 entries cover 10-90Hz at 1Hz resolution - the default sweep for the "Current Settings" tab
+// 81 entries cover 10-90Hz at 1Hz resolution - the sweep for the current-shaper chart shown while no profile is selected
 const currentFrequencies = computed(() => Array.from({ length: 81 }, (_, index) => index + 10));
 
-const tab = ref<"current" | "analysis" | "motor">("current");
-const showShaperList = computed(() => tab.value !== "motor");
+const tab = ref<"inputshaping" | "motor">("inputshaping");
 const showDataCollection = ref(false);
 const showMotorDataCollection = ref(false);
 const showTuneDialog = ref(false);
@@ -582,7 +578,7 @@ function showRecordDialog() {
 }
 
 function recordingFinished() {
-	tab.value = "analysis";
+	tab.value = "inputshaping";
 	refresh();
 }
 

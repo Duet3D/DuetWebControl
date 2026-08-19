@@ -12,9 +12,6 @@
 					<v-window-item value="config">
 						<div class="mb-5">{{ $t("plugins.accelerometer.tuneIntro") }}</div>
 
-						<v-alert v-if="accelerometers.length === 0" type="error" variant="tonal" class="my-3" density="compact">
-							{{ $t("plugins.accelerometer.noAccelerometer") }}
-						</v-alert>
 						<v-alert v-if="!allAxesHomed" type="warning" variant="tonal" class="my-3" density="compact">
 							<div class="d-flex align-center">
 								{{ $t("plugins.accelerometer.notHomed") }}
@@ -23,6 +20,9 @@
 									{{ $t("plugins.accelerometer.homeAll") }}
 								</CodeButton>
 							</div>
+						</v-alert>
+						<v-alert v-if="accelerometers.length === 0" type="error" variant="tonal" class="my-3" density="compact">
+							{{ $t("plugins.accelerometer.noAccelerometer") }}
 						</v-alert>
 
 						<v-row class="mt-1">
@@ -110,7 +110,7 @@
 								{{ (result.best.amplitude < result.baseline) ? $t("plugins.accelerometer.tuneImproved", [result.harmonic, formatAmplitude(result.baseline, result.harmonic), formatAmplitude(result.best.amplitude, result.harmonic), Math.round((1 - result.best.amplitude / result.baseline) * 100)]) : $t("plugins.accelerometer.tuneNoImprovement", [result.harmonic]) }}
 							</v-alert>
 							<v-alert v-if="resultCodes.length > 0" type="info" variant="tonal" density="compact" class="mt-3">
-								{{ $t("plugins.accelerometer.tuneResultCodes") }}
+								{{ phaseStepping ? $t("plugins.accelerometer.tuneResultCodesPhaseStepping") : $t("plugins.accelerometer.tuneResultCodes") }}
 								<pre class="mt-1">{{ resultCodes.join("\n") }}</pre>
 							</v-alert>
 						</template>
@@ -178,7 +178,7 @@ const length = ref(0);
 const tuneHarmonics = ref<Array<number>>([2, 4]);
 
 const allAxesHomed = computed(() => !move.value.axes.some((axis) => axis.visible && !axis.homed));
-const motorItems = computed(() => motorOptions.value.map((option) => ({ title: `${i18n.global.t("plugins.accelerometer.motor")} ${option.motor} (${option.label})`, value: option.motor })));
+const motorItems = computed(() => motorOptions.value.map((option) => ({ title: `${option.motor} ${i18n.global.t("plugins.accelerometer.motor")} (${option.label})`, value: option.motor })));
 const option = computed(() => motor.value ? getMotorOption(motor.value) ?? null : null);
 const maxSpeed = computed(() => option.value ? Math.floor(motorMoves.getMaxSpeed(option.value)) : 0);
 const maxLength = computed(() => option.value ? motorMoves.getMaxLength(option.value) : 0);
