@@ -103,9 +103,17 @@ export function useFirmwareInstall() {
 	}
 
 	function matchesBoardBinary(boardValue: string, fileName: string): boolean {
-		const binRegEx = new RegExp(boardValue.replace(/\.bin$/, "(.*)\\.bin"), "i");
-		const uf2RegEx = new RegExp(boardValue.replace(/\.uf2$/, "(.*)\\.uf2"), "i");
-		return binRegEx.test(fileName) || uf2RegEx.test(fileName);
+		try {
+			const binRegEx = new RegExp(boardValue.replace(/\.bin$/, "(.*)\\.bin"), "i");
+			const uf2RegEx = new RegExp(boardValue.replace(/\.uf2$/, "(.*)\\.uf2"), "i");
+			return binRegEx.test(fileName) || uf2RegEx.test(fileName);
+		} catch {
+			// boardValue comes straight from the object model's board.firmwareFileName - if it ever
+			// contains characters that don't form a valid pattern (e.g. an unmatched bracket),
+			// new RegExp() throws a SyntaxError that would otherwise abort classify() for every
+			// other picked file too. Treat an unparsable board name as simply "doesn't match"
+			return false;
+		}
 	}
 
 	// Match a firmware binary against every board, not just the first hit: identical boards (e.g.

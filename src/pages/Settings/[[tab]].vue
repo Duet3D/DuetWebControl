@@ -907,9 +907,6 @@
 		</v-card>
 		</div>
 
-		<input ref="firmwareInput" type="file" multiple :accept="firmwareAccept" hidden
-			   @change="onFirmwarePicked" />
-
 		<FirmwareUpdateDialog v-model:shown="firmwareDialog.shown" :plan="firmwareDialog.plan"
 							  @confirmed="firmwareController.onFirmwareUpdateConfirmed"
 							  @cancelled="firmwareController.onFirmwareUpdateCancelled" />
@@ -1359,7 +1356,6 @@ const cacheSaveDelayMs = computed({
 // #region Firmware install
 const firmwareController = useFirmwareInstallController();
 const { firmwareDialog, configUpdatedDialog } = firmwareController;
-const firmwareInput = ref<HTMLInputElement | null>(null);
 const installingFirmware = ref(false);
 
 // .deb is only usable in SBC mode (installSystemPackage); .crt/.key are HTTPS certs
@@ -1367,17 +1363,32 @@ const firmwareAccept = computed(() => machineStore.model.sbc !== null
 	? ".zip,.bin,.uf2,.deb,.crt,.key"
 	: ".zip,.bin,.uf2,.crt,.key");
 
+// A single persistent, reused hidden <input type="file"> was found (via extensive live testing
+// against a real board on Windows/Chrome) to intermittently stop handing back a selection at all -
+// the browser opens the native picker, the user picks a file, and `change` fires with an empty
+// FileList, even though a freshly-created element with byte-for-byte identical attributes picked
+// up the same file correctly every time. Creating a fresh, single-use input on every click and
+// discarding it afterwards sidesteps whatever internal state the long-lived element was getting
+// stuck in - confirmed as the fix by the same live testing
 function pickFirmwareFiles() {
 	if (installingFirmware.value) {
 		return;
 	}
-	firmwareInput.value?.click();
+	const input = document.createElement("input");
+	input.type = "file";
+	input.multiple = true;
+	input.accept = firmwareAccept.value;
+	input.hidden = true;
+	document.body.appendChild(input);
+	input.addEventListener("change", () => {
+		const files = input.files;
+		input.remove();
+		onFirmwarePicked(files);
+	}, { once: true });
+	input.click();
 }
 
-async function onFirmwarePicked(event: Event) {
-	const target = event.target as HTMLInputElement;
-	const files = target.files;
-	target.value = "";
+async function onFirmwarePicked(files: FileList | null) {
 	if (!files || files.length === 0) {
 		return;
 	}

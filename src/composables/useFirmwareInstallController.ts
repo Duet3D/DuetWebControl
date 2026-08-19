@@ -85,13 +85,17 @@ export function useFirmwareInstallController(): FirmwareInstallController {
 				Events.emit("installPlugin", { zipFilename: e.file.name, zipBlob: e.file, zipFile: e.archive, start: true });
 				return;
 			}
-			if (!(e instanceof OperationCancelledError)) {
-				console.warn(e);
+			if (e instanceof OperationCancelledError) {
+				return;
 			}
-			// SBC package installs are dispatched from the classifier and report their own failures
-			if (e instanceof ZipExtractionError) {
-				uiStore.notifyError(e, i18n.global.t("notification.decompress.errorTitle"));
-			}
+			console.warn(e);
+			// SBC package installs are dispatched from the classifier and report their own failures.
+			// Anything else planFiles() can throw (a malformed zip, an unexpected error while
+			// classifying a file, ...) must still reach the user - silently swallowing it here made
+			// picking a file look like a complete no-op, with nothing to explain why
+			uiStore.notifyError(e, e instanceof ZipExtractionError
+				? i18n.global.t("notification.decompress.errorTitle")
+				: i18n.global.t("notification.firmwareInstall.planFailedTitle"));
 			return;
 		}
 
@@ -112,6 +116,19 @@ export function useFirmwareInstallController(): FirmwareInstallController {
 			// Auto-reload DWC after a www-only refresh of the same host
 			if (plan.webInterfaceTouched && machineStore.connector?.hostname === location.host) {
 				location.reload();
+				return;
+			}
+
+			// Nothing recognisable came out of this pick: classify() always finds SOME destination
+			// for a non-.deb file, so it landed on the SD card, but none of the branches above fired -
+			// it didn't match any connected board's firmwareFileName, a WiFi/display module, or a
+			// config file, so no M997 was queued and no reset prompt showed. Without this the whole
+			// pick looks like a no-op (a brief upload toast and then nothing) - most commonly because
+			// the picked file's name doesn't match what the connected board reports as its own
+			// firmwareFileName
+			if (plan.files.length > 0 && !plan.configReplaced && !plan.webInterfaceTouched) {
+				uiStore.log(LogLevel.warning, i18n.global.t("notification.firmwareInstall.notRecognisedTitle"),
+					i18n.global.t("notification.firmwareInstall.notRecognisedMessage"));
 			}
 		} catch (e) {
 			// upload() notifies about every file it failed to transfer, so no extra message here

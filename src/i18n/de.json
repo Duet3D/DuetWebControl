@@ -325,6 +325,11 @@
 			"standaloneUpdateInSbcModeError": "Sie versuchen ein DWC-Paket für den Standalone-Modus hochzuladen, obwohl die Maschine im SBC-Modus läuft. Dies wird nicht unterstützt. Bitte benutzen Sie apt update/upgrade, um ihr System zu aktualisieren.",
 			"sbcUpdateInStandaloneError": "Sie versuchen ein DWC-Paket für den SBC-Modus hochzuladen, obwohl die Maschine im Standalone-Modus läuft. Dies wird nicht unterstützt. Bitte verwenden Sie stattdessen das Paket DuetWebControl-SD.zip."
 		},
+		"firmwareInstall": {
+			"planFailedTitle": "Verarbeitung der ausgewählten Datei(en) fehlgeschlagen",
+			"notRecognisedTitle": "Firmware nicht erkannt",
+			"notRecognisedMessage": "Die Datei wurde hochgeladen, aber sie passte zu keinem verbundenen Board, Modul oder keiner Konfigurationsdatei, daher wurde nichts installiert. Bitte überprüfen Sie, ob der Dateiname zu Ihrem Board passt."
+		},
 		"delete": {
 			"errorTitle": "Konnte {0} nicht löschen",
 			"errorMessageDirectory": "Bitte stellen Sie sicher, dass das ausgewählte Verzeichnis leer ist",

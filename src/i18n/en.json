@@ -325,6 +325,11 @@
 			"standaloneUpdateInSbcModeError": "You are trying to upload a standalone DWC bundle in SBC mode. This is NOT supported. Please use apt update/upgrade to update your system.",
 			"sbcUpdateInStandaloneError": "You are trying to upload an SBC DWC bundle in standalone mode. This is NOT supported. Please use the DuetWebControl-SD.zip package instead."
 		},
+		"firmwareInstall": {
+			"planFailedTitle": "Failed to process the selected file(s)",
+			"notRecognisedTitle": "Firmware not recognised",
+			"notRecognisedMessage": "The file was uploaded, but it did not match any connected board, module, or configuration file, so nothing was installed. Please check the filename matches what your board expects."
+		},
 		"delete": {
 			"errorTitle": "Failed to delete {0}",
 			"errorMessageDirectory": "Please make sure that this directory is empty",
