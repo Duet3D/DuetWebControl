@@ -234,8 +234,7 @@ const emit = defineEmits<{
 }>();
 
 const machineStore = useMachineStore();
-const { accelerometers, hasExternalAccelerometers, doCode, waitForAccelerometerRun, getSamplingRate } = useAccelerometer();
-const samplingRates = new Map<string, number>();
+const { accelerometers, hasExternalAccelerometers, doCode, waitForAccelerometerRun, getCollectionRate } = useAccelerometer();
 
 // #region OM-derived computeds
 const move = computed(() => machineStore.model.move);
@@ -554,10 +553,7 @@ async function recordMove(moveIndex: number, hadSelectedTool = false) {
 		}
 
 		// Record 0.75s of ringing (plus the move itself if requested) so that the frequency resolution does not depend on the sampling rate
-		if (!samplingRates.has(m.accelerometer!)) {
-			samplingRates.set(m.accelerometer!, await getSamplingRate(m.accelerometer!));
-		}
-		const samplingRate = samplingRates.get(m.accelerometer!)!;
+		const samplingRate = getCollectionRate(m.accelerometer!);
 		const endParams = moveAxes.map((axis) => `${axis}${m.end}`).join(" ");
 		if (recordWholeMove.value) {
 			const numSamples = Math.ceil(1.05 * samplingRate * (getMoveDuration(m) + 0.75));

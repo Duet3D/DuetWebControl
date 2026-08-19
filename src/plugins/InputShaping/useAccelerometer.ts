@@ -6,6 +6,10 @@ import { computed, type Ref, watch } from "vue";
 import { useMachineStore } from "@/stores/machine";
 import Path from "@/utils/path";
 
+// Assumed for an accelerometer the firmware has not reported a rate for. Erring low only shortens that
+// recording, whereas erring high stretches the collection and can starve an expansion board's main task
+const defaultSamplingRate = 1000;
+
 /**
  * Shared accelerometer helpers for the recording dialogs and file lists
  */
@@ -25,6 +29,15 @@ export function useAccelerometer() {
 		}
 	}
 
+	function getAccelerometerBoard(accelerometerId: string): Board | undefined {
+		const matches = /(\d+)(\.\d+)?/.exec(accelerometerId);
+		if (!matches) {
+			return undefined;
+		}
+		const boardId = parseInt(matches[1]);
+		return boards.value.find((b) => (!b.canAddress && !boardId) || b.canAddress === boardId);
+	}
+
 	// Resolve when the board's accelerometer.runs counter advances - i.e. the firmware finished
 	// writing the CSV. Polled rather than watched-on-the-board because the OM proxy doesn't expose
 	// a path-based watch for nested fields without reactive scaffolding at the call site
@@ -33,12 +46,7 @@ export function useAccelerometer() {
 			throw new OperationCancelledError();
 		}
 
-		const matches = /(\d+)(\.\d+)?/.exec(accelerometerId);
-		if (!matches) {
-			throw new Error("Failed to get accelerometer board ID");
-		}
-		const boardId = parseInt(matches[1]);
-		const board = boards.value.find((b) => (!b.canAddress && !boardId) || b.canAddress === boardId);
+		const board = getAccelerometerBoard(accelerometerId);
 		if (!board) {
 			throw new Error("Failed to get accelerometer board");
 		}
@@ -73,19 +81,15 @@ export function useAccelerometer() {
 		}
 	}
 
-	// Query the sampling rate of an accelerometer via M955, falls back to a generous default if the reply cannot be parsed
-	async function getSamplingRate(accelerometerId: string): Promise<number> {
-		try {
-			const reply = await machineStore.sendCode(`M955 P${accelerometerId}`);
-			const matches = /at (\d+)\s*Hz/.exec(typeof reply === "string" ? reply : "");
-			if (matches) {
-				return parseInt(matches[1]);
-			}
-		} catch (e) {
-			console.warn(e);
-		}
-		return 2000;
+	// Stays 0 on firmware that does not report it and on remote boards that M955 has not touched since they started
+	function getSamplingRate(accelerometerId: string): number {
+		return getAccelerometerBoard(accelerometerId)?.accelerometer?.samplingRate ?? 0;
 	}
 
-	return { boards, accelerometers, hasExternalAccelerometers, doCode, waitForAccelerometerRun, loadAccelerometerFile, getSamplingRate };
+	// Rate to size a collection for, which must not exceed the real one or the recording is cut short
+	function getCollectionRate(accelerometerId: string): number {
+		return getSamplingRate(accelerometerId) || defaultSamplingRate;
+	}
+
+	return { boards, accelerometers, hasExternalAccelerometers, doCode, waitForAccelerometerRun, loadAccelerometerFile, getSamplingRate, getCollectionRate };
 }

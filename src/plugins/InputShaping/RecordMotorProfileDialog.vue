@@ -112,7 +112,7 @@
 									<tr v-for="move in enabledMoves" :key="move.motor">
 										<td class="px-0">{{ move.motor }}</td>
 										<td>{{ getMotorOption(move.motor)?.label }}</td>
-										<td class="px-0" :title="`${Math.floor(getMaxSpeed(move) * 60)} mm/min`">{{ Math.floor(getMaxSpeed(move)) }}</td>
+										<td class="px-0" :title="`${Math.floor(getMaxRecordingSpeed(move) * 60)} mm/min`">{{ Math.floor(getMaxRecordingSpeed(move)) }}</td>
 										<td class="text-no-wrap">{{ getFullStepFrequencyLabel(move) }}</td>
 									</tr>
 								</tbody>
@@ -194,6 +194,7 @@ import { useMachineStore } from "@/stores/machine";
 
 import { getAxisWords, getConstantSpeedWindow, getMotorFeedrate, getMotorProfileFilename, type MotorMove } from "./motorProfiles";
 import { useAccelerometer } from "./useAccelerometer";
+import { useMotorAnalysisSettings } from "./useMotorAnalysisSettings";
 import { useMotorMoves } from "./useMotorMoves";
 
 const MoveState = {
@@ -216,8 +217,11 @@ interface MoveConfig {
 	length: number;
 }
 
-// Full-step frequencies the default speeds aim for (in Hz)
-const defaultFullStepFrequencies = [25, 50, 100, 200, 400];
+// Full-step frequencies the default speeds aim for (in Hz). The top entries only materialize on accelerometers fast enough for them
+const defaultFullStepFrequencies = [25, 50, 100, 200, 400, 800];
+
+// analyzeMotorHarmonics refines the fundamental within 5% of the nominal frequency and drops every harmonic whose search range reaches Nyquist
+const harmonicSearchMargin = 1.05;
 
 // Longest recording the default lengths aim for and beyond which a warning is shown (in s)
 const defaultMaxDuration = 30, warnDuration = 50;
@@ -236,9 +240,10 @@ const emit = defineEmits<{
 }>();
 
 const machineStore = useMachineStore();
-const { accelerometers, getSamplingRate } = useAccelerometer();
+const { accelerometers, getSamplingRate, getCollectionRate } = useAccelerometer();
 const motorMoves = useMotorMoves();
 const { move, isCoreKinematics, motorOptions, getMotorOption, getCenter, buildMove } = motorMoves;
+const { numHarmonics } = useMotorAnalysisSettings();
 
 // #region OM-derived computeds
 const machineState = computed(() => machineStore.model.state);
@@ -256,7 +261,6 @@ const recordings = ref<Array<MoveItem>>([]);
 const run = ref(0);
 const finished = ref(false);
 const cancelled = ref(false);
-const samplingRates = new Map<string, number>();
 
 const canGoNext = computed(() => {
 	if (currentPage.value === "start") {
@@ -266,7 +270,7 @@ const canGoNext = computed(() => {
 		return enabledMoves.value.length > 0 && enabledMoves.value.every((m) => !!m.accelerometer && !!getMotorOption(m.motor) && m.length > 0 && m.length <= getMaxLength(m));
 	}
 	if (currentPage.value === "feedrates") {
-		return speeds.value.length > 0 && enabledMoves.value.every((m) => travelSpeed.value > 0 && travelSpeed.value <= getMaxSpeed(m) && speeds.value.every((speed) => speed > 0 && speed <= getMaxSpeed(m)));
+		return speeds.value.length > 0 && enabledMoves.value.every((m) => travelSpeed.value > 0 && travelSpeed.value <= getMaxSpeed(m) && speeds.value.every((speed) => speed > 0 && speed <= getMaxRecordingSpeed(m)));
 	}
 	return false;
 });
@@ -287,13 +291,23 @@ function toMotorMove(m: MoveConfig, speed: number): MotorMove {
 	return buildMove(getMotorOption(m.motor)!, m.length, speed, m.accelerometer);
 }
 
+// Above this speed the highest analyzed harmonic passes the accelerometer's Nyquist frequency and the analysis drops it
+function getMaxRecordingSpeed(m: MoveConfig): number {
+	const samplingRate = m.accelerometer ? getSamplingRate(m.accelerometer) : 0;
+	if (samplingRate <= 0 || !getMotorOption(m.motor)) {
+		return getMaxSpeed(m);
+	}
+	const probe = toMotorMove(m, 0);
+	return Math.min(getMaxSpeed(m), samplingRate / (2 * harmonicSearchMargin * numHarmonics.value * probe.fullStepsPerMm * probe.stepFactor));
+}
+
 // Sweep the default full-step frequencies of the first motor as far as every enabled move's speed limit and constant-speed requirement allow
 function makeSpeeds() {
 	if (enabledMoves.value.length === 0) {
 		speeds.value = [];
 		return;
 	}
-	const first = toMotorMove(enabledMoves.value[0], 0), maxSpeed = Math.min(...enabledMoves.value.map(getMaxSpeed));
+	const first = toMotorMove(enabledMoves.value[0], 0), maxSpeed = Math.min(...enabledMoves.value.map(getMaxRecordingSpeed));
 	const candidates = defaultFullStepFrequencies.map((frequency) => Math.min(maxSpeed, Math.round(frequency / first.fullStepsPerMm / first.stepFactor * 10) / 10)).filter((speed) => enabledMoves.value.every((m) => hasConstantSpeedSegment(toMotorMove(m, speed))));
 	speeds.value = Array.from(new Set(candidates));
 	if (speeds.value.length === 0) {
@@ -363,10 +377,7 @@ async function recordMove(moveIndex: number) {
 	const m = recordings.value[moveIndex];
 	m.state = MoveState.recording;
 	try {
-		if (!samplingRates.has(m.accelerometer!)) {
-			samplingRates.set(m.accelerometer!, await getSamplingRate(m.accelerometer!));
-		}
-		await motorMoves.recordMove(m, getMotorProfileFilename(run.value, m), travelSpeed.value, samplingRates.get(m.accelerometer!)!, cancelled);
+		await motorMoves.recordMove(m, getMotorProfileFilename(run.value, m), travelSpeed.value, getCollectionRate(m.accelerometer!), cancelled);
 		m.state = MoveState.finished;
 
 		if (moveIndex + 1 < recordings.value.length) {

@@ -161,7 +161,7 @@ const defaultFullStepFrequency = 400;
 const dialogShown = defineModel<boolean>("shown", { required: true });
 
 const machineStore = useMachineStore();
-const { accelerometers, doCode, loadAccelerometerFile, getSamplingRate } = useAccelerometer();
+const { accelerometers, doCode, loadAccelerometerFile, getCollectionRate } = useAccelerometer();
 const motorMoves = useMotorMoves();
 const { move, motorOptions, getMotorOption, buildMove } = motorMoves;
 const { showDisplacement } = useMotorAnalysisSettings();
@@ -222,7 +222,7 @@ const measurements = ref<Array<TuningMeasurement>>([]);
 const results = ref<Array<HarmonicTuningResult>>([]);
 const previousCorrections = ref<Array<PhaseCorrection>>([]);
 const previousShaping = ref<{ type: string; frequency: number; damping: number } | null>(null);
-let fileCounter = 0, samplingRate = 2000;
+let fileCounter = 0;
 
 const resultCodes = computed(() => results.value.filter((result) => result.best.amplitude < result.baseline).map((result) => `${correctionCommand.value} P${driverId.value} S${result.harmonic} J${result.best.magnitude.toFixed(2)} O${result.best.phase.toFixed(1)}`));
 
@@ -261,7 +261,7 @@ async function measure(harmonic: number, magnitude: number, phase: number): Prom
 
 	// The move is recorded as a round trip so that both directions contribute equally to every measurement; the two constant-speed windows are analyzed separately and averaged
 	const filename = `${tuningFilePrefix}${++fileCounter}.csv`;
-	await motorMoves.recordMove(currentMove.value!, filename, speed.value, samplingRate, cancelled, true);
+	await motorMoves.recordMove(currentMove.value!, filename, speed.value, getCollectionRate(accelerometer.value!), cancelled, true);
 	const dataset = await loadAccelerometerFile(filename, 8);
 	await machineStore.delete(Path.combine(Path.accelerometer, filename));
 
@@ -287,8 +287,6 @@ async function start() {
 	measurements.value = [];
 	results.value = [];
 	try {
-		samplingRate = await getSamplingRate(accelerometer.value!);
-
 		// Remember what to restore, then disable input shaping. The corrections are tuned in whatever step mode the motor uses
 		const reply = await machineStore.sendCode(`${correctionCommand.value} P${driverId.value}`);
 		previousCorrections.value = parsePhaseCorrections(typeof reply === "string" ? reply : "");

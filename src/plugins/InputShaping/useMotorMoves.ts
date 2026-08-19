@@ -115,7 +115,7 @@ export function useMotorMoves() {
 		}
 
 		// Only the constant-speed part is analyzed, so stop collecting shortly after it (after the one of the way back on a round trip);
-		// the margin covers the delay between M956 and the start of the move, the 5% headroom the actual accelerometer rate exceeding the nominal M955 rate
+		// the margin covers the delay between M956 and the start of the move, the 5% headroom this run collecting faster than the last one it was measured from
 		const window = getConstantSpeedWindow(m);
 		const numSamples = Math.ceil(1.05 * samplingRate * ((roundTrip ? window.moveDuration : 0) + window.start + 0.9 * window.duration + 0.15));
 		const moves = `G1 ${getAxisWords(m, m.end)} F${m.feedrate}` + (roundTrip ? ` G1 ${getAxisWords(m, m.start)} F${m.feedrate}` : "");
