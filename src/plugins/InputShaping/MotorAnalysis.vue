@@ -92,12 +92,6 @@
 			<template v-if="!individualFiles">
 				<v-row v-if="selectedRun" class="ma-0 px-1 pt-2 flex-grow-0">
 					<v-col cols="3" class="py-0 px-2">
-						<v-btn-toggle v-model="summaryView" density="compact" variant="outlined" mandatory divided class="w-100">
-							<v-btn value="chart" class="flex-grow-1">{{ $t("plugins.accelerometer.chartView") }}</v-btn>
-							<v-btn value="table" class="flex-grow-1">{{ $t("plugins.accelerometer.tableView") }}</v-btn>
-						</v-btn-toggle>
-					</v-col>
-					<v-col cols="3" class="py-0 px-2">
 						<v-btn-toggle v-model="selectedMotor" density="compact" variant="outlined" mandatory divided class="w-100">
 							<v-btn v-for="motor in runMotors" :key="motor" :value="motor" class="flex-grow-1">{{ motor }} {{ $t("plugins.accelerometer.motor") }}</v-btn>
 						</v-btn-toggle>
@@ -110,6 +104,12 @@
 					</v-col>
 					<v-col cols="3" class="py-0 px-2">
 						<v-select v-model="numHarmonics" :items="[2, 4, 8]" :label="$t('plugins.accelerometer.numHarmonics')" density="compact" variant="outlined" hide-details />
+					</v-col>
+					<v-col cols="3" class="py-0 px-2">
+						<v-btn-toggle v-model="summaryView" density="compact" variant="outlined" mandatory divided class="w-100">
+							<v-btn value="chart" class="flex-grow-1">{{ $t("plugins.accelerometer.chartView") }}</v-btn>
+							<v-btn value="table" class="flex-grow-1">{{ $t("plugins.accelerometer.tableView") }}</v-btn>
+						</v-btn-toggle>
 					</v-col>
 				</v-row>
 				<div v-if="!selectedRun" class="result-hint d-flex align-center justify-center">
@@ -306,6 +306,17 @@ const datasets = ref(new Map<string, AccelerometerDataset>());
 const view = ref<MotorView>("harmonics");
 const { showDisplacement, numHarmonics } = useMotorAnalysisSettings();
 
+// Analyzing a recording takes seconds at high sampling rates, so every result is kept for as long as its dataset is.
+// The harmonics depend on the number of them the user asked for, hence the cached result carries it
+const analyses = new Map<string, { numHarmonics: number; result: ProfileAnalysis }>();
+const spectra = new Map<string, FrequencyAnalysisResult>();
+
+function forgetProfile(filename: string) {
+	datasets.value.delete(filename);
+	analyses.delete(filename);
+	spectra.delete(filename);
+}
+
 function getNominalFrequency(profile: MotorProfile): number {
 	return getFullStepFrequency(getMotorFeedrate(profile), profile.fullStepsPerMm, 1);
 }
@@ -327,6 +338,10 @@ function getProfileSubtitle(profile: MotorProfile): string {
 // #region Analysis
 // Sample range covering the constant-speed part of the move, trimmed by 10% on each side to stay clear of the ramps
 function analyzeProfile(profile: MotorProfile, data: AccelerometerDataset): ProfileAnalysis | null {
+	const cached = analyses.get(profile.filename);
+	if (cached && cached.numHarmonics === numHarmonics.value) {
+		return cached.result;
+	}
 	const window = getConstantSpeedWindow(profile), rate = data.samplingRate;
 	if (window.duration <= 0) {
 		return null;
@@ -334,11 +349,13 @@ function analyzeProfile(profile: MotorProfile, data: AccelerometerDataset): Prof
 	const start = Math.min(data.samples[0].length - 1, Math.round((window.start + 0.1 * window.duration) * rate));
 	const end = Math.min(data.samples[0].length, Math.round((window.start + 0.9 * window.duration) * rate));
 	const samples = data.samples.map((axisSamples) => axisSamples.slice(start, end));
-	return {
+	const result = {
 		harmonics: analyzeMotorHarmonics(samples, rate, getNominalFrequency(profile), numHarmonics.value),
 		start,
 		end
 	};
+	analyses.set(profile.filename, { numHarmonics: numHarmonics.value, result });
+	return result;
 }
 
 // Convert g into um of displacement per frequency when requested
@@ -457,7 +474,11 @@ const spectrum = computed<FrequencyAnalysisResult | null>(() => {
 	if (view.value !== "spectrum" || !analysis.value) {
 		return null;
 	}
-	return analyzeAccelerometerData(dataset.value!.samples.map((axisSamples) => axisSamples.slice(analysis.value!.start, analysis.value!.end)), dataset.value!.samplingRate, true, true);
+	const filename = selectedProfile.value!.filename;
+	if (!spectra.has(filename)) {
+		spectra.set(filename, analyzeAccelerometerData(dataset.value!.samples.map((axisSamples) => axisSamples.slice(analysis.value!.start, analysis.value!.end)), dataset.value!.samplingRate, true, true));
+	}
+	return spectra.get(filename)!;
 });
 
 // Sub-orders below the fundamental plus the integer orders, combined over all accelerometer axes per profile
@@ -497,7 +518,7 @@ async function deleteProfile(profile: MotorProfile) {
 	if (selectedProfile.value?.filename === profile.filename) {
 		selectedProfile.value = null;
 	}
-	datasets.value.delete(profile.filename);
+	forgetProfile(profile.filename);
 	await machineStore.delete(Path.combine(Path.accelerometer, profile.filename));
 	emit("refresh");
 }
@@ -507,7 +528,7 @@ async function deleteRun(group: RunGroup) {
 		selectedRun.value = null;
 	}
 	for (const profile of group.profiles) {
-		datasets.value.delete(profile.filename);
+		forgetProfile(profile.filename);
 		await machineStore.delete(Path.combine(Path.accelerometer, profile.filename));
 	}
 	emit("refresh");
@@ -570,7 +591,7 @@ watch(profiles, (to) => {
 	}
 	for (const filename of datasets.value.keys()) {
 		if (!to.some((profile) => profile.filename === filename)) {
-			datasets.value.delete(filename);
+			forgetProfile(filename);
 		}
 	}
 });

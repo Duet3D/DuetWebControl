@@ -75,7 +75,7 @@
 						<v-icon class="mr-1">mdi-transition</v-icon>
 						{{ $t("plugins.accelerometer.inputShaping") }}
 					</v-tab>
-					<v-tab value="motor">
+					<v-tab v-if="tunableMotors.length > 0" value="motor">
 						<v-icon class="mr-1">mdi-axis-arrow</v-icon>
 						{{ $t("plugins.accelerometer.motorAnalysis") }}
 					</v-tab>
@@ -364,6 +364,7 @@ import { isTuningFile } from "./motorTuning";
 import RecordMotionProfileDialog from "./RecordMotionProfileDialog.vue";
 import RecordMotorProfileDialog from "./RecordMotorProfileDialog.vue";
 import TuneMotorDialog from "./TuneMotorDialog.vue";
+import { useMotorMoves } from "./useMotorMoves";
 
 const machineStore = useMachineStore();
 const uiStore = useUiStore();
@@ -374,6 +375,8 @@ const shaping = computed<InputShapingModel>(() => machineStore.model.move.shapin
 const isInputShapingEnabled = computed(() => shaping.value.type !== InputShapingType.none);
 // 81 entries cover 10-90Hz at 1Hz resolution - the sweep for the current-shaper chart shown while no profile is selected
 const currentFrequencies = computed(() => Array.from({ length: 81 }, (_, index) => index + 10));
+
+const { tunableMotors } = useMotorMoves();
 
 const tab = ref<"inputshaping" | "motor">("inputshaping");
 const showDataCollection = ref(false);
@@ -637,6 +640,11 @@ watch(() => shaping.value.delays, (to) => {
 	}
 }, { deep: true });
 
+watch(tunableMotors, (to) => {
+	if (to.length === 0 && tab.value === "motor") {
+		tab.value = "inputshaping";
+	}
+});
 watch(() => shaping.value.frequency, (to) => { frequency.value = to; });
 
 watch(() => shaping.value.damping, (to) => { damping.value = to; });

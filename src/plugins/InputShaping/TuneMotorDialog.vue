@@ -12,19 +12,6 @@
 					<v-window-item value="config">
 						<div class="mb-5">{{ $t("plugins.accelerometer.tuneIntro") }}</div>
 
-						<v-alert v-if="!allAxesHomed" type="warning" variant="tonal" class="my-3" density="compact">
-							<div class="d-flex align-center">
-								{{ $t("plugins.accelerometer.notHomed") }}
-								<v-spacer />
-								<CodeButton code="G28" size="small" color="warning" variant="flat" class="ml-3">
-									{{ $t("plugins.accelerometer.homeAll") }}
-								</CodeButton>
-							</div>
-						</v-alert>
-						<v-alert v-if="accelerometers.length === 0" type="error" variant="tonal" class="my-3" density="compact">
-							{{ $t("plugins.accelerometer.noAccelerometer") }}
-						</v-alert>
-
 						<v-row class="mt-1">
 							<v-col cols="6">
 								<v-select v-model="motor" :items="motorItems" :label="$t('plugins.accelerometer.motor')" density="compact" variant="outlined" hide-details />
@@ -51,6 +38,18 @@
 							</v-col>
 						</v-row>
 
+						<v-alert v-if="accelerometers.length === 0" type="error" variant="tonal" density="compact" class="mt-1">
+							{{ $t("plugins.accelerometer.noAccelerometer") }}
+						</v-alert>
+						<v-alert v-if="!allAxesHomed" type="warning" variant="tonal" density="compact" class="mt-1">
+							<div class="d-flex align-center">
+								{{ $t("plugins.accelerometer.notHomed") }}
+								<v-spacer />
+								<CodeButton code="G28" size="small" color="warning" variant="flat" class="ml-3">
+									{{ $t("plugins.accelerometer.homeAll") }}
+								</CodeButton>
+							</div>
+						</v-alert>
 						<v-alert v-if="!phaseStepping" type="info" variant="tonal" density="compact" class="mt-1">
 							{{ $t("plugins.accelerometer.tuneStepDirHint") }}
 						</v-alert>
@@ -163,7 +162,7 @@ const dialogShown = defineModel<boolean>("shown", { required: true });
 const machineStore = useMachineStore();
 const { accelerometers, doCode, loadAccelerometerFile, getCollectionRate } = useAccelerometer();
 const motorMoves = useMotorMoves();
-const { move, motorOptions, getMotorOption, buildMove } = motorMoves;
+const { move, tunableMotors, getMotorOption, buildMove } = motorMoves;
 const { showDisplacement } = useMotorAnalysisSettings();
 
 // Standard gravity in mm/s^2 for converting g into displacement
@@ -178,7 +177,7 @@ const length = ref(0);
 const tuneHarmonics = ref<Array<number>>([2, 4]);
 
 const allAxesHomed = computed(() => !move.value.axes.some((axis) => axis.visible && !axis.homed));
-const motorItems = computed(() => motorOptions.value.map((option) => ({ title: `${option.motor} ${i18n.global.t("plugins.accelerometer.motor")} (${option.label})`, value: option.motor })));
+const motorItems = computed(() => tunableMotors.value.map((option) => ({ title: `${option.motor} ${i18n.global.t("plugins.accelerometer.motor")} (${option.label})`, value: option.motor })));
 const option = computed(() => motor.value ? getMotorOption(motor.value) ?? null : null);
 const maxSpeed = computed(() => option.value ? Math.floor(motorMoves.getMaxSpeed(option.value)) : 0);
 const maxLength = computed(() => option.value ? motorMoves.getMaxLength(option.value) : 0);
@@ -197,8 +196,8 @@ const speedHint = computed(() => currentMove.value ? `${getFullStepFrequency(get
 const canStart = computed(() => !!option.value && !!accelerometer.value && !!driverId.value && allAxesHomed.value && tuneHarmonics.value.length > 0 && speed.value > 0 && speed.value <= maxSpeed.value && length.value > 0 && length.value <= maxLength.value && !!currentMove.value && getConstantSpeedWindow(currentMove.value).duration > 0);
 
 function applyDefaults() {
-	if (!motor.value || !getMotorOption(motor.value)) {
-		motor.value = motorOptions.value[0]?.motor ?? null;
+	if (!motor.value || !tunableMotors.value.some((option) => option.motor === motor.value)) {
+		motor.value = tunableMotors.value[0]?.motor ?? null;
 	}
 	if (!accelerometer.value || !accelerometers.value.includes(accelerometer.value)) {
 		accelerometer.value = accelerometers.value[0] ?? null;

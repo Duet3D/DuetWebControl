@@ -18,6 +18,9 @@ export interface MotorOption {
 	stepFactor: number;
 }
 
+// A waveform correction is stored in the sine table of a TMC5160-class driver, which M569.2 only reaches on the main board
+const waveformTuningBoards = ["MB6HC"];
+
 /**
  * Motor-isolating moves through the center of the axes and their recording, shared by the motor profile and tuning dialogs
  */
@@ -64,6 +67,11 @@ export function useMotorMoves() {
 		}
 		return options;
 	});
+
+	// Motors whose driver can carry a waveform correction, i.e. a local driver of a board with programmable sine tables
+	const tunableMotors = computed<Array<MotorOption>>(() => waveformTuningBoards.includes(machineStore.model.boards[0]?.shortName ?? "")
+		? motorOptions.value.filter((option) => (move.value.axes.find((axis) => axis.letter === option.motor)?.drivers[0]?.board ?? 0) === 0)
+		: []);
 
 	function getMotorOption(motor: string): MotorOption | undefined {
 		return motorOptions.value.find((option) => option.motor === motor);
@@ -123,5 +131,5 @@ export function useMotorMoves() {
 		await waitForAccelerometerRun(m.accelerometer!, cancelled);
 	}
 
-	return { move, isCoreKinematics, motorOptions, getMotorOption, getCenter, getMaxLength, getMaxSpeed, buildMove, recordMove };
+	return { move, isCoreKinematics, motorOptions, tunableMotors, getMotorOption, getCenter, getMaxLength, getMaxSpeed, buildMove, recordMove };
 }

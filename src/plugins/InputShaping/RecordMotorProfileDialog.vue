@@ -194,7 +194,6 @@ import { useMachineStore } from "@/stores/machine";
 
 import { getAxisWords, getConstantSpeedWindow, getMotorFeedrate, getMotorProfileFilename, type MotorMove } from "./motorProfiles";
 import { useAccelerometer } from "./useAccelerometer";
-import { useMotorAnalysisSettings } from "./useMotorAnalysisSettings";
 import { useMotorMoves } from "./useMotorMoves";
 
 const MoveState = {
@@ -243,7 +242,6 @@ const machineStore = useMachineStore();
 const { accelerometers, getSamplingRate, getCollectionRate } = useAccelerometer();
 const motorMoves = useMotorMoves();
 const { move, isCoreKinematics, motorOptions, getMotorOption, getCenter, buildMove } = motorMoves;
-const { numHarmonics } = useMotorAnalysisSettings();
 
 // #region OM-derived computeds
 const machineState = computed(() => machineStore.model.state);
@@ -291,14 +289,15 @@ function toMotorMove(m: MoveConfig, speed: number): MotorMove {
 	return buildMove(getMotorOption(m.motor)!, m.length, speed, m.accelerometer);
 }
 
-// Above this speed the highest analyzed harmonic passes the accelerometer's Nyquist frequency and the analysis drops it
+// Above this speed the full-step frequency itself passes the accelerometer's Nyquist frequency and the analysis fails.
+// Harmonics above it are only dropped, so they must not limit the speed as well
 function getMaxRecordingSpeed(m: MoveConfig): number {
 	const samplingRate = m.accelerometer ? getSamplingRate(m.accelerometer) : 0;
 	if (samplingRate <= 0 || !getMotorOption(m.motor)) {
 		return getMaxSpeed(m);
 	}
 	const probe = toMotorMove(m, 0);
-	return Math.min(getMaxSpeed(m), samplingRate / (2 * harmonicSearchMargin * numHarmonics.value * probe.fullStepsPerMm * probe.stepFactor));
+	return Math.min(getMaxSpeed(m), Math.floor(samplingRate / (2 * harmonicSearchMargin * probe.fullStepsPerMm * probe.stepFactor) * 10) / 10);
 }
 
 // Sweep the default full-step frequencies of the first motor as far as every enabled move's speed limit and constant-speed requirement allow
