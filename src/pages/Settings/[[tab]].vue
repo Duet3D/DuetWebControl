@@ -1376,14 +1376,14 @@ function pickFirmwareFiles() {
 
 async function onFirmwarePicked(event: Event) {
 	const target = event.target as HTMLInputElement;
-	const files = target.files;
+	const files = (target.files !== null) ? Array.from(target.files) : [];
 	target.value = "";
-	if (!files || files.length === 0) {
+	if (files.length === 0) {
 		return;
 	}
 	installingFirmware.value = true;
 	try {
-		await firmwareController.runFirmwareUpload(Array.from(files));
+		await firmwareController.runFirmwareUpload(files);
 	} finally {
 		installingFirmware.value = false;
 	}
