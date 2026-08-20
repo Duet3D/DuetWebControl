@@ -134,44 +134,32 @@ export default class Gauge {
 	}
 
 	update(currentValue: number): void {
-		//Prevent transitions from queueing up when the browser goes to background
-		if (document.hidden) {
-			return;
-		}
-
-		const that = this;
+		const previousValue = this.currentValue;
+		this.currentValue = currentValue;
 
 		this.updateTempText();
 		// No need to run an animation if the temperature has not changed
-		if (Math.floor(this.currentValue) === Math.floor(currentValue)) {
+		if (Math.floor(previousValue) === Math.floor(currentValue)) {
 			return;
 		}
 
 		this.svg.attr('title', i18n.global.t('plugins.gcodeViewer.maxTemp', [this.max]));
 
 		//Live Temp
+		const currentRotation = this.getRotationAngle(previousValue);
+		const targetRotation = this.getRotationAngle(currentValue);
+		// Never leave more than one schedule pending; d3 piles them up on the node when the main thread stalls
 		this.svgCursor
+			.interrupt()
 			.transition()
 			.duration(200)
-			.attrTween('transform', function () {
-				const targetRotation = that.getRotationAngle(currentValue);
-				const currentRotation = that.getRotationAngle(that.currentValue);
-				return function (step: number) {
-					const stepRotation = currentRotation + (targetRotation - currentRotation) * step;
-					that.currentValue = currentValue;
-					return 'rotate(' + stepRotation + ')';
-				};
-			});
+			.attrTween('transform', () => (step: number) => `rotate(${currentRotation + (targetRotation - currentRotation) * step})`);
 
 		this.svgSetTemp
 			.attr('transform', `rotate(${this.getRotationAngle(this.setTemperature)})`);
 	}
 
 	updateState(state: string): void {
-		if (document.hidden) {
-			return;
-		}
-
 		let stateCSS = 'gauge-off';
 		switch (state) {
 			case 'off':
