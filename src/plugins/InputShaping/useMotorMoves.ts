@@ -18,8 +18,8 @@ export interface MotorOption {
 	stepFactor: number;
 }
 
-// A waveform correction is stored in the sine table of a TMC5160-class driver, which M569.2 only reaches on the main board
-const waveformTuningBoards = ["MB6HC"];
+// Boards whose TMC5160-class drivers have a programmable sine table that M569.2 can reach; expansion boards need firmware 3.7.0-beta.4 or later
+const waveformTuningBoards = ["MB6HC", "EXP3HC", "EXP1HCL", "M23CL"];
 
 /**
  * Motor-isolating moves through the center of the axes and their recording, shared by the motor profile and tuning dialogs
@@ -68,10 +68,11 @@ export function useMotorMoves() {
 		return options;
 	});
 
-	// Motors whose driver can carry a waveform correction, i.e. a local driver of a board with programmable sine tables
-	const tunableMotors = computed<Array<MotorOption>>(() => waveformTuningBoards.includes(machineStore.model.boards[0]?.shortName ?? "")
-		? motorOptions.value.filter((option) => (move.value.axes.find((axis) => axis.letter === option.motor)?.drivers[0]?.board ?? 0) === 0)
-		: []);
+	// Motors whose driver can carry a waveform correction, i.e. a driver of a board with programmable sine tables
+	const tunableMotors = computed<Array<MotorOption>>(() => motorOptions.value.filter((option) => {
+		const driverBoard = move.value.axes.find((axis) => axis.letter === option.motor)?.drivers[0]?.board ?? 0;
+		return waveformTuningBoards.includes(machineStore.model.boards.find((board) => (board.canAddress ?? 0) === driverBoard)?.shortName ?? "");
+	}));
 
 	function getMotorOption(motor: string): MotorOption | undefined {
 		return motorOptions.value.find((option) => option.motor === motor);
