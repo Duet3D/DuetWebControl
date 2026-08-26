@@ -23,7 +23,7 @@
     "@duet3d/gcodeviewer": "~3.7.0-beta.3",
     "@duet3d/monacotokens": "~3.7.0-beta.2",
     "@duet3d/motionanalysis": "~3.7.0-beta.5",
-    "@duet3d/objectmodel": "~3.7.0-beta.17",
+    "@duet3d/objectmodel": "~3.7.0-beta.18",
     "@fontsource/roboto": "^5.2.10",
     "@mdi/font": "7.4.47",
     "chart.js": "^4.5.1",
