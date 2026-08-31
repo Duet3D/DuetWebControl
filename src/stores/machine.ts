@@ -343,8 +343,14 @@ export const useMachineStore = defineStore("machine", {
 				};
 				this.connector = await connect(hostname, settings);
 
+				// The bed and chamber heaters of the default model are placeholders for the
+				// disconnected UI. Drop them before the first update arrives, else firmware that
+				// reports the newer mapping instead of these lists would inherit them
+				this.model.heat.bedHeaters = [];
+				this.model.heat.chamberHeaters = [];
+
 				// Connection established
-				Events.emit("connected", hostname);	
+				Events.emit("connected", hostname);
 
 				// Load settings
 				try {

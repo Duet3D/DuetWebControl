@@ -87,7 +87,7 @@
 						</v-row>
 					</template>
 
-					<template v-for="(heaterIndices, idx) in heat.bedHeaterMapping" :key="`bed-${idx}`">
+					<template v-for="(heaterIndices, idx) in machineStore.bedHeaterMapping" :key="`bed-${idx}`">
 						<v-row v-for="(heaterIdx, subIdx) in heaterIndices" :key="`bed${idx}-${subIdx}`"
 							   density="compact" class="align-center justify-center">
 							<template v-if="heaterIdx >= 0">
@@ -102,7 +102,7 @@
 						</v-row>
 					</template>
 
-					<template v-for="(heaterIndices, idx) in heat.chamberHeaterMapping" :key="`chamber-${idx}`">
+					<template v-for="(heaterIndices, idx) in machineStore.chamberHeaterMapping" :key="`chamber-${idx}`">
 						<v-row v-for="(heaterIdx, subIdx) in heaterIndices" :key="`chamber${idx}-${subIdx}`"
 							   density="compact" class="align-center justify-center">
 							<template v-if="heaterIdx >= 0">
@@ -156,11 +156,15 @@ function getToolLabel(tool: Tool): string {
 	return tool.name === "" ? `Tool ${tool.number}` : tool.name;
 }
 
+// The mapping is padded with empty slots, so only slots with a heater count towards the labels
+const bedCount = computed(() => machineStore.bedHeaterMapping.filter(heaterIndices => heaterIndices.some(getHeaterInfo)).length);
+const chamberCount = computed(() => machineStore.chamberHeaterMapping.filter(heaterIndices => heaterIndices.some(getHeaterInfo)).length);
+
 function getBedLabel(bedIdx: number): string {
-	return heat.value.bedHeaterMapping.length <= 2 ? "Bed" : `Bed ${bedIdx}`;
+	return (bedCount.value > 1) ? `Bed ${bedIdx}` : "Bed";
 }
 
 function getChamberLabel(chamberIdx: number): string {
-	return heat.value.chamberHeaterMapping.length <= 2 ? "Chamber" : `Chamber ${chamberIdx}`;
+	return (chamberCount.value > 1) ? `Chamber ${chamberIdx}` : "Chamber";
 }
 </script>
