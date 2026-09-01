@@ -242,28 +242,29 @@ function showSign(value: number) {
 	return (value > 0) ? `+${value}` : value.toString();
 }
 
+// M292 is sent with noWait: in standalone mode a pending code swallows the next rr_reply, which belongs to the resumed macro
 async function ok() {
 	shown.value = false;
 	if ([MessageBoxMode.closeOnly, MessageBoxMode.okOnly, MessageBoxMode.okCancel].includes(messageBox.mode)) {
-		await machineStore.sendCode(`M292 S${messageBox.seq}`, false, false);
+		await machineStore.sendCode(`M292 S${messageBox.seq}`, false, false, true);
 	} else if (messageBox.mode === MessageBoxMode.intInput || messageBox.mode === MessageBoxMode.floatInput) {
-		await machineStore.sendCode(`M292 R{${numberInput.value}} S${messageBox.seq}`, false, false);
+		await machineStore.sendCode(`M292 R{${numberInput.value}} S${messageBox.seq}`, false, false, true);
 	} else if (messageBox.mode === MessageBoxMode.stringInput) {
-		await machineStore.sendCode(`M292 R{"${stringInput.value.replace(/"/g, '""').replace(/'/g, "''")}"} S${messageBox.seq}`, false, false);
+		await machineStore.sendCode(`M292 R{"${stringInput.value.replace(/"/g, '""').replace(/'/g, "''")}"} S${messageBox.seq}`, false, false, true);
 	}
 }
 
 async function accept(choice: number) {
 	shown.value = false;
 	if (messageBox.mode >= MessageBoxMode.multipleChoice) {
-		await machineStore.sendCode(`M292 R{${choice}} S${messageBox.seq}`, false, false);
+		await machineStore.sendCode(`M292 R{${choice}} S${messageBox.seq}`, false, false, true);
 	}
 }
 
 async function cancel() {
 	shown.value = false;
 	if (messageBox.cancelButton) {
-		await machineStore.sendCode(`M292 P1 S${messageBox.seq}`, false, false);
+		await machineStore.sendCode(`M292 P1 S${messageBox.seq}`, false, false, true);
 	}
 }
 </script>
