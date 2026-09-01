@@ -68,6 +68,7 @@ export default defineConfig({
 		// code we don't need (every browser we ship to supports <link rel="modulepreload">)
 		modulePreload: { polyfill: false },
 		rollupOptions: {
+			checks: { pluginTimings: false },
 			input: {
 				app: fileURLToPath(new URL('./index.html', import.meta.url)),
 			},

@@ -24,8 +24,8 @@ export const DefaultObjectModel = initObject(ObjectModel, {
 		{}
 	]),
 	heat: initObject(Heat, {
-		bedHeaterMapping: [
-			[0]
+		bedHeaters: [
+			0
 		],
 		heaters: initCollection(Heater, [
 			{},
