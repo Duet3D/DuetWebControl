@@ -12,15 +12,15 @@ let currentDownload = 0;
  * The file is downloaded at most once and held here, so every consumer (the G-code stream
  * panel, the 3D G-code viewer, ...) reads the same copy rather than each keeping its own.
  * The cache is replaced when the running job file changes. Consumers call {@link loadContent}
- * (typically on mount and whenever `job.file.fileName` changes) and read {@link content}
+ * (typically on mount and whenever {@link fileKey} changes) and read {@link content}
  * reactively.
  */
 export const useJobFileStore = defineStore("jobFile", {
 	state: () => ({
 		/**
-		 * Name of the file the cached content belongs to ("" when nothing is cached)
+		 * Key of the file the cached content belongs to ("" when nothing is cached)
 		 */
-		fileName: "",
+		cachedFileKey: "",
 
 		/**
 		 * Content of the currently running job file ("" while unloaded or downloading)
@@ -32,6 +32,17 @@ export const useJobFileStore = defineStore("jobFile", {
 		 */
 		loading: false,
 	}),
+	getters: {
+		/**
+		 * Identity of the currently running job file ("" if no job is running).
+		 * Size and timestamp are part of it so that re-uploading a file under the same name
+		 * and printing it again invalidates the cached content
+		 */
+		fileKey(): string {
+			const file = useMachineStore().model.job.file;
+			return (file !== null && file.fileName) ? `${file.fileName}\n${file.size}\n${file.lastModified}` : "";
+		},
+	},
 	actions: {
 		/**
 		 * Ensure the content of the currently running job file is downloaded and cached.
@@ -40,29 +51,29 @@ export const useJobFileStore = defineStore("jobFile", {
 		 */
 		async loadContent(): Promise<void> {
 			const machineStore = useMachineStore();
-			const fileName = machineStore.model.job.file?.fileName ?? "";
-			if (!fileName) {
-				this.fileName = "";
+			const file = machineStore.model.job.file;
+			if (file === null || !file.fileName) {
+				this.cachedFileKey = "";
 				this.content = "";
 				return;
 			}
-			if (this.fileName === fileName) {
+			if (this.cachedFileKey === this.fileKey) {
 				return;
 			}
 
 			const download = ++currentDownload;
-			this.fileName = fileName;
+			this.cachedFileKey = this.fileKey;
 			this.content = "";
 			this.loading = true;
 			try {
-				const text = await machineStore.download({ filename: fileName, type: "text" }, false, false, false) as string;
+				const text = await machineStore.download({ filename: file.fileName, type: "text" }, false, false, false) as string;
 				if (download === currentDownload) {
 					this.content = text;
 				}
 			} catch {
 				// File may have disappeared mid-job - drop the key so a later call retries
 				if (download === currentDownload) {
-					this.fileName = "";
+					this.cachedFileKey = "";
 				}
 			} finally {
 				if (download === currentDownload) {

@@ -632,6 +632,7 @@ import { useDisplay } from "vuetify";
 import CodeButton from "@/components/buttons/CodeButton.vue";
 import i18n from "@/i18n";
 import { useCacheStore } from "@/stores/cache";
+import { useJobFileStore } from "@/stores/jobFile";
 import { useMachineStore } from "@/stores/machine";
 import { showConfirmDialog } from "@/composables/useConfirmDialog";
 import { useSettingsStore } from "@/stores/settings";
@@ -657,6 +658,7 @@ const RENDER_MODE_MAP = [1, 2, 0];
 const machineStore = useMachineStore();
 const uiStore = useUiStore();
 const cacheStore = useCacheStore();
+const jobFileStore = useJobFileStore();
 const settingsStore = useSettingsStore();
 const display = useDisplay();
 const route = useRoute();
@@ -765,9 +767,10 @@ const fileData = ref("");
 // button, which also re-enables per-object cancellation
 const followingJob = ref(false);
 
-// True while the scene holds the running job as the viewer loaded it by itself. A job change or a
-// reconnect may replace such a scene, whereas a file the user picked is never overwritten
-const autoLoadedJob = ref(false);
+// Identity of the job file the viewer loaded by itself, empty for a file the user picked. A job
+// change or a reconnect may replace such a scene, whereas a user selection is never overwritten.
+// Holding the identity rather than a flag also catches a re-upload under the same file name
+const autoLoadedJobKey = ref("");
 
 // The scene, bed, camera and build-object machinery are created inside the worker's async engine
 // init, so config messages sent before it finishes would hit an undefined scene and be dropped.
@@ -1142,7 +1145,7 @@ async function loadText(text: string) {
 async function loadSdFile(path: string) {
 	selectedFile.value = path;
 	followingJob.value = false;
-	autoLoadedJob.value = false;
+	autoLoadedJobKey.value = "";
 	loading.value = true;
 	try {
 		const blob = await machineStore.download({ filename: Path.combine(path), type: "text" }, false, false, false);
@@ -1187,11 +1190,13 @@ function autoLoadRunningJob() {
 	if (!isJobRunning.value || loading.value) {
 		return;
 	}
-	if (visualizingCurrentJob.value) {
+	// Re-uploading a file under the same name and printing it again leaves the file name
+	// untouched, so only the job file identity tells an outdated scene from a current one
+	if (visualizingCurrentJob.value && (autoLoadedJobKey.value === "" || autoLoadedJobKey.value === jobFileStore.fileKey)) {
 		if (isEmbedded.value && !followingJob.value) {
 			resumeLiveView();
 		}
-	} else if (selectedFile.value === "" || autoLoadedJob.value) {
+	} else if (selectedFile.value === "" || autoLoadedJobKey.value !== "") {
 		loadRunningJob(isEmbedded.value);
 	}
 }
@@ -1202,7 +1207,7 @@ async function loadRunningJob(live = true) {
 	}
 	selectedFile.value = job.value.file.fileName;
 	followingJob.value = live;
-	autoLoadedJob.value = true;
+	autoLoadedJobKey.value = jobFileStore.fileKey;
 	loading.value = true;
 	try {
 		const blob = await machineStore.download({ filename: job.value.file.fileName, type: "text" }, false, false, false);
@@ -1259,7 +1264,7 @@ async function fileSelected(e: Event) {
 	}
 	selectedFile.value = "";
 	followingJob.value = false;
-	autoLoadedJob.value = false;
+	autoLoadedJobKey.value = "";
 	loading.value = true;
 	await loadText(await file.text());
 }
@@ -1273,7 +1278,7 @@ async function reloadviewer() {
 
 function clearScene() {
 	selectedFile.value = "";
-	autoLoadedJob.value = false;
+	autoLoadedJobKey.value = "";
 	loadedFileText.value = "";
 	fileData.value = "";
 	scrubFileSize.value = 0;
@@ -1669,7 +1674,7 @@ watch(visualizingCurrentJob, (newValue) => {
 
 // The running job changes under a viewer that is already showing one whenever the next job starts
 // or a reconnect resumes the previous one, and neither goes through the route
-watch([isJobRunning, () => job.value.file?.fileName], () => {
+watch([isJobRunning, () => jobFileStore.fileKey], () => {
 	autoLoadRunningJob();
 	// A job starting on the file that is already displayed keeps the scene, so there is no
 	// `fileloaded` to re-frame the camera the way every other way into a running job has

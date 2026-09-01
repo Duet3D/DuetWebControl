@@ -125,7 +125,7 @@ onBeforeUnmount(() => {
 	executionLine = null;
 });
 
-watch(() => machineStore.model.job.file?.fileName, () => jobFileStore.loadContent());
+watch(() => jobFileStore.fileKey, () => jobFileStore.loadContent());
 watch(() => jobFileStore.content, syncEditor);
 watch(() => machineStore.printingFilePosition, followPosition);
 watch(() => settingsStore.darkTheme, (dark) => {
