@@ -62,8 +62,8 @@ declare module 'vue-router/auto-routes' {
     '/Explorer/[[tab]]/[[volume]]/[[...path]]': RouteRecordInfo<
       '/Explorer/[[tab]]/[[volume]]/[[...path]]',
       '/Explorer/:tab?/:volume?/:path(.*)?',
-      { tab?: ParamValueZeroOrOne<true>, volume?: ParamValueZeroOrOne<true>, path?: ParamValueZeroOrOne<true> },
-      { tab?: ParamValueZeroOrOne<false>, volume?: ParamValueZeroOrOne<false>, path?: ParamValueZeroOrOne<false> },
+      { path?: ParamValueZeroOrOne<true>, tab?: ParamValueZeroOrOne<true>, volume?: ParamValueZeroOrOne<true> },
+      { path?: ParamValueZeroOrOne<false>, tab?: ParamValueZeroOrOne<false>, volume?: ParamValueZeroOrOne<false> },
       | never
     >,
     '/Job/Status': RouteRecordInfo<
@@ -83,8 +83,8 @@ declare module 'vue-router/auto-routes' {
     '/Jobs/[[volume]]/[[...path]]': RouteRecordInfo<
       '/Jobs/[[volume]]/[[...path]]',
       '/Jobs/:volume?/:path(.*)?',
-      { volume?: ParamValueZeroOrOne<true>, path?: ParamValueZeroOrOne<true> },
-      { volume?: ParamValueZeroOrOne<false>, path?: ParamValueZeroOrOne<false> },
+      { path?: ParamValueZeroOrOne<true>, volume?: ParamValueZeroOrOne<true> },
+      { path?: ParamValueZeroOrOne<false>, volume?: ParamValueZeroOrOne<false> },
       | never
     >,
     '/Macros': RouteRecordInfo<

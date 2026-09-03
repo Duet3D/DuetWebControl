@@ -44,3 +44,13 @@ export function ensureMonaco(machineStore?: ReturnType<typeof useMachineStore>):
 
 	return monacoSetup;
 }
+
+/**
+ * Resolve the per-editor G-code helpers: `attachGcodeFeatures` wires completion, hover and the
+ * duet.searchGcode action onto one editor instance, the other two derive cursor context from a line.
+ * Async so that neither this module nor anything importing it pulls monacotokens into its chunk
+ */
+export async function ensureGcodeFeatures(): Promise<Pick<typeof import("@duet3d/monacotokens"), "attachGcodeFeatures" | "isInsideExpression" | "findCodeAtCursor">> {
+	const { attachGcodeFeatures, isInsideExpression, findCodeAtCursor } = await import("@duet3d/monacotokens");
+	return { attachGcodeFeatures, isInsideExpression, findCodeAtCursor };
+}

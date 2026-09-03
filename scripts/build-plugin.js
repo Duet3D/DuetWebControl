@@ -79,6 +79,7 @@ const PLUGIN_GLOBALS = {
 	"@/utils/events": "DWC.Events",
 	"@/utils/expression": "DWC.Expression",
 	"@/utils/gcode": "DWC.Gcode",
+	"@/utils/monaco": "DWC.Monaco",
 	"@/utils/numbers": "DWC.Numbers",
 	"@/utils/path": "DWC.Path",
 	"@/utils/time": "DWC.Time",
@@ -464,7 +465,7 @@ export function typeCheckPlugin(pluginDir) {
 		// Absolute path targets so no `baseUrl` is needed (it is deprecated in TS 6) and the config's
 		// own location is irrelevant to resolution
 		const libPaths = {};
-		for (const lib of ["vue", "vue-router", "pinia", "vue-i18n", "vuetify", "@duet3d/objectmodel", "@duet3d/connectors"]) {
+		for (const lib of ["vue", "vue-router", "pinia", "vue-i18n", "vuetify", "@duet3d/objectmodel", "@duet3d/connectors", "@duet3d/monacotokens", "monaco-editor-core"]) {
 			libPaths[lib] = [join(DWC_ROOT, "node_modules", lib)];
 			libPaths[`${lib}/*`] = [join(DWC_ROOT, "node_modules", lib, "*")];
 		}

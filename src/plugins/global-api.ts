@@ -31,6 +31,7 @@ import * as Errors from "@/utils/errors";
 import Events from "@/utils/events";
 import * as Expression from "@/utils/expression";
 import * as Gcode from "@/utils/gcode";
+import * as Monaco from "@/utils/monaco";
 import * as Numbers from "@/utils/numbers";
 import Path from "@/utils/path";
 import * as Time from "@/utils/time";
@@ -62,6 +63,7 @@ type DwcGlobal = Record<string, unknown> & {
 	Events: typeof Events;
 	Expression: typeof Expression;
 	Gcode: typeof Gcode;
+	Monaco: typeof Monaco;
 	Numbers: typeof Numbers;
 	Path: typeof Path;
 	Time: typeof Time;
@@ -89,7 +91,7 @@ export function exposeGlobalAPI() {
 			Vue, VueRouter, Pinia, VueI18n, Vuetify, ObjectModel, Connectors,
 			i18n,
 			Beep: beep, Colors, Csv: CSV, Display, Download, Enums, Errors, Events,
-			Expression, Gcode, Numbers, Path, Time, Version,
+			Expression, Gcode, Monaco, Numbers, Path, Time, Version,
 			Components: {},
 			VuetifyComponents: { ...vuetifyCoreComponents },
 		},

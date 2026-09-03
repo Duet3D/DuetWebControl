@@ -131,7 +131,7 @@ import { useUiStore } from "@/stores/ui";
 import { useSettingsStore } from "@/stores/settings";
 import { indent } from "@/utils/display";
 import { getErrorMessage } from "@/utils/errors";
-import { ensureMonaco } from "@/utils/monaco";
+import { ensureGcodeFeatures, ensureMonaco } from "@/utils/monaco";
 import Path from "@/utils/path";
 
 const props = defineProps<{
@@ -357,7 +357,7 @@ async function bootstrap() {
 		});
 
 		if (isGCode.value) {
-			const { attachGcodeFeatures, isInsideExpression, findCodeAtCursor } = await import("@duet3d/monacotokens");
+			const { attachGcodeFeatures, isInsideExpression, findCodeAtCursor } = await ensureGcodeFeatures();
 			detachGcodeFeatures = attachGcodeFeatures(monaco!, editor);
 
 			// Sync cursor-derived flags on every caret move: cursorInExpression switches the Find
