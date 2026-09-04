@@ -546,7 +546,7 @@ export const useSettingsStore = defineStore("settings", {
 		/**
 		 * Time to wait before retrying a failed HTTP request (in ms)
 		 */
-		retryDelay: 200,
+		retryDelay: 100,
 
 		/**
 		 * Time between HTTP object model requests (in ms)
