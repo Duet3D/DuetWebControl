@@ -67,7 +67,7 @@
 			"mainBoard": "Main board firmware",
 			"expansionBoard": "Expansion board #{0} firmware",
 			"wifiServer": "WiFi server firmware",
-			"display": "PanelDue / DuetScreen firmware",
+			"display": "PanelDue firmware",
 			"sbcWarning": "You are operating your machine in SBC mode. Please upgrade the firmware using DWC only if advised by the firmware developers."
 		},
 		"configUpdated": {

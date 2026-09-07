@@ -67,7 +67,7 @@
 			"mainBoard": "Mainboard-Firmware",
 			"expansionBoard": "Firmware Erweiterungsboard #{0}",
 			"wifiServer": "WLAN-Server-Firmware",
-			"display": "PanelDue-/DuetScreen-Firmware",
+			"display": "PanelDue-Firmware",
 			"sbcWarning": "Sie betreiben ihre Maschine im SBC-Modus. Bitte aktualisieren Sie die Firmware mittels DWC nur sofern dies von den Firmwareentwicklern empfohlen wurde."
 		},
 		"configUpdated": {

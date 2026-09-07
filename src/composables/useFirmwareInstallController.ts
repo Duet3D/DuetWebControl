@@ -23,6 +23,11 @@ import { isPrinting } from "@/utils/enums";
 import { ZipExtractionError } from "@/utils/errors";
 import Events from "@/utils/events";
 
+// Release bundle names, tolerating anything between the base name and the extension the same way
+// board binaries are matched, so a versioned or browser-de-duplicated download is still recognised
+const standaloneBundle = /^duetwebcontrol-sd(.*)\.zip$/i;
+const sbcBundle = /^duetwebcontrol-sbc(.*)\.zip$/i;
+
 export interface FirmwareInstallController {
 	runFirmwareUpload(files: Array<File>): Promise<void>;
 	firmwareDialog: { shown: boolean; plan: FirmwareUpdatePlan | null };
@@ -63,12 +68,12 @@ export function useFirmwareInstallController(): FirmwareInstallController {
 		// bundle fits - RestConnector is SBC mode, PollConnector is standalone
 		const connector = machineStore.connector;
 		for (const file of files) {
-			const name = file.name.toLowerCase();
-			if (connector instanceof RestConnector && name === "duetwebcontrol-sd.zip") {
+			const name = file.name;
+			if (connector instanceof RestConnector && standaloneBundle.test(name)) {
 				uiStore.log(LogLevel.error, i18n.global.t("notification.decompress.wrongBundleTitle"), i18n.global.t("notification.decompress.standaloneUpdateInSbcModeError"));
 				return;
 			}
-			if (connector instanceof PollConnector && name === "duetwebcontrol-sbc.zip") {
+			if (connector instanceof PollConnector && sbcBundle.test(name)) {
 				uiStore.log(LogLevel.error, i18n.global.t("notification.decompress.wrongBundleTitle"), i18n.global.t("notification.decompress.sbcUpdateInStandaloneError"));
 				return;
 			}

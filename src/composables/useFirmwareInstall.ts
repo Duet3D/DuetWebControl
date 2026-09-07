@@ -24,12 +24,14 @@ const webExtensions: Array<string> = [
 	".woff", ".woff2", ".jpeg", ".jpg", ".png"
 ];
 
-const panelDueDisplays = new Set<string>(["PanelDueFirmware.bin", "DuetScreen.bin"]);
+// M997 S4 pushes this file over the PanelDue serial port. DuetScreen is a separate product that
+// updates itself from its own SD card or a USB stick, so its image must never be routed here
+const panelDueFirmwareFile = "PanelDueFirmware.bin";
 
-// Bundles of system packages that DuetPluginService unpacks and installs itself. The suffix lets
-// callers distinguish multiple bundles (dsf-update-full.zip) without them being mistaken for an
-// ordinary firmware ZIP, which would be expanded and have its members classified individually
-const systemPackageBundle = /^dsf-update(-.+)?\.zip$/i;
+// Bundles of system packages that DuetPluginService unpacks and installs itself. Anything between
+// the base name and the extension is tolerated, so both dsf-update-full.zip and a browser's
+// dsf-update (1).zip are recognised without an ordinary firmware ZIP being mistaken for one
+const systemPackageBundle = /^dsf-update(.*)\.zip$/i;
 
 export interface FirmwareUpdatePlan {
 	/**
@@ -59,7 +61,7 @@ export interface FirmwareUpdatePlan {
 	wifiServer: boolean;
 
 	/**
-	 * Whether the connected PanelDue/DuetScreen firmware was uploaded
+	 * Whether PanelDue firmware was uploaded
 	 */
 	display: boolean;
 }
@@ -102,6 +104,9 @@ export function useFirmwareInstall() {
 		};
 	}
 
+	// Anything between the base name and the extension is tolerated: a download keeps its version
+	// (Duet2CombinedFirmware-3.7.0.bin) and a browser de-duplicates it into Duet2CombinedFirmware (1).bin,
+	// yet both have to resolve to the canonical name the firmware looks for
 	function matchesBoardBinary(boardValue: string, fileName: string): boolean {
 		const binRegEx = new RegExp(boardValue.replace(/\.bin$/, "(.*)\\.bin"), "i");
 		const uf2RegEx = new RegExp(boardValue.replace(/\.uf2$/, "(.*)\\.uf2"), "i");
@@ -230,17 +235,19 @@ export function useFirmwareInstall() {
 			return Path.combine(ctx.directories.firmware, iapSd);
 		}
 
-		// WiFi server / display binaries are matched against board metadata too
+		// The WiFi server binary is matched against board metadata too
 		if (!ctx.hasSbc && ctx.hasWifi) {
-			if (ctx.mainboard !== null && ctx.mainboard.wifiFirmwareFileName === name) {
+			const wifiServer = ctx.mainboard ? ctx.mainboard.wifiFirmwareFileName : null;
+			if (wifiServer !== null && wifiServer.length > 0 && matchesBoardBinary(wifiServer, name)) {
 				plan.wifiServer = true;
-				return Path.combine(ctx.directories.firmware, name);
+				return Path.combine(ctx.directories.firmware, wifiServer);
 			}
 		}
 
 		if (/\.bin$/i.test(name) || /\.uf2$/i.test(name)) {
-			if (panelDueDisplays.has(name)) {
+			if (matchesBoardBinary(panelDueFirmwareFile, name)) {
 				plan.display = true;
+				return Path.combine(ctx.directories.firmware, panelDueFirmwareFile);
 			}
 			return Path.combine(ctx.directories.firmware, name);
 		}
