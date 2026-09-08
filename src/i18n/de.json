@@ -109,6 +109,21 @@
 			"title": "Neues Verzeichnis",
 			"prompt": "Bitte einen Namen für das neue Verzeichnis eingeben:"
 		},
+		"newFilament": {
+			"title": "Neues Filament",
+			"prompt": "Bitte einen Namen für das neue Filament eingeben:"
+		},
+		"duplicateFilament": {
+			"title": "Filament duplizieren",
+			"prompt": "Bitte einen Namen für die Filamentkopie eingeben:"
+		},
+		"renameFilament": {
+			"title": "Filament noch geladen",
+			"prompt": "{0} ist derzeit geladen. Nach dem Umbenennen wird beim Entladen ein fehlendes Entlade-Makro gemeldet. Fortfahren?"
+		},
+		"deleteFilament": {
+			"stillLoaded": "Mindestens eines davon ist derzeit geladen, beim Entladen wird daher ein fehlendes Entlade-Makro gemeldet."
+		},
 		"rename": {
 			"title": "{0} umbenennen",
 			"prompt": "Bitte den neuen Namen eingeben:"
@@ -331,11 +346,6 @@
 			"success": "{0} wurde erfolgreich gelöscht",
 			"successMultiple": "{0} Elemente sind erfolgreich gelöscht worden"
 		},
-		"deleteFilament": {
-			"errorTitle": "Konnte Filament(e) nicht löschen",
-			"errorStillLoaded": "Mindestens eins der ausgewählten Filamente ist noch geladen. Bitte erst entladen bevor Sie fortfahren",
-			"errorSubDirectories": "Das Filament {0} enthält Unterverzeichnisse. Bitte löschen Sie diese erst händisch und versuchen Sie es erneut"
-		},
 		"message": "Nachricht",
 		"view": "Anzeigen",
 		"mount": {
@@ -367,10 +377,6 @@
 		"rename": {
 			"success": "{0} wurde erfolgreich nach {1} umbenannt",
 			"error": "Konnte {0} nicht nach {1} umbenennen"
-		},
-		"renameFilament": {
-			"errorTitle": "Konnte Filament nicht umbenennen",
-			"errorStillLoaded": "Dieses Filament ist noch geladen. Bitte erst entladen bevor Sie fortfahren"
 		},
 		"outputTruncated": "Ausgabe gekürzt, siehe Konsole",
 		"install": {},
@@ -500,6 +506,9 @@
 		"newDirectory": {
 			"caption": "Neues Verzeichnis"
 		},
+		"newFilament": {
+			"caption": "Neues Filament"
+		},
 		"delete": {
 			"caption": "Löschen"
 		},
@@ -575,7 +584,8 @@
 			}
 		},
 		"filament": {
-			"noFilaments": "Keine Filamente"
+			"noFilaments": "Keine Filamente",
+			"duplicate": "Duplizieren"
 		},
 		"system": {
 			"noFiles": "Keine Dateien",

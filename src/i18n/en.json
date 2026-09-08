@@ -109,6 +109,21 @@
 			"title": "New Directory",
 			"prompt": "Please enter a name for the new directory:"
 		},
+		"newFilament": {
+			"title": "New Filament",
+			"prompt": "Please enter a name for the new filament:"
+		},
+		"duplicateFilament": {
+			"title": "Duplicate Filament",
+			"prompt": "Please enter a name for the filament copy:"
+		},
+		"renameFilament": {
+			"title": "Filament still loaded",
+			"prompt": "{0} is currently loaded. After renaming it, unloading will report a missing unload macro. Continue?"
+		},
+		"deleteFilament": {
+			"stillLoaded": "At least one of them is currently loaded, so unloading will report a missing unload macro."
+		},
 		"rename": {
 			"title": "Rename {0}",
 			"prompt": "Please enter the new name:"
@@ -331,11 +346,6 @@
 			"success": "Successfully deleted {0}",
 			"successMultiple": "Successfully deleted {0} items"
 		},
-		"deleteFilament": {
-			"errorTitle": "Failed to delete filament(s)",
-			"errorStillLoaded": "At least one of the selected filaments is still loaded. Please unload them before you proceed",
-			"errorSubDirectories": "The filament {0} contains sub-directories. Please delete them manually and try again."
-		},
 		"systemPackageInstall": {
 			"success": "Installation of {0} successful",
 			"error": "Failed to install {0}"
@@ -375,10 +385,6 @@
 		"rename": {
 			"success": "Successfully renamed {0} to {1}",
 			"error": "Failed to rename {0} to {1}"
-		},
-		"renameFilament": {
-			"errorTitle": "Failed to rename filament",
-			"errorStillLoaded": "This filament is still loaded. Please unload it before you proceed"
 		},
 		"outputTruncated": "Output truncated, see Console",
 		"freeSpaceWarning": {
@@ -498,6 +504,9 @@
 		"newDirectory": {
 			"caption": "New Directory"
 		},
+		"newFilament": {
+			"caption": "New Filament"
+		},
 		"delete": {
 			"caption": "Delete"
 		},
@@ -573,7 +582,8 @@
 			}
 		},
 		"filament": {
-			"noFilaments": "No Filaments"
+			"noFilaments": "No Filaments",
+			"duplicate": "Duplicate"
 		},
 		"system": {
 			"noFiles": "No Files",

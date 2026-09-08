@@ -187,8 +187,9 @@
 
 				<v-btn v-if="!noNewDirectory" variant="text" icon :size="toolbarBtnSize"
 					   :disabled="uiStore.uiFrozen"
-					   :title="$t('button.newDirectory.caption')" @click="startNewDirectory">
-					<v-icon>mdi-folder-plus</v-icon>
+					   :title="inFilamentsRoot ? $t('button.newFilament.caption') : $t('button.newDirectory.caption')"
+					   @click="startNewDirectory">
+					<v-icon>{{ inFilamentsRoot ? "mdi-database-plus" : "mdi-folder-plus" }}</v-icon>
 				</v-btn>
 
 				<v-menu v-if="effectiveViewMode === 'tiles'">
@@ -257,8 +258,9 @@
 					<v-list-item v-if="!noNewFile" prepend-icon="mdi-file-plus"
 								 :title="$t('button.newFile.caption')"
 								 :disabled="uiStore.uiFrozen" @click="startNewFile" />
-					<v-list-item v-if="!noNewDirectory" prepend-icon="mdi-folder-plus"
-								 :title="$t('button.newDirectory.caption')"
+					<v-list-item v-if="!noNewDirectory"
+								 :prepend-icon="inFilamentsRoot ? 'mdi-database-plus' : 'mdi-folder-plus'"
+								 :title="inFilamentsRoot ? $t('button.newFilament.caption') : $t('button.newDirectory.caption')"
 								 :disabled="uiStore.uiFrozen" @click="startNewDirectory" />
 					<v-divider v-if="!noViewMode" />
 					<v-list-item v-if="!noViewMode" prepend-icon="mdi-view-dashboard-edit-outline"
@@ -414,6 +416,12 @@
 				<v-list-item-title>
 					{{ isZipDownload ? $t("list.fileList.downloadZIP") : $t("list.fileList.download") }}
 				</v-list-item-title>
+			</v-list-item>
+			<v-list-item v-if="canDuplicateFilament" @click="duplicateFilamentFromContext">
+				<template #prepend>
+					<v-icon>mdi-content-duplicate</v-icon>
+				</template>
+				<v-list-item-title>{{ $t("list.filament.duplicate") }}</v-list-item-title>
 			</v-list-item>
 			<v-list-item v-if="!noRename && selection.length === 1" @click="startRename">
 				<template #prepend>
@@ -580,6 +588,19 @@ const inGCodeDirectory = computed(() => {
 	const gCodes = machineStore.model.directories.gCodes;
 	return Path.startsWith(dir, gCodes) || Path.getVolume(dir) !== Path.getVolume(gCodes);
 });
+
+// Every directory directly below the filaments root is one filament, which turns new-directory
+// into new-filament and unlocks the filament-specific actions
+const inFilamentsRoot = computed(() => Path.equals(browser.directory.value, machineStore.model.directories.filaments));
+
+// Macros RRF runs from a filament directory, created empty with every new filament
+const FILAMENT_MACROS = ["load.g", "config.g", "unload.g"];
+
+// Renaming or deleting a loaded filament does not break the unload sequence, RRF only warns that
+// unload.g is gone, so this asks instead of refusing
+function isFilamentLoaded(name: string): boolean {
+	return inFilamentsRoot.value && machineStore.model.move.extruders.some((extruder) => extruder.filament === name);
+}
 
 // Per-directory upload filter, mirroring v3.6's upload targets so the picker only offers files that
 // belong in the browsed directory. Empty (no restriction) for macros, menu and external volumes
@@ -1012,15 +1033,30 @@ async function startNewFile() {
 }
 
 async function startNewDirectory() {
-	const name = (await getStringInput(i18n.global.t("dialog.newDirectory.title"), i18n.global.t("dialog.newDirectory.prompt")))?.trim();
+	const title = inFilamentsRoot.value ? i18n.global.t("dialog.newFilament.title") : i18n.global.t("dialog.newDirectory.title");
+	const prompt = inFilamentsRoot.value ? i18n.global.t("dialog.newFilament.prompt") : i18n.global.t("dialog.newDirectory.prompt");
+	const name = (await getStringInput(title, prompt))?.trim();
 	if (!name) {
 		return;
 	}
+	const directory = Path.combine(browser.directory.value, name);
 	try {
-		await machineStore.makeDirectory(Path.combine(browser.directory.value, name));
+		await machineStore.makeDirectory(directory);
 	} catch (e) {
 		console.warn(e);
-		uiStore.log(LogLevel.error, i18n.global.t("notification.newDirectory.errorTitle"), getErrorMessage(e));
+		uiStore.log(LogLevel.error, inFilamentsRoot.value ? i18n.global.t("notification.newFilament.errorTitle") : i18n.global.t("notification.newDirectory.errorTitle"), getErrorMessage(e));
+		return;
+	}
+	if (inFilamentsRoot.value) {
+		try {
+			for (const macro of FILAMENT_MACROS) {
+				await machineStore.upload({ filename: Path.combine(directory, macro), content: new Blob() }, false, false);
+			}
+			uiStore.log(LogLevel.success, i18n.global.t("notification.newFilament.successTitle"), i18n.global.t("notification.newFilament.successMessage", [name]));
+		} catch (e) {
+			console.warn(e);
+			uiStore.log(LogLevel.error, i18n.global.t("notification.newFilament.errorTitleMacros"), getErrorMessage(e));
+		}
 	}
 }
 
@@ -1031,6 +1067,9 @@ async function startRename() {
 	const oldName = selection.value[0];
 	const name = (await getStringInput(i18n.global.t("dialog.rename.title", [oldName]), i18n.global.t("dialog.rename.prompt"), oldName))?.trim();
 	if (!name || name === oldName) {
+		return;
+	}
+	if (isFilamentLoaded(oldName) && !await showConfirmDialog(i18n.global.t("dialog.renameFilament.title"), i18n.global.t("dialog.renameFilament.prompt", [oldName]), "mdi-rename-box")) {
 		return;
 	}
 	const dir = browser.directory.value;
@@ -1052,9 +1091,12 @@ async function startDelete() {
 		return;
 	}
 	const items = [...selection.value];
-	const prompt = items.length === 1
+	let prompt = items.length === 1
 		? i18n.global.t("dialog.delete.promptSingle", [items[0]])
 		: i18n.global.t("dialog.delete.promptMultiple", [items.length]);
+	if (items.some(isFilamentLoaded)) {
+		prompt += ` ${i18n.global.t("dialog.deleteFilament.stillLoaded")}`;
+	}
 	if (await showConfirmDialog(i18n.global.t("dialog.delete.title"), prompt, "mdi-delete")) {
 		await performDelete(items);
 	}
@@ -1556,6 +1598,38 @@ const canRunAsMacro = computed(() => {
 	}
 	return RUN_MACRO_FILE_RE.test(target.name);
 });
+
+const canDuplicateFilament = computed(() => {
+	const target = contextMenu.target;
+	return target !== null && target.isDirectory && inFilamentsRoot.value;
+});
+
+// Neither RRF nor DSF can copy files, so a filament is duplicated by downloading its macros and
+// uploading them again under the new name
+async function duplicateFilamentFromContext() {
+	contextMenu.shown = false;
+	const target = contextMenu.target;
+	if (!target) {
+		return;
+	}
+	const name = (await getStringInput(i18n.global.t("dialog.duplicateFilament.title"), i18n.global.t("dialog.duplicateFilament.prompt")))?.trim();
+	if (!name) {
+		return;
+	}
+	const from = Path.combine(browser.directory.value, target.name), to = Path.combine(browser.directory.value, name);
+	try {
+		await machineStore.makeDirectory(to);
+		for (const item of await machineStore.getFileList(from)) {
+			if (!item.isDirectory) {
+				await machineStore.upload({ filename: Path.combine(to, item.name), content: await machineStore.download({ filename: Path.combine(from, item.name), type: "blob" }, false, false, false) }, false, false);
+			}
+		}
+		uiStore.log(LogLevel.success, i18n.global.t("notification.newFilament.successTitle"), i18n.global.t("notification.newFilament.successMessage", [name]));
+	} catch (e) {
+		console.warn(e);
+		uiStore.log(LogLevel.error, i18n.global.t("notification.newFilament.errorTitleMacros"), getErrorMessage(e));
+	}
+}
 
 // #region Config Tool chip
 // Show an "edit via config tool" chip next to /sys/config.json. Clicking it POSTs the JSON
