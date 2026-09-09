@@ -284,7 +284,7 @@
 
 								<v-divider class="mt-3" />
 
-								<v-text-field v-model.number="frequency" type="number" min="10" step="1" max="1000"
+								<v-text-field v-model.number="frequency" type="number" min="4" step="any" max="400"
 											  :disabled="uiStore.uiFrozen"
 											  :label="$t('plugins.accelerometer.centreFrequency')" class="mt-3 flex-grow-0"
 											  hide-details density="compact" variant="outlined"
@@ -373,8 +373,6 @@ const { mdAndUp } = useDisplay();
 const shaping = computed<InputShapingModel>(() => machineStore.model.move.shaping);
 
 const isInputShapingEnabled = computed(() => shaping.value.type !== InputShapingType.none);
-// 81 entries cover 10-90Hz at 1Hz resolution - the sweep for the current-shaper chart shown while no profile is selected
-const currentFrequencies = computed(() => Array.from({ length: 81 }, (_, index) => index + 10));
 
 const { tunableMotors } = useMotorMoves();
 
@@ -390,6 +388,14 @@ const customMenu = ref(false);
 const configuringCustomShaper = ref(false);
 const frequency = ref(0);
 const damping = ref(0.1);
+
+// Sweep for the current-shaper chart shown while no profile is selected, 10Hz upwards at 1Hz
+// resolution. The upper end follows the configured frequency so its marker and the response
+// around it stay inside the plot; up to 72Hz it stays at the historic 90Hz
+const currentFrequencies = computed(() => {
+	const maxFrequency = Math.max(90, Math.ceil(frequency.value * 1.25));
+	return Array.from({ length: maxFrequency - 9 }, (_, index) => index + 10);
+});
 
 const files = ref<Array<string>>([]);
 const filesLastModified = ref<Array<Date>>([]);
