@@ -8,6 +8,13 @@ import { getErrorMessage } from "./errors";
 import Events from "./events";
 import Path from "./path";
 
+// Vite raises this when a lazily loaded chunk cannot be fetched - flaky Wi-Fi, or a board that
+// dropped the request while it was busy. Not preventDefault()ed, so the failed import still
+// rejects and whoever awaited it can react as well
+window.addEventListener("vite:preloadError", (event) => {
+	useUiStore().log(LogLevel.error, i18n.global.t("event.chunkLoadError"), getErrorMessage(event.payload, true));
+})
+
 // Id of the connect error notification currently on screen, if any. Connect attempts retry on
 // a timer, so this keeps only one connect error toast visible at a time and clears it once a
 // connection is established

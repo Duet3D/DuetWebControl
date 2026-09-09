@@ -249,7 +249,8 @@
 		"disconnected": "Verbindung zu {0} getrennt",
 		"dwcPluginLoadError": "Konnte DWC-Plugin {0} nicht laden: {1}",
 		"startupError": "Fehler in Startdatei {0} Zeile {1}: {2}",
-		"settingsConflict": "Eine andere UI-Sitzung hat Einstellungen verändert, die Sie ebenfalls bearbeitet haben; Ihre Änderungen wurden beibehalten"
+		"settingsConflict": "Eine andere UI-Sitzung hat Einstellungen verändert, die Sie ebenfalls bearbeitet haben; Ihre Änderungen wurden beibehalten",
+		"chunkLoadError": "Ein Teil der Weboberfläche konnte nicht geladen werden, bitte laden Sie die Seite neu"
 	},
 	"generic": {
 		"ok": "OK",
@@ -402,6 +403,7 @@
 		"startupError": "Fehler in Startdatei {0} Zeile {1}: {2}"
 	},
 	"error": {
+		"editorLoadFailed": "Konnte den Code-Editor nicht laden: {0}",
 		"enterValidNumber": "Bitte geben Sie eine gültige Zahl ein",
 		"filamentsLoadFailed": "Konnte Filamente nicht laden",
 		"filelistRequestFailed": "Konnte Dateiliste nicht abfragen",

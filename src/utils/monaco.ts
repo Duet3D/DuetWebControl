@@ -28,6 +28,13 @@ export function ensureMonaco(machineStore?: ReturnType<typeof useMachineStore>):
 			tokens.registerDuetLanguages(monaco);
 			return monaco as unknown as typeof Monaco;
 		})();
+
+		// Drop a rejected setup so the next caller starts over. Boards under load do drop chunk
+		// requests, and keeping the rejection cached would leave every editor broken until reload
+		monacoSetup.catch(() => {
+			monacoSetup = null;
+			machineContextBound = false;
+		});
 	}
 
 	// Feed the live object model to the completion/hover providers. Kept out of the one-shot setup
@@ -39,7 +46,7 @@ export function ensureMonaco(machineStore?: ReturnType<typeof useMachineStore>):
 		void monacoSetup.then(async () => {
 			const tokens = await import("@duet3d/monacotokens");
 			watch(() => machineStore.model, (model) => tokens.setMachineContext({ model, getObjectModelDescription }), { immediate: true });
-		});
+		}).catch(() => { /* reported wherever ensureMonaco was awaited */ });
 	}
 
 	return monacoSetup;

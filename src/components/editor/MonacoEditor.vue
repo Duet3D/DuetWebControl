@@ -161,6 +161,7 @@ const dirty = ref(false);
 watch(dirty, (value) => emit("dirty", value));
 
 let editor: Monaco.editor.IStandaloneCodeEditor | null = null;
+let monacoNamespace: typeof Monaco | null = null;
 let originalValue: string | null = "";
 let detachGcodeFeatures: Monaco.IDisposable | null = null;
 
@@ -271,6 +272,7 @@ async function bootstrap() {
 		useMonaco.value = settingsStore.editor.useMonaco;
 
 		const monaco = useMonaco.value ? await ensureMonaco(machineStore) : null;
+		monacoNamespace = monaco;
 
 		// Fetch the file content first; building the editor with the wrong content forces a
 		// second model swap once it lands which is visually noisy. A route data loader may have
@@ -396,11 +398,7 @@ onBeforeUnmount(() => {
 });
 
 watch(() => settingsStore.darkTheme, (dark) => {
-	if (editor) {
-		import("monaco-editor-core").then((monaco) => {
-			monaco.editor.setTheme(dark ? "vs-dark" : "vs");
-		}).catch(() => {});
-	}
+	monacoNamespace?.editor.setTheme(dark ? "vs-dark" : "vs");
 });
 
 // Re-apply editor preferences whenever the user tweaks them in Settings > Editor. tabSize lives

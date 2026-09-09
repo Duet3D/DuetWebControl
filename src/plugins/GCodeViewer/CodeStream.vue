@@ -10,6 +10,7 @@
 		<div v-if="monacoLoading" class="d-flex justify-center align-center fill-height">
 			<v-progress-circular indeterminate color="primary" />
 		</div>
+		<v-alert v-else-if="loadError" type="error" variant="tonal" tile>{{ loadError }}</v-alert>
 		<div ref="editorHost" class="fill-height" />
 	</div>
 </template>
@@ -17,7 +18,10 @@
 <script setup lang="ts">
 import type * as Monaco from "monaco-editor-core";
 
+import i18n from "@/i18n";
 import { useSettingsStore } from "@/stores/settings";
+import { useUiStore } from "@/stores/ui";
+import { getErrorMessage } from "@/utils/errors";
 import { ensureMonaco } from "@/utils/monaco";
 
 const props = defineProps<{
@@ -32,9 +36,11 @@ const emit = defineEmits<{
 }>();
 
 const settingsStore = useSettingsStore();
+const uiStore = useUiStore();
 
 const editorHost = ref<HTMLElement | null>(null);
 const monacoLoading = ref(false);
+const loadError = ref<string | null>(null);
 // editor instance is intentionally not reactive; Vue's proxy would walk Monaco's internals and
 // disturb its widget-position bookkeeping. We keep it as a module-scope variable instead
 let editor: Monaco.editor.IStandaloneCodeEditor | null = null;
@@ -82,15 +88,22 @@ function followPosition() {
 
 onMounted(async () => {
 	monacoLoading.value = true;
-	const monaco = await ensureMonaco();
-	monacoLoading.value = false;
+	let monaco: typeof Monaco;
+	try {
+		monaco = await ensureMonaco();
+	} catch (e) {
+		loadError.value = i18n.global.t("error.editorLoadFailed", [getErrorMessage(e)]);
+		return;
+	} finally {
+		monacoLoading.value = false;
+	}
 	nextTick(() => {
 		if (!editorHost.value) {
 			return;
 		}
 		editor = monaco.editor.create(editorHost.value, {
 			automaticLayout: true,
-			language: "gcode",
+			language: uiStore.isFFF ? "gcode-fdm" : "gcode-cnc",
 			scrollBeyondLastLine: false,
 			theme: settingsStore.darkTheme ? "vs-dark" : "vs",
 			value: innerDocument,

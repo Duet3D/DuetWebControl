@@ -23,6 +23,7 @@
 		<div v-if="monacoLoading" class="d-flex justify-center align-center flex-grow-1">
 			<v-progress-circular indeterminate color="primary" />
 		</div>
+		<v-alert v-else-if="loadError" type="error" variant="tonal" tile>{{ loadError }}</v-alert>
 		<div ref="editorHost" class="editor-host" />
 	</div>
 </template>
@@ -35,6 +36,7 @@ import { useJobFileStore } from "@/stores/jobFile";
 import { useMachineStore } from "@/stores/machine";
 import { useSettingsStore } from "@/stores/settings";
 import { useUiStore } from "@/stores/ui";
+import { getErrorMessage } from "@/utils/errors";
 import { ensureMonaco } from "@/utils/monaco";
 
 const jobFileStore = useJobFileStore();
@@ -44,6 +46,7 @@ const uiStore = useUiStore();
 
 const editorHost = ref<HTMLElement | null>(null);
 const monacoLoading = ref(false);
+const loadError = ref<string | null>(null);
 
 // The editor instance and the resolved monaco namespace are intentionally not reactive:
 // Vue's proxy would walk Monaco's internals and disturb its widget-position bookkeeping
@@ -94,8 +97,14 @@ function followPosition() {
 
 onMounted(async () => {
 	monacoLoading.value = true;
-	monacoNamespace = await ensureMonaco(machineStore);
-	monacoLoading.value = false;
+	try {
+		monacoNamespace = await ensureMonaco(machineStore);
+	} catch (e) {
+		loadError.value = i18n.global.t("error.editorLoadFailed", [getErrorMessage(e)]);
+		return;
+	} finally {
+		monacoLoading.value = false;
+	}
 
 	await nextTick();
 	if (!editorHost.value) {

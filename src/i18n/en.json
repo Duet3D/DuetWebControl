@@ -249,7 +249,8 @@
 		"disconnected": "Disconnected from {0}",
 		"dwcPluginLoadError": "Failed to load DWC plugin {0}: {1}",
 		"startupError": "Error in start-up file {0} line {1}: {2}",
-		"settingsConflict": "Another UI session changed settings you also edited; your changes were kept"
+		"settingsConflict": "Another UI session changed settings you also edited; your changes were kept",
+		"chunkLoadError": "Failed to load a part of the web interface, please reload the page"
 	},
 	"generic": {
 		"ok": "OK",
@@ -400,6 +401,7 @@
 		}
 	},
 	"error": {
+		"editorLoadFailed": "Failed to load the code editor: {0}",
 		"enterValidNumber": "Please enter a valid number",
 		"filamentsLoadFailed": "Failed to load filaments",
 		"filelistRequestFailed": "Failed to get file list",
