@@ -17,6 +17,8 @@ export function useAccelerometer() {
 	const machineStore = useMachineStore();
 
 	const boards = computed<Array<Board>>(() => machineStore.model.boards.filter((b): b is Board => b !== null));
+	// Board tags for the rate lookup and profile filenames only. M956 always records with the accelerometer the last M955 C selected,
+	// and the OM does not say which board that is
 	const accelerometers = computed<Array<string>>(() => boards.value
 		.filter((b) => b.accelerometer !== null)
 		.map((b) => (b.canAddress ? `${b.canAddress}.0` : "0")));
@@ -38,21 +40,15 @@ export function useAccelerometer() {
 		return boards.value.find((b) => (!b.canAddress && !boardId) || b.canAddress === boardId);
 	}
 
-	// Resolve when the board's accelerometer.runs counter advances - i.e. the firmware finished
-	// writing the CSV. Polled rather than watched-on-the-board because the OM proxy doesn't expose
-	// a path-based watch for nested fields without reactive scaffolding at the call site
-	async function waitForAccelerometerRun(accelerometerId: string, cancelled: Ref<boolean>) {
+	// Resolve when any board's accelerometer.runs counter advances, i.e. the firmware finished writing the CSV.
+	// Any board because the OM does not say which one M956 records with
+	async function waitForAccelerometerRun(cancelled: Ref<boolean>) {
 		if (cancelled.value) {
 			throw new OperationCancelledError();
 		}
 
-		const board = getAccelerometerBoard(accelerometerId);
-		if (!board) {
-			throw new Error("Failed to get accelerometer board");
-		}
-
 		return new Promise<void>((resolve, reject) => {
-			const stop = watch(() => board.accelerometer?.runs ?? 0, () => {
+			const stop = watch(() => boards.value.reduce((sum, b) => sum + (b.accelerometer?.runs ?? 0), 0), () => {
 				if (cancelled.value) {
 					reject(new OperationCancelledError());
 				} else {

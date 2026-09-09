@@ -557,11 +557,11 @@ async function recordMove(moveIndex: number, hadSelectedTool = false) {
 		const endParams = moveAxes.map((axis) => `${axis}${m.end}`).join(" ");
 		if (recordWholeMove.value) {
 			const numSamples = Math.ceil(1.05 * samplingRate * (getMoveDuration(m) + 0.75));
-			await doCode(`M400 M956 P${m.accelerometer} S${numSamples} A0 F"${getMoveFilename(m)}" G1 ${endParams} F${maxSpeed.value}`);
+			await doCode(`M400 M956 P0 S${numSamples} A0 F"${getMoveFilename(m)}" G1 ${endParams} F${maxSpeed.value}`);
 		} else {
-			await doCode(`G1 ${endParams} F${maxSpeed.value} M400 M956 P${m.accelerometer} S${Math.ceil(samplingRate * 0.75)} A0 F"${getMoveFilename(m)}"`);
+			await doCode(`G1 ${endParams} F${maxSpeed.value} M400 M956 P0 S${Math.ceil(samplingRate * 0.75)} A0 F"${getMoveFilename(m)}"`);
 		}
-		await waitForAccelerometerRun(m.accelerometer!, cancelled);
+		await waitForAccelerometerRun(cancelled);
 
 		m.state = MoveState.finished;
 		if (moveIndex + 1 < moves.value.length) {
