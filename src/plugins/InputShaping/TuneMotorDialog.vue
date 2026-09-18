@@ -26,10 +26,10 @@
 								<v-text-field v-model.number="length" type="number" min="1" :max="maxLength" :label="$t('plugins.accelerometer.length')" density="compact" variant="outlined" hide-details />
 							</v-col>
 							<v-col cols="12" class="d-flex pt-0 mt-n2">
-								<v-tooltip :disabled="phaseStepping" location="bottom">
+								<v-tooltip :disabled="softwareCommutation" location="bottom">
 									<template #activator="{ props }">
 										<div v-bind="props" class="mr-4">
-											<v-checkbox v-model="tuneHarmonics" :value="2" :disabled="!phaseStepping" :label="$t('plugins.accelerometer.tuneHarmonic2')" density="compact" color="primary" hide-details />
+											<v-checkbox v-model="tuneHarmonics" :value="2" :disabled="!softwareCommutation" :label="$t('plugins.accelerometer.tuneHarmonic2')" density="compact" color="primary" hide-details />
 										</div>
 									</template>
 									{{ $t("plugins.accelerometer.tuneHarmonic2Tooltip") }}
@@ -50,7 +50,7 @@
 								</CodeButton>
 							</div>
 						</v-alert>
-						<v-alert v-if="!phaseStepping" type="info" variant="tonal" density="compact" class="mt-1">
+						<v-alert v-if="!softwareCommutation" type="info" variant="tonal" density="compact" class="mt-1">
 							{{ $t("plugins.accelerometer.tuneStepDirHint") }}
 						</v-alert>
 						<v-alert type="info" variant="tonal" density="compact" class="mt-1">
@@ -109,7 +109,7 @@
 								{{ (result.best.amplitude < result.baseline) ? $t("plugins.accelerometer.tuneImproved", [result.harmonic, formatAmplitude(result.baseline, result.harmonic), formatAmplitude(result.best.amplitude, result.harmonic), Math.round((1 - result.best.amplitude / result.baseline) * 100)]) : $t("plugins.accelerometer.tuneNoImprovement", [result.harmonic]) }}
 							</v-alert>
 							<v-alert v-if="resultCodes.length > 0" type="info" variant="tonal" density="compact" class="mt-3">
-								{{ phaseStepping ? $t("plugins.accelerometer.tuneResultCodesPhaseStepping") : $t("plugins.accelerometer.tuneResultCodes") }}
+								{{ softwareCommutation ? $t("plugins.accelerometer.tuneResultCodesPhaseStepping") : $t("plugins.accelerometer.tuneResultCodes") }}
 								<pre class="mt-1">{{ resultCodes.join("\n") }}</pre>
 							</v-alert>
 						</template>
@@ -141,7 +141,7 @@
 <script setup lang="ts">
 import { OperationCancelledError } from "@duet3d/connectors";
 import { analyzeMotorHarmonics, combineAxes, getDisplacementAmplitude, getFullStepFrequency } from "@duet3d/motionanalysis";
-import { InputShapingType } from "@duet3d/objectmodel";
+import { DriverMode, InputShapingType } from "@duet3d/objectmodel";
 
 import i18n from "@/i18n";
 import { useMachineStore } from "@/stores/machine";
@@ -181,14 +181,18 @@ const motorItems = computed(() => tunableMotors.value.map((option) => ({ title: 
 const option = computed(() => motor.value ? getMotorOption(motor.value) ?? null : null);
 const maxSpeed = computed(() => option.value ? Math.floor(motorMoves.getMaxSpeed(option.value)) : 0);
 const maxLength = computed(() => option.value ? motorMoves.getMaxLength(option.value) : 0);
-const numMoves = computed(() => tuneHarmonics.value.length * getMovesPerHarmonic(!phaseStepping.value));
+const numMoves = computed(() => tuneHarmonics.value.length * getMovesPerHarmonic(!softwareCommutation.value));
 
 // The driver that gets the correction commands is the first driver of the axis with the motor's letter.
-// In phase stepping mode the corrections go into M970.3, else into the driver's sine table via M569.2 where
-// only harmonics that are multiples of 4 with a phase of 0 or 180 degrees can be represented
-const driverId = computed(() => move.value.axes.find((axis) => axis.letter === motor.value)?.drivers[0]?.toString() ?? null);
+// Drivers that commutate in software (phase stepping or closed loop) take M970.3 corrections with free phase,
+// else the corrections go into the driver's sine table via M569.2 where only harmonics that are multiples of 4
+// with a phase of 0 or 180 degrees can be represented
+const driver = computed(() => move.value.axes.find((axis) => axis.letter === motor.value)?.drivers[0] ?? null);
+const driverId = computed(() => driver.value?.toString() ?? null);
 const phaseStepping = computed(() => move.value.axes.find((axis) => axis.letter === motor.value)?.phaseStep ?? false);
-const correctionCommand = computed(() => phaseStepping.value ? "M970.3" : "M569.2");
+const driverMode = computed(() => machineStore.model.boards.find((board) => (board.canAddress ?? 0) === (driver.value?.board ?? 0))?.drivers?.[driver.value?.driver ?? 0]?.config?.mode ?? null);
+const softwareCommutation = computed(() => phaseStepping.value || (driverMode.value !== null && (driverMode.value === DriverMode.direct || driverMode.value === DriverMode.assistedOpen)));
+const correctionCommand = computed(() => softwareCommutation.value ? "M970.3" : "M569.2");
 
 const currentMove = computed<MotorMove | null>(() => option.value ? buildMove(option.value, length.value, speed.value, accelerometer.value) : null);
 const speedHint = computed(() => currentMove.value ? `${getFullStepFrequency(getMotorFeedrate(currentMove.value), currentMove.value.fullStepsPerMm, 1).toFixed(1)} Hz` : "");
@@ -202,7 +206,7 @@ function applyDefaults() {
 	if (!accelerometer.value || !accelerometers.value.includes(accelerometer.value)) {
 		accelerometer.value = accelerometers.value[0] ?? null;
 	}
-	tuneHarmonics.value = phaseStepping.value ? [2, 4] : [4];
+	tuneHarmonics.value = softwareCommutation.value ? [2, 4] : [4];
 	if (option.value) {
 		const probe = buildMove(option.value, 1, 1, null);
 		speed.value = Math.min(maxSpeed.value, Math.round(defaultFullStepFrequency / probe.fullStepsPerMm / probe.stepFactor * 10) / 10);
@@ -296,7 +300,7 @@ async function start() {
 		}
 
 		for (const harmonic of tuneHarmonics.value) {
-			const result = await tuneHarmonic(harmonic, (magnitude, phase) => measure(harmonic, magnitude, phase), !phaseStepping.value);
+			const result = await tuneHarmonic(harmonic, (magnitude, phase) => measure(harmonic, magnitude, phase), !softwareCommutation.value);
 			results.value.push(result);
 			await setCorrection(harmonic, (result.best.amplitude < result.baseline) ? result.best.magnitude : 0, result.best.phase);
 		}
@@ -351,7 +355,7 @@ watch(dialogShown, (to) => {
 	}
 });
 watch(motor, () => applyDefaults());
-watch(phaseStepping, (to) => {
+watch(softwareCommutation, (to) => {
 	if (!to) {
 		tuneHarmonics.value = tuneHarmonics.value.filter((harmonic) => harmonic % 4 === 0);
 		if (tuneHarmonics.value.length === 0) {

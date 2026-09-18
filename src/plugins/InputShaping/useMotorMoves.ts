@@ -19,7 +19,7 @@ export interface MotorOption {
 }
 
 // Boards whose TMC5160-class drivers have a programmable sine table that M569.2 can reach; expansion boards need firmware 3.7.0-beta.4 or later
-const waveformTuningBoards = ["MB6HC", "EXP3HC", "EXP1HCL", "M23CL"];
+const waveformTuningBoards = ["MB6HC", "EXP3HC", "EXP1HCL", "M23CL", "TOOLINDX"];
 
 /**
  * Motor-isolating moves through the center of the axes and their recording, shared by the motor profile and tuning dialogs
