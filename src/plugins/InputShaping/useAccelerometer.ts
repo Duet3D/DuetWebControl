@@ -1,6 +1,5 @@
 import { OperationCancelledError } from "@duet3d/connectors";
 import { type AccelerometerDataset, parseAccelerometerCsv } from "@duet3d/motionanalysis";
-import type { Board } from "@duet3d/objectmodel";
 import { computed, type Ref, watch } from "vue";
 
 import { useMachineStore } from "@/stores/machine";
@@ -11,18 +10,45 @@ import Path from "@/utils/path";
 const defaultSamplingRate = 1000;
 
 /**
+ * Selectable accelerometer, i.e. a configured entry of sensors.accelerometers
+ */
+export interface AccelerometerOption {
+	/**
+	 * Index in sensors.accelerometers, which is the M955/M956 P number
+	 */
+	index: number;
+
+	/**
+	 * CAN address of the board the accelerometer is connected to, taken from the port prefix
+	 */
+	board: number;
+
+	/**
+	 * Label for selection lists
+	 */
+	title: string;
+}
+
+/**
  * Shared accelerometer helpers for the recording dialogs and file lists
  */
 export function useAccelerometer() {
 	const machineStore = useMachineStore();
 
-	const boards = computed<Array<Board>>(() => machineStore.model.boards.filter((b): b is Board => b !== null));
-	// Board tags for the rate lookup and profile filenames only. M956 always records with the accelerometer the last M955 C selected,
-	// and the OM does not say which board that is
-	const accelerometers = computed<Array<string>>(() => boards.value
-		.filter((b) => b.accelerometer !== null)
-		.map((b) => (b.canAddress ? `${b.canAddress}.0` : "0")));
-	const hasExternalAccelerometers = computed(() => boards.value.some((b) => b.canAddress !== 0 && !!b.accelerometer));
+	const accelerometers = computed<Array<AccelerometerOption>>(() => {
+		const options: Array<AccelerometerOption> = [];
+		machineStore.model.sensors.accelerometers.forEach((accelerometer, index) => {
+			if (accelerometer !== null) {
+				options.push({ index, board: parseInt(/^[!^*]*(\d+)\./.exec(accelerometer.port)?.[1] ?? "0"), title: `${index} (${accelerometer.port})` });
+			}
+		});
+		return options;
+	});
+	const hasExternalAccelerometers = computed(() => accelerometers.value.some((accelerometer) => accelerometer.board !== (machineStore.model.boards[0]?.canAddress ?? 0)));
+
+	function getAccelerometerTitle(index: number | null): string {
+		return accelerometers.value.find((accelerometer) => accelerometer.index === index)?.title ?? "";
+	}
 
 	async function doCode(code: string) {
 		const reply = await machineStore.sendCode(code);
@@ -31,24 +57,14 @@ export function useAccelerometer() {
 		}
 	}
 
-	function getAccelerometerBoard(accelerometerId: string): Board | undefined {
-		const matches = /(\d+)(\.\d+)?/.exec(accelerometerId);
-		if (!matches) {
-			return undefined;
-		}
-		const boardId = parseInt(matches[1]);
-		return boards.value.find((b) => (!b.canAddress && !boardId) || b.canAddress === boardId);
-	}
-
-	// Resolve when any board's accelerometer.runs counter advances, i.e. the firmware finished writing the CSV.
-	// Any board because the OM does not say which one M956 records with
-	async function waitForAccelerometerRun(cancelled: Ref<boolean>) {
+	// Resolve when the runs counter of the given accelerometer advances, i.e. the firmware finished writing the CSV
+	async function waitForAccelerometerRun(index: number, cancelled: Ref<boolean>) {
 		if (cancelled.value) {
 			throw new OperationCancelledError();
 		}
 
 		return new Promise<void>((resolve, reject) => {
-			const stop = watch(() => boards.value.reduce((sum, b) => sum + (b.accelerometer?.runs ?? 0), 0), () => {
+			const stop = watch(() => machineStore.model.sensors.accelerometers[index]?.runs ?? 0, () => {
 				if (cancelled.value) {
 					reject(new OperationCancelledError());
 				} else {
@@ -64,7 +80,7 @@ export function useAccelerometer() {
 		for (let attempt = 0; ; attempt++) {
 			const csvFile = await machineStore.download({
 				filename: Path.combine(Path.accelerometer, filename),
-				type: "text",
+				type: "text"
 			}, false, false, false);
 			try {
 				return parseAccelerometerCsv(csvFile as string);
@@ -77,15 +93,15 @@ export function useAccelerometer() {
 		}
 	}
 
-	// Stays 0 on firmware that does not report it and on remote boards that M955 has not touched since they started
-	function getSamplingRate(accelerometerId: string): number {
-		return getAccelerometerBoard(accelerometerId)?.accelerometer?.samplingRate ?? 0;
+	// Stays 0 on expansion boards whose firmware does not report the settled rate to M955
+	function getSamplingRate(index: number): number {
+		return machineStore.model.sensors.accelerometers[index]?.samplingRate ?? 0;
 	}
 
 	// Rate to size a collection for, which must not exceed the real one or the recording is cut short
-	function getCollectionRate(accelerometerId: string): number {
-		return getSamplingRate(accelerometerId) || defaultSamplingRate;
+	function getCollectionRate(index: number): number {
+		return getSamplingRate(index) || defaultSamplingRate;
 	}
 
-	return { boards, accelerometers, hasExternalAccelerometers, doCode, waitForAccelerometerRun, loadAccelerometerFile, getSamplingRate, getCollectionRate };
+	return { accelerometers, hasExternalAccelerometers, getAccelerometerTitle, doCode, waitForAccelerometerRun, loadAccelerometerFile, getSamplingRate, getCollectionRate };
 }

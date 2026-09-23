@@ -71,7 +71,7 @@
 											<v-text-field v-model.number="move.length" type="number" min="1" :max="getMaxLength(move)" :disabled="!move.enabled" density="compact" variant="plain" hide-details />
 										</td>
 										<td>
-											<v-select v-model="move.accelerometer" :items="accelerometers" :disabled="!move.enabled" density="compact" variant="plain" hide-details />
+											<v-select v-model="move.accelerometer" :items="accelerometers" item-title="title" item-value="index" :disabled="!move.enabled" density="compact" variant="plain" hide-details />
 										</td>
 									</tr>
 								</tbody>
@@ -147,7 +147,7 @@
 							<tbody>
 								<tr v-for="(move, index) in recordings" :key="index">
 									<td class="px-0"><v-icon>{{ getMoveIcon(move) }}</v-icon></td>
-									<td>{{ move.accelerometer }}</td>
+									<td>{{ getAccelerometerTitle(move.accelerometer) }}</td>
 									<td class="px-0">{{ move.motor }}</td>
 									<td>{{ getAxisWords(move, move.start) }}</td>
 									<td class="px-0">{{ getAxisWords(move, move.end) }}</td>
@@ -211,7 +211,7 @@ interface MoveItem extends MotorMove {
 // Move as configured in the wizard: a motor-isolating line through the bed center
 interface MoveConfig {
 	enabled: boolean;
-	accelerometer: string | null;
+	accelerometer: number | null;
 	motor: string;
 	length: number;
 }
@@ -239,7 +239,7 @@ const emit = defineEmits<{
 }>();
 
 const machineStore = useMachineStore();
-const { accelerometers, getSamplingRate, getCollectionRate } = useAccelerometer();
+const { accelerometers, getAccelerometerTitle, getSamplingRate, getCollectionRate } = useAccelerometer();
 const motorMoves = useMotorMoves();
 const { move, isCoreKinematics, motorOptions, getMotorOption, getCenter, buildMove } = motorMoves;
 
@@ -265,7 +265,7 @@ const canGoNext = computed(() => {
 		return accelerometers.value.length > 0 && allAxesHomed.value && motorOptions.value.length > 0;
 	}
 	if (currentPage.value === "config") {
-		return enabledMoves.value.length > 0 && enabledMoves.value.every((m) => !!m.accelerometer && !!getMotorOption(m.motor) && m.length > 0 && m.length <= getMaxLength(m));
+		return enabledMoves.value.length > 0 && enabledMoves.value.every((m) => m.accelerometer !== null && !!getMotorOption(m.motor) && m.length > 0 && m.length <= getMaxLength(m));
 	}
 	if (currentPage.value === "feedrates") {
 		return speeds.value.length > 0 && enabledMoves.value.every((m) => travelSpeed.value > 0 && travelSpeed.value <= getMaxSpeed(m) && speeds.value.every((speed) => speed > 0 && speed <= getMaxRecordingSpeed(m)));
@@ -292,7 +292,7 @@ function toMotorMove(m: MoveConfig, speed: number): MotorMove {
 // Above this speed the full-step frequency itself passes the accelerometer's Nyquist frequency and the analysis fails.
 // Harmonics above it are only dropped, so they must not limit the speed as well
 function getMaxRecordingSpeed(m: MoveConfig): number {
-	const samplingRate = m.accelerometer ? getSamplingRate(m.accelerometer) : 0;
+	const samplingRate = (m.accelerometer !== null) ? getSamplingRate(m.accelerometer) : 0;
 	if (samplingRate <= 0 || !getMotorOption(m.motor)) {
 		return getMaxSpeed(m);
 	}
@@ -320,7 +320,7 @@ function makeMoves() {
 		const hasXY = motorOptions.value.some((option) => option.motor === "X" || option.motor === "Y");
 		moves.value = motorOptions.value.map((option) => ({
 			enabled: !hasXY || option.motor === "X" || option.motor === "Y",
-			accelerometer: accelerometers.value.length > 0 ? accelerometers.value[0] : null,
+			accelerometer: accelerometers.value[0]?.index ?? null,
 			motor: option.motor,
 			length: Math.round(motorMoves.getMaxLength(option) / 2)
 		}));

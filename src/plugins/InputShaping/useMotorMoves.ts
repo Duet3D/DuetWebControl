@@ -92,7 +92,7 @@ export function useMotorMoves() {
 		return Math.min(...option.axes.map((axis, index) => axis.speed / 60 / Math.abs(option.direction[index])));
 	}
 
-	function buildMove(option: MotorOption, length: number, speed: number, accelerometer: string | null): MotorMove {
+	function buildMove(option: MotorOption, length: number, speed: number, accelerometer: number | null): MotorMove {
 		const center = getCenter(option), motorAxis = move.value.axes.find((axis) => axis.letter === option.motor)!;
 		return {
 			accelerometer,
@@ -128,8 +128,8 @@ export function useMotorMoves() {
 		const window = getConstantSpeedWindow(m);
 		const numSamples = Math.ceil(1.05 * samplingRate * ((roundTrip ? window.moveDuration : 0) + window.start + 0.9 * window.duration + 0.15));
 		const moves = `G1 ${getAxisWords(m, m.end)} F${m.feedrate}` + (roundTrip ? ` G1 ${getAxisWords(m, m.start)} F${m.feedrate}` : "");
-		await doCode(`M400 M956 P0 S${numSamples} A1 F"${filename}" ${moves}`);
-		await waitForAccelerometerRun(cancelled);
+		await doCode(`M400 M956 P${m.accelerometer} S${numSamples} A1 F"${filename}" ${moves}`);
+		await waitForAccelerometerRun(m.accelerometer!, cancelled);
 	}
 
 	return { move, isCoreKinematics, motorOptions, tunableMotors, getMotorOption, getCenter, getMaxLength, getMaxSpeed, buildMove, recordMove };

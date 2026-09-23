@@ -17,7 +17,7 @@
 								<v-select v-model="motor" :items="motorItems" :label="$t('plugins.accelerometer.motor')" density="compact" variant="outlined" hide-details />
 							</v-col>
 							<v-col cols="6">
-								<v-select v-model="accelerometer" :items="accelerometers" :label="$t('plugins.accelerometer.accelerometer')" density="compact" variant="outlined" hide-details />
+								<v-select v-model="accelerometer" :items="accelerometers" item-title="title" item-value="index" :label="$t('plugins.accelerometer.accelerometer')" density="compact" variant="outlined" hide-details />
 							</v-col>
 							<v-col cols="6">
 								<v-text-field v-model.number="speed" type="number" min="1" :max="maxSpeed" :label="$t('plugins.accelerometer.speedLabel')" :hint="speedHint" persistent-hint density="compact" variant="outlined" />
@@ -171,7 +171,7 @@ const gravity = 9806.65;
 // #region Configuration
 const currentPage = ref<"config" | "tuning">("config");
 const motor = ref<string | null>(null);
-const accelerometer = ref<string | null>(null);
+const accelerometer = ref<number | null>(null);
 const speed = ref(0);
 const length = ref(0);
 const tuneHarmonics = ref<Array<number>>([2, 4]);
@@ -197,14 +197,14 @@ const correctionCommand = computed(() => softwareCommutation.value ? "M970.3" : 
 const currentMove = computed<MotorMove | null>(() => option.value ? buildMove(option.value, length.value, speed.value, accelerometer.value) : null);
 const speedHint = computed(() => currentMove.value ? `${getFullStepFrequency(getMotorFeedrate(currentMove.value), currentMove.value.fullStepsPerMm, 1).toFixed(1)} Hz` : "");
 
-const canStart = computed(() => !!option.value && !!accelerometer.value && !!driverId.value && allAxesHomed.value && tuneHarmonics.value.length > 0 && speed.value > 0 && speed.value <= maxSpeed.value && length.value > 0 && length.value <= maxLength.value && !!currentMove.value && getConstantSpeedWindow(currentMove.value).duration > 0);
+const canStart = computed(() => !!option.value && accelerometer.value !== null && !!driverId.value && allAxesHomed.value && tuneHarmonics.value.length > 0 && speed.value > 0 && speed.value <= maxSpeed.value && length.value > 0 && length.value <= maxLength.value && !!currentMove.value && getConstantSpeedWindow(currentMove.value).duration > 0);
 
 function applyDefaults() {
 	if (!motor.value || !tunableMotors.value.some((option) => option.motor === motor.value)) {
 		motor.value = tunableMotors.value[0]?.motor ?? null;
 	}
-	if (!accelerometer.value || !accelerometers.value.includes(accelerometer.value)) {
-		accelerometer.value = accelerometers.value[0] ?? null;
+	if (!accelerometers.value.some((option) => option.index === accelerometer.value)) {
+		accelerometer.value = accelerometers.value[0]?.index ?? null;
 	}
 	tuneHarmonics.value = softwareCommutation.value ? [2, 4] : [4];
 	if (option.value) {

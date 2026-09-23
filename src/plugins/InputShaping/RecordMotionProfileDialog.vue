@@ -73,7 +73,7 @@
 													  @update:model-value="(idx) => setMoveTool(move, toolFromIndex(idx as number))" />
 										</td>
 										<td>
-											<v-select v-model="move.accelerometer" :items="accelerometers"
+											<v-select v-model="move.accelerometer" :items="accelerometers" item-title="title" item-value="index"
 													  density="compact" variant="plain" hide-details />
 										</td>
 										<td class="px-0">
@@ -156,7 +156,7 @@
 								<tr v-for="(move, index) in moves" :key="index">
 									<td class="px-0"><v-icon>{{ getMoveIcon(move) }}</v-icon></td>
 									<td>{{ move.tool ? (move.tool.name || `T${move.tool.number}`) : "None" }}</td>
-									<td class="px-0">{{ move.accelerometer }}</td>
+									<td class="px-0">{{ getAccelerometerTitle(move.accelerometer) }}</td>
 									<td>{{ move.axis }}</td>
 									<td class="px-0">{{ move.start }}</td>
 									<td>{{ move.end }}</td>
@@ -217,7 +217,7 @@ type MoveStateKey = typeof MoveState[keyof typeof MoveState];
 interface MoveItem {
 	state: MoveStateKey;
 	tool: Tool | null;
-	accelerometer: string | null;
+	accelerometer: number | null;
 	axis: string;
 	start: number;
 	end: number;
@@ -234,7 +234,7 @@ const emit = defineEmits<{
 }>();
 
 const machineStore = useMachineStore();
-const { accelerometers, hasExternalAccelerometers, doCode, waitForAccelerometerRun, getCollectionRate } = useAccelerometer();
+const { accelerometers, hasExternalAccelerometers, getAccelerometerTitle, doCode, waitForAccelerometerRun, getCollectionRate } = useAccelerometer();
 
 // #region OM-derived computeds
 const move = computed(() => machineStore.model.move);
@@ -344,7 +344,7 @@ const canGoNext = computed(() => {
 	}
 	if (currentPage.value === "config") {
 		for (const m of moves.value) {
-			if (!m.accelerometer || !m.axis || m.start >= m.end) {
+			if (m.accelerometer === null || !m.axis || m.start >= m.end) {
 				return false;
 			}
 			if (m.start < (getMin(m, true) ?? -Infinity) || m.start > (getMax(m, true) ?? Infinity)) return false;
@@ -385,7 +385,7 @@ function makeMoves() {
 		.map((axis) => ({
 			state: MoveState.idle,
 			tool: null,
-			accelerometer: accelerometers.value.length > 0 ? accelerometers.value[0] : null,
+			accelerometer: accelerometers.value[0]?.index ?? null,
 			axis: axis.letter,
 			start: Math.round((axis.min + axis.max) / 2 - (axis.max - axis.min) / 4),
 			end: Math.round((axis.min + axis.max) / 2 + (axis.max - axis.min) / 4),
@@ -397,7 +397,7 @@ function addMove() {
 	moves.value.push({
 		state: MoveState.idle,
 		tool: null,
-		accelerometer: accelerometers.value.length > 0 ? accelerometers.value[0] : null,
+		accelerometer: accelerometers.value[0]?.index ?? null,
 		axis: "X",
 		start: x ? Math.round((x.min + x.max) / 2 - (x.max - x.min) / 4) : 0,
 		end: x ? Math.round((x.min + x.max) / 2 + (x.max - x.min) / 4) : 0,
@@ -557,11 +557,11 @@ async function recordMove(moveIndex: number, hadSelectedTool = false) {
 		const endParams = moveAxes.map((axis) => `${axis}${m.end}`).join(" ");
 		if (recordWholeMove.value) {
 			const numSamples = Math.ceil(1.05 * samplingRate * (getMoveDuration(m) + 0.75));
-			await doCode(`M400 M956 P0 S${numSamples} A0 F"${getMoveFilename(m)}" G1 ${endParams} F${maxSpeed.value}`);
+			await doCode(`M400 M956 P${m.accelerometer} S${numSamples} A0 F"${getMoveFilename(m)}" G1 ${endParams} F${maxSpeed.value}`);
 		} else {
-			await doCode(`G1 ${endParams} F${maxSpeed.value} M400 M956 P0 S${Math.ceil(samplingRate * 0.75)} A0 F"${getMoveFilename(m)}"`);
+			await doCode(`G1 ${endParams} F${maxSpeed.value} M400 M956 P${m.accelerometer} S${Math.ceil(samplingRate * 0.75)} A0 F"${getMoveFilename(m)}"`);
 		}
-		await waitForAccelerometerRun(cancelled);
+		await waitForAccelerometerRun(m.accelerometer!, cancelled);
 
 		m.state = MoveState.finished;
 		if (moveIndex + 1 < moves.value.length) {

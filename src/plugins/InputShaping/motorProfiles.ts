@@ -2,7 +2,10 @@
  * Parameters of a constant-speed recording that the analysis needs to reproduce it
  */
 export interface MotorRun {
-	accelerometer: string | null;
+	/**
+	 * Index of the accelerometer in sensors.accelerometers, i.e. its M955/M956 P number
+	 */
+	accelerometer: number | null;
 
 	/**
 	 * Letter of the driver whose motor is analyzed
@@ -151,7 +154,7 @@ export interface MotorProfile extends MotorRun {
  * @returns Parsed profile or null if the filename is not a motor profile
  */
 export function parseMotorProfileFilename(filename: string): MotorProfile | null {
-	const matches = /^M(\d+)-([A-Z])-F(\d+\.?\d*)-A(\d+\.?\d*)-P(\d+\.?\d*)-K(\d+\.?\d*)-L(\d+\.?\d*)-([\d.]+)\.csv$/.exec(filename);
+	const matches = /^M(\d+)-([A-Z])-F(\d+\.?\d*)-A(\d+\.?\d*)-P(\d+\.?\d*)-K(\d+\.?\d*)-L(\d+\.?\d*)-(\d+)\.csv$/.exec(filename);
 	if (!matches) {
 		return null;
 	}
@@ -164,6 +167,6 @@ export function parseMotorProfileFilename(filename: string): MotorProfile | null
 		fullStepsPerMm: parseFloat(matches[5]),
 		stepFactor: parseFloat(matches[6]),
 		distance: parseFloat(matches[7]),
-		accelerometer: matches[8],
+		accelerometer: parseInt(matches[8])
 	};
 }
