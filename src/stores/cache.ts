@@ -142,6 +142,13 @@ export const useCacheStore = defineStore("cache", {
 		menuWidth: 256,
 
 		/**
+		 * Fraction (0-1) of the Explorer's split-view width given to the left pane, adjusted via
+		 * its drag handle and restored across navigation and sessions. Only meaningful while the
+		 * Explorer is split into two panes
+		 */
+		explorerSplitRatio: 0.5,
+
+		/**
 		 * Custom plugin cache fields
 		 */
 		plugins: Object.assign({}, defaultPluginCacheFields) as Record<string, any>,
