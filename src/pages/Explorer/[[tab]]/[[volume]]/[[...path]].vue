@@ -83,10 +83,10 @@
 			<v-window v-model="activeTab" :touch="false" class="explorer-window flex-grow-1">
 				<v-window-item v-for="tab in tabs" :key="tab.id" :value="tab.id" eager
 							   :transition="windowItemTransition" :reverse-transition="windowItemTransition">
-					<MonacoEditor v-if="tab.kind === 'editor' && tab.filename"
-								  :ref="(el) => setEditorRef(tab.id, el)" :filename="tab.filename"
-								  :initial-content="tab.initialContent" @dirty="tab.dirty = $event"
-								  @saved="onEditorSaved(tab)" />
+					<component :is="editorComponentFor(tab.filename)" v-if="tab.kind === 'editor' && tab.filename"
+							   :ref="(el: unknown) => setEditorRef(tab.id, el)" :filename="tab.filename"
+							   :initial-content="tab.initialContent" @dirty="tab.dirty = $event"
+							   @saved="onEditorSaved(tab)" />
 					<FileList v-else v-model:directory="tab.directory"
 							  :options="optionsForTab(tab)"
 							  :root-directory="rootForTab(tab)" :root-label="rootLabelFor(tab)"
@@ -327,12 +327,13 @@ import FileList from "@/components/lists/FileList.vue";
 import { useLargeButtons } from "@/composables/useLargeButtons";
 import FirmwareUpdateDialog from "@/components/dialogs/FirmwareUpdateDialog.vue";
 import JobThumbnailCell from "@/components/lists/JobThumbnailCell.vue";
+import type { Component } from "vue";
 import MonacoEditor from "@/components/editor/MonacoEditor.vue";
 import { firmwareInstallControllerKey, useFirmwareInstallController } from "@/composables/useFirmwareInstallController";
 import i18n from "@/i18n";
 import { scrollPageToBottom } from "@/router";
 import { useSettingsStore } from "@/stores/settings";
-import { LogLevel, useUiStore } from "@/stores/ui";
+import { LogLevel, type FileEditorInstance, useUiStore } from "@/stores/ui";
 import { isPrinting } from "@/utils/enums";
 
 defineOptions({ name: "Explorer" });
@@ -754,19 +755,23 @@ const discardDialog = reactive<{ shown: boolean; pendingId: number | null; filen
 });
 
 // Editor instances by tab id, populated via the template ref so the close-tab prompt can
-// trigger a save on the right editor and tab/page activation can restore keyboard focus
-interface EditorRef {
-	save: () => Promise<boolean>;
-	focus: () => void;
-}
-const editorRefs = new Map<number, EditorRef>();
+// trigger a save on the right editor and tab/page activation can restore keyboard focus.
+// FileEditorInstance (stores/ui.ts) is the same contract a plugin-registered alternative editor
+// must expose, so this works identically regardless of which one is actually mounted for a tab
+const editorRefs = new Map<number, FileEditorInstance>();
 
 function setEditorRef(id: number, el: unknown) {
 	if (el) {
-		editorRefs.set(id, el as EditorRef);
+		editorRefs.set(id, el as FileEditorInstance);
 	} else {
 		editorRefs.delete(id);
 	}
+}
+
+// The first registered entry matching `filename` wins; DWC's own Monaco editor is the fallback
+// when no plugin has registered an alternative for this file - see stores/ui.ts's FileEditorEntry
+function editorComponentFor(filename: string): Component {
+	return uiStore.fileEditors.find((entry) => entry.matches(filename))?.component ?? MonacoEditor;
 }
 
 function requestCloseTab(id: number) {
