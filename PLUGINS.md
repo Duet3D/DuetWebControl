@@ -254,6 +254,19 @@ registerRoute(MyPage, {
 
 `order` (lower = leftmost / topmost) controls position relative to built-in and other plugin entries. Built-in items typically use `order: 10..50`.
 
+Other optional fields on the leaf: `pageFill` (the page fills the viewport below the app bar), `scrollToBottom` (open scrolled to the bottom edge) and `keepAlive`.
+
+**`keepAlive`** keeps the page mounted while the user visits other pages, so its state, scroll position and anything open in it (an editor, a half-filled form) are still there on return - the way DWC's own Explorer behaves. `keepAlive: true` uses the component's own name (the `name` option, or the file name of a `<script setup>` SFC); `keepAlive: "MyPluginPage"` names it explicitly and must equal the component's name. The name has to be unique among pages, because Vue's `<keep-alive>` matches by name; a route whose component has no matching name is not cached and DWC logs a warning. It is off by default: a kept-alive page keeps running its watchers and timers in the background, so use `onActivated` / `onDeactivated` to start and stop anything that should only run while the page is on screen. `unregisterRoute` withdraws the request.
+
+```ts
+// MyPage.vue: defineOptions({ name: "MyPluginPage" })
+registerRoute(MyPage, {
+    Plugins: {
+        MyPage: { icon: "mdi-tools", caption: "plugins.myPlugin.caption", path: "/Plugins/MyPage", keepAlive: true },
+    },
+});
+```
+
 ### `unregisterRoute(path)`
 
 Tear down a route previously added via `registerRoute`. Removes both the vue-router record and the matching navigation drawer entry. No-op when the path was never registered.

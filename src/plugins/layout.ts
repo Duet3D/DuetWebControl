@@ -125,8 +125,13 @@ function installRouteOverrides(routes: Record<string, Component>, ownerId: strin
 			// Dispatcher: renders the active layout's override for this path, falling back to the
 			// built-in component when the active layout (if any) does not override it. Reads the
 			// reactive `activeLayout`, so a layout switch re-renders without a remount
+			// <keep-alive> matches by component name and looks at the dispatcher, not the page behind it. A
+			// page that opts into keep-alive (`meta.keepAlive` holds its name) keeps that through an override:
+			// the dispatcher answers to the same name, so it - and whichever component it renders - is cached
+			// exactly when the page would have been
+			const keepAliveName = typeof target.meta.keepAlive === "string" ? target.meta.keepAlive : undefined;
 			const Dispatcher = defineComponent({
-				name: "RouteOverrideDispatcher",
+				name: keepAliveName ?? "RouteOverrideDispatcher",
 				setup() {
 					const uiStore = useUiStore();
 					return () => {
