@@ -14,26 +14,7 @@ import { AutoScrollMode, useSettingsStore } from "@/stores/settings";
 import { useUiStore } from "@/stores/ui";
 import vuetify from "@/vue-plugins/vuetify";
 
-// unplugin-vue-router translates `[[...path]]` segments to `:path(.*)?`, a single optional
-// string with a `.*` regex. That isn't actually a repeatable catch-all - vue-router percent-
-// encodes the slashes in the captured string (producing /foo%2Fbar URLs) and also can't accept
-// an array of segments at push time. Rewrite recursively to `:path*` so the built-in segment-
-// aware regex kicks in, vue-router URL-encodes each segment independently, and the param
-// round-trips as a string[] everywhere we touch it. Applies to every route that catch-alls a
-// path - Explorer and Jobs both rely on this
-function fixCatchAllPath(routesIn: Array<RouteRecordRaw>) {
-	for (const route of routesIn) {
-		if (typeof route.path === "string" && route.path.includes(":path(.*)?")) {
-			route.path = route.path.replace(":path(.*)?", ":path*");
-		}
-		if (Array.isArray(route.children)) {
-			fixCatchAllPath(route.children as Array<RouteRecordRaw>);
-		}
-	}
-}
-
 const compiledRoutes = setupLayouts([...routes] as RouteRecordRaw[]);
-fixCatchAllPath(compiledRoutes);
 
 // Legacy redirects: the four separate Files pages were folded into the unified Explorer
 // (Filaments/System/Macros are folders under volume 0) plus the standalone Jobs page.

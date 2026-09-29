@@ -171,8 +171,18 @@ export default defineConfig({
     dwcVuetifySplit(),
     dwcComponents(),
     dwcPluginApi(),
+    // The route generator turns a `[[...path]]` segment into `:path(.*)?`, one optional string
+    // with a `.*` regex rather than a repeatable catch-all: vue-router percent-encodes the
+    // slashes in the captured value (producing /foo%2Fbar URLs) and cannot take an array of
+    // segments at push time. Rewriting it here rather than on the compiled records keeps the
+    // generated routes, typed-router.d.ts and the `string[]` param the pages read in agreement.
     VueRouter({
       dts: 'src/typed-router.d.ts',
+      extendRoute(route) {
+        if (route.path.includes('(.*)?')) {
+          route.path = route.path.replace('(.*)?', '*');
+        }
+      },
     }),
     // `builtin.vue` is the built-in fallback shell, statically imported by `default.vue`. Exclude
     // it from the auto-scan since it's not a route-meta layout - otherwise it would also be emitted
