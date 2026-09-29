@@ -234,23 +234,33 @@ export function getKeepAliveNames(): Array<string> {
  * :include>` matches a component's own `name` (or the `__name` a `<script setup>` SFC gets from its file name).
  * `keepAlive: true` uses that name; a string names it explicitly and must agree with the component, since an
  * `include` that matches nothing would silently cache nothing - or the wrong component, if another one has that
- * name. A lazy component (a loader function) has no name to check yet, so a string is taken as given
+ * name. A lazy component has no name to check yet, so a string is taken as given and `true` is refused. Lazy means
+ * a loader function or a `defineAsyncComponent` wrapper: the wrapper's own name is "AsyncComponentWrapper", and
+ * `<keep-alive>` looks at the component it resolves to (`__asyncResolved`) instead
  */
 function resolveKeepAliveName(component: Component, keepAlive: boolean | string | undefined, path: string): string | undefined {
 	if (keepAlive === undefined || keepAlive === false) {
 		return undefined;
 	}
-	if (typeof keepAlive === "string" && typeof component === "function") {
-		return keepAlive;
-	}
-	const named = component as { name?: string; __name?: string };
-	const declared = typeof component === "function" ? undefined : (named.name || named.__name || undefined);
-	const wanted = typeof keepAlive === "string" ? keepAlive : declared;
-	if (!wanted || wanted !== declared) {
-		console.warn(`[DWC] Route "${path}" asks to be kept alive but its component ${declared ? `is named "${declared}", not "${wanted}"` : "has no name"} - give the component a name (defineOptions({ name })) and it will not be cached until then`);
+	const lazy = typeof component === "function" || "__asyncLoader" in component;
+	if (lazy) {
+		if (typeof keepAlive === "string") {
+			return keepAlive;
+		}
+		console.warn(`[DWC] Route "${path}" asks to be kept alive, but its component is loaded lazily so its name is not known yet - pass the name it will have as a string (keepAlive: "MyPluginPage") instead of true`);
 		return undefined;
 	}
-	return wanted;
+	const named = component as { name?: string; __name?: string };
+	const declared = named.name || named.__name || undefined;
+	if (!declared) {
+		console.warn(`[DWC] Route "${path}" asks to be kept alive, but its component has no name - give it one (defineOptions({ name })) and it will be cached from then on`);
+		return undefined;
+	}
+	if (typeof keepAlive === "string" && keepAlive !== declared) {
+		console.warn(`[DWC] Route "${path}" asks to be kept alive as "${keepAlive}", but its component is named "${declared}" - the two must match, so it will not be cached`);
+		return undefined;
+	}
+	return declared;
 }
 
 // Bare (unwrapped) route records registered by plugins, exposed via the read-only

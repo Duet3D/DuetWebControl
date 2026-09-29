@@ -128,7 +128,11 @@ function installRouteOverrides(routes: Record<string, Component>, ownerId: strin
 			// <keep-alive> matches by component name and looks at the dispatcher, not the page behind it. A
 			// page that opts into keep-alive (`meta.keepAlive` holds its name) keeps that through an override:
 			// the dispatcher answers to the same name, so it - and whichever component it renders - is cached
-			// exactly when the page would have been
+			// exactly when the page would have been. One residue: after the override is dropped and the original
+			// component restored, this dispatcher keeps its <keep-alive> cache entry (keyed by its own type, name
+			// still in `include`, no `max`). It re-renders to nothing when the layout goes, so the override
+			// component itself is released; what stays is one empty component per registerLayout /
+			// unregisterLayout cycle on a kept-alive path
 			const keepAliveName = typeof target.meta.keepAlive === "string" ? target.meta.keepAlive : undefined;
 			const Dispatcher = defineComponent({
 				name: keepAliveName ?? "RouteOverrideDispatcher",
