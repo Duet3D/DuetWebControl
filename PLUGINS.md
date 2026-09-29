@@ -145,14 +145,37 @@ Field reference:
 | `version` | string | Plugin version. `"auto"` resolves to the DWC version at build time; `"auto-major"` resolves to `<major>.<minor>`; `"auto-minor"` resolves to `<major>.<minor>.<patch>` with any pre-release suffix stripped (e.g. `3.7.0-alpha.4` -> `3.7.0`) |
 | `license` | string | SPDX identifier preferred |
 | `homepage` | string | Optional URL |
-| `dwcVersion` | string | Minimum DWC version. Same `"auto"` / `"auto-major"` / `"auto-minor"` placeholders accepted |
-| `sbcDsfVersion` | string | Optional - minimum DSF version for SBC plugins |
-| `rrfVersion` | string | Optional - minimum RepRapFirmware version |
+| `dwcVersion` | string | The DWC version the plugin was built for; loads only on the same version prefix (see [Version requirements](#version-requirements)). Same `"auto"` / `"auto-major"` / `"auto-minor"` placeholders accepted |
+| `dwcMinVersion` | string | Optional - minimum DWC version, "this version or newer". Same placeholders accepted |
+| `sbcDsfVersion` | string | Optional - the DSF version the plugin was built for (same prefix rule as `dwcVersion`) |
+| `sbcDsfMinVersion` | string | Optional - minimum DSF version, "this version or newer" |
+| `rrfVersion` | string | Optional - the RepRapFirmware version the plugin was built for (same prefix rule as `dwcVersion`) |
+| `rrfMinVersion` | string | Optional - minimum RepRapFirmware version, "this version or newer" |
 | `tags` | string[] | Optional - free-form keywords for the plugin browser |
 | `sbcPermissions` | string[] | Optional - DSF permissions the plugin requires. Validated against the `SbcPermission` enum from `@duet3d/objectmodel` |
 | `dwcDependencies` | string[] | Optional - other DWC plugins that must be loaded first |
 | `sbcDependencies` | string[] | Optional - DSF dependencies |
 | `dwcFiles` / `dsfFiles` / `rrfFiles` | string[] | Bundled file lists. `build-plugin-pkg.js` populates these automatically; `build-plugin.js` leaves them empty |
+
+### Version requirements
+
+There are two kinds of version field, and they answer different questions:
+
+- `dwcVersion`, `sbcDsfVersion` and `rrfVersion` are **prefix matches**. The segments up to the shorter of the two versions must be equal, so `"3.7"` accepts `3.7.0` and `3.7.0-rc.2` but not `3.8.0` or `3.6.1`, and `"3.5.1"` rejects `3.5.4`. Use `dwcVersion` for "built and tested against exactly this DWC line"; `"auto-major"` does that for you.
+- `dwcMinVersion`, `sbcDsfMinVersion` and `rrfMinVersion` are **minimums**: the plugin installs on that version or anything newer. `"3.7"` accepts `3.7.0-rc.2`, `3.7.4` and `3.8.0`. A minimum without a prerelease tag is met by the prereleases of that release line too, so a plugin requiring `"3.7"` installs on the 3.7 release candidates. Only a minimum that names a prerelease (`"3.7.0-rc.2"`) is compared prerelease by prerelease.
+
+The two kinds combine: a plugin that sets both must satisfy both. To require "3.6 or newer" and nothing else, set `dwcMinVersion` only.
+
+```json
+{
+  "dwcMinVersion": "3.6",
+  "rrfMinVersion": "3.5.1"
+}
+```
+
+A minimum that cannot be parsed (or a running version that cannot be read) counts as not satisfied.
+
+**Where each field is enforced.** The install dialog and `installPlugin` read the raw `plugin.json` from the ZIP, so all three minimums are checked when a plugin is installed from the DWC UI. The check when an installed plugin is loaded reads the plugin from the object model, whose `PluginManifest` class (`@duet3d/objectmodel`) only keeps properties it declares. Until that class, and DSF for SBC installs, declare the `*MinVersion` fields, the load-time check has nothing to read and does not fire.
 
 ### npm dependencies
 

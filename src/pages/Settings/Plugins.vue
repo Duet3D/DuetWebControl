@@ -160,7 +160,7 @@ import { useDisplay } from "vuetify";
 import type { Plugin, PluginManifest } from "@duet3d/objectmodel";
 
 import i18n from "@/i18n";
-import { getBuiltInPlugins, isPluginBuiltIn, isPluginLoaded, isPluginLoadFailed, loadDwcPlugin, unloadDwcPlugin } from "@/plugins";
+import { getBuiltInPlugins, getMinVersion, isPluginBuiltIn, isPluginLoaded, isPluginLoadFailed, loadDwcPlugin, unloadDwcPlugin } from "@/plugins";
 import { samePluginId } from "@/utils/plugins";
 import { useCacheStore } from "@/stores/cache";
 import { useMachineStore } from "@/stores/machine";
@@ -342,11 +342,23 @@ function pluginRequirements(id: string): string {
 	if (plugin.sbcDsfVersion) {
 		parts.push(`DSF ${plugin.sbcDsfVersion}`);
 	}
+	const dsfMinVersion = getMinVersion(plugin, "sbcDsfMinVersion");
+	if (dsfMinVersion) {
+		parts.push(`DSF ≥ ${dsfMinVersion}`);
+	}
 	if (plugin.dwcVersion) {
 		parts.push(`DWC ${plugin.dwcVersion}`);
 	}
+	const dwcMinVersion = getMinVersion(plugin, "dwcMinVersion");
+	if (dwcMinVersion) {
+		parts.push(`DWC ≥ ${dwcMinVersion}`);
+	}
 	if (plugin.rrfVersion) {
 		parts.push(`RRF ${plugin.rrfVersion}`);
+	}
+	const rrfMinVersion = getMinVersion(plugin, "rrfMinVersion");
+	if (rrfMinVersion) {
+		parts.push(`RRF ≥ ${rrfMinVersion}`);
 	}
 	return parts.join(", ");
 }

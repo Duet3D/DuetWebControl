@@ -56,6 +56,9 @@
 								<span class="ml-8 text-title-small">
 									{{ $t("dialog.pluginInstallation.version", [rrfVersion]) }}
 								</span>
+								<div v-if="rrfMinVersion" class="ml-8 text-title-small">
+									{{ $t("dialog.pluginInstallation.minVersion", [rrfMinVersion]) }}
+								</div>
 							</div>
 
 							<div v-if="hasDwcFiles" :class="hasSdFiles ? 'pt-3' : ''">
@@ -68,6 +71,9 @@
 								<span class="ml-8 text-title-small">
 									{{ $t("dialog.pluginInstallation.version", [dwcVersion]) }}
 								</span>
+								<div v-if="dwcMinVersion" class="ml-8 text-title-small">
+									{{ $t("dialog.pluginInstallation.minVersion", [dwcMinVersion]) }}
+								</div>
 							</div>
 
 							<div v-if="showDsfVersion" :class="(hasSdFiles || hasDwcFiles) ? 'pt-3' : ''">
@@ -80,6 +86,9 @@
 								<span class="ml-8 text-title-small">
 									{{ $t("dialog.pluginInstallation.version", [dsfVersion]) }}
 								</span>
+								<div v-if="dsfMinVersion" class="ml-8 text-title-small">
+									{{ $t("dialog.pluginInstallation.minVersion", [dsfMinVersion]) }}
+								</div>
 							</div>
 
 							<div v-if="!pluginsSupported" class="pt-3">
@@ -190,7 +199,7 @@ import type JSZip from "jszip";
 
 import { showConfirmDialog } from "@/composables/useConfirmDialog";
 import i18n from "@/i18n";
-import { checkManifest, checkVersion, isPluginBuiltIn, isPluginLoaded } from "@/plugins";
+import { checkManifest, checkMinVersion, checkVersion, getMinVersion, isPluginBuiltIn, isPluginLoaded } from "@/plugins";
 import { useMachineStore } from "@/stores/machine";
 import { getErrorMessage } from "@/utils/errors";
 import Events from "@/utils/events";
@@ -230,6 +239,9 @@ const hasDsfFiles = ref(false);
 const hasDwcFiles = ref(false);
 const hasSdFiles = ref(false);
 const pluginManifest = ref<PluginManifest>(new PluginManifest());
+// The manifest as written in plugin.json. PluginManifest only keeps the properties it declares, so fields it does not
+// know about (the *MinVersion ones) are read from here
+const rawManifest = ref<Record<string, unknown>>({});
 const pluginManifestValid = ref(false);
 
 // #endregion
@@ -293,13 +305,16 @@ const rrfVersion = computed(() => {
 	return i18n.global.t("generic.noValue");
 });
 
+const rrfMinVersion = computed(() => getMinVersion(rawManifest.value, "rrfMinVersion"));
+
 const checkRrfVersion = computed(() => {
-	if (!pluginManifest.value.rrfVersion) {
+	if (!pluginManifest.value.rrfVersion && !rrfMinVersion.value) {
 		return true;
 	}
 	const boards = machineStore.model.boards;
 	if (boards.length > 0 && boards[0].firmwareVersion) {
-		return checkVersion(boards[0].firmwareVersion, pluginManifest.value.rrfVersion);
+		const actual = boards[0].firmwareVersion;
+		return checkVersion(actual, pluginManifest.value.rrfVersion ?? "") && checkMinVersion(actual, rrfMinVersion.value);
 	}
 	return false;
 });
@@ -308,11 +323,13 @@ const dsfVersion = computed(() => machineStore.model.sbc?.dsf.version ?? i18n.gl
 
 const showDsfVersion = computed(() => pluginManifest.value.sbcRequired && hasDsfFiles.value);
 
+const dsfMinVersion = computed(() => getMinVersion(rawManifest.value, "sbcDsfMinVersion"));
+
 const checkDsfVersion = computed(() => {
-	if (pluginManifest.value.sbcDsfVersion) {
+	if (pluginManifest.value.sbcDsfVersion || dsfMinVersion.value) {
 		const sbc = machineStore.model.sbc;
 		if (sbc && sbc.dsf.pluginSupport) {
-			return checkVersion(sbc.dsf.version, pluginManifest.value.sbcDsfVersion);
+			return checkVersion(sbc.dsf.version, pluginManifest.value.sbcDsfVersion ?? "") && checkMinVersion(sbc.dsf.version, dsfMinVersion.value);
 		}
 		return false;
 	}
@@ -321,11 +338,10 @@ const checkDsfVersion = computed(() => {
 
 const dwcVersion = computed(() => packageInfo.version);
 
+const dwcMinVersion = computed(() => getMinVersion(rawManifest.value, "dwcMinVersion"));
+
 const checkDwcVersion = computed(() => {
-	if (!pluginManifest.value.dwcVersion) {
-		return true;
-	}
-	return checkVersion(packageInfo.version, pluginManifest.value.dwcVersion);
+	return checkVersion(packageInfo.version, pluginManifest.value.dwcVersion ?? "") && checkMinVersion(packageInfo.version, dwcMinVersion.value);
 });
 
 const pluginsSupported = computed(() => machineStore.model.sbc ? machineStore.model.sbc.dsf.pluginSupport : true);
@@ -391,6 +407,7 @@ async function openWizard(payload: { zipFilename: string; zipBlob: Blob; zipFile
 			throw new Error("plugin.json missing from archive");
 		}
 		const manifestJson = JSON.parse(await manifestEntry.async("string"));
+		rawManifest.value = { ...manifestJson };
 		pluginManifest.value = initObject(PluginManifest, manifestJson);
 
 		pluginManifestValid.value = checkManifest(pluginManifest.value);

@@ -198,6 +198,7 @@
 			"rrf": "RepRapFirmware",
 			"prerequisites": "Voraussetzungen",
 			"version": "Version {0}",
+			"minVersion": "Erfordert {0} oder neuer",
 			"noPluginSupport": "Externe Plugins sind nicht erlaubt",
 			"rootSupport": "Unterstützung für Super-User-Plugins",
 			"invalidManifest": "Ungültiges Pluginmanifest",

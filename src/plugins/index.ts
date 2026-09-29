@@ -41,6 +41,9 @@ export { getPageComponent } from "@/router/pages";
 export { registerTheme, unregisterTheme } from "./theme";
 export type { RegisterThemeDefinition, RegisteredTheme } from "./theme";
 
+import { checkMinVersion, getMinVersion } from "./version";
+export { checkMinVersion, compareVersions, getMinVersion, type MinVersionField } from "./version";
+
 import { exposeGlobalAPI } from "./global-api";
 
 import * as Vue from "vue";
@@ -137,7 +140,8 @@ export function checkManifest(manifest: { id: string; name: string; author: stri
 
 /**
  * Perform a version compatibility check.
- * Compares version segments up to the shorter of the two strings.
+ * Compares version segments up to the shorter of the two strings, so this is a "same version prefix" test, not a
+ * minimum. For "this version or newer" (`dwcMinVersion` and friends) use `checkMinVersion`.
  * @param actual Actual version (e.g. "3.6.0")
  * @param required Required version (e.g. "3.6")
  * @returns Whether the actual version satisfies the required version
@@ -902,6 +906,15 @@ async function loadExternalPlugin(id: string): Promise<void> {
 	if (machinePlugin.dwcVersion && !checkVersion(packageInfo.version, machinePlugin.dwcVersion)) {
 		throw new Error(
 			`Plugin "${id}" requires DWC version ${machinePlugin.dwcVersion}, ` +
+			`current is ${packageInfo.version}`
+		);
+	}
+
+	// Minimum DWC version
+	const dwcMinVersion = getMinVersion(machinePlugin, "dwcMinVersion");
+	if (dwcMinVersion && !checkMinVersion(packageInfo.version, dwcMinVersion)) {
+		throw new Error(
+			`Plugin "${id}" requires DWC version ${dwcMinVersion} or newer, ` +
 			`current is ${packageInfo.version}`
 		);
 	}

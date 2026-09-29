@@ -9,7 +9,7 @@ import { useSettingsStore } from "./settings";
 
 import i18n, { translateResponse } from "@/i18n";
 import { FileTransferNotification, FileTransferType, LogLevel, useUiStore } from "./ui";
-import { checkManifest, checkVersion } from "@/plugins";
+import { checkManifest, checkMinVersion, checkVersion, getMinVersion } from "@/plugins";
 import { applyModelPatches, interceptCode } from "@/plugins/interception";
 import { loadDwcPlugin, loadDwcPlugins, unloadDwcPlugin } from "@/plugins";
 import beep from "@/utils/beep";
@@ -993,7 +993,8 @@ export const useMachineStore = defineStore("machine", {
 			if (!manifestJson) {
 				throw new OperationFailedError("Missing plugin.json in plugin ZIP root");
 			}
-			const plugin = initObject(Plugin, JSON.parse(manifestJson));
+			const rawManifest = JSON.parse(manifestJson);
+			const plugin = initObject(Plugin, rawManifest);
 
 			// Check plugin manifest
 			if (!checkManifest(plugin)) {
@@ -1003,6 +1004,12 @@ export const useMachineStore = defineStore("machine", {
 			// Is the plugin compatible to the running DWC version?
 			if (plugin.dwcVersion && !checkVersion(plugin.dwcVersion, packageInfo.version)) {
 				throw new Error(`Plugin ${plugin.id} requires incompatible DWC version (need ${plugin.dwcVersion}, got ${packageInfo.version})`);
+			}
+
+			// Does it need a newer DWC? Read from the raw manifest because the Plugin model drops fields it does not declare
+			const dwcMinVersion = getMinVersion(rawManifest, "dwcMinVersion");
+			if (dwcMinVersion && !checkMinVersion(packageInfo.version, dwcMinVersion)) {
+				throw new Error(`Plugin ${plugin.id} requires DWC ${dwcMinVersion} or newer (got ${packageInfo.version})`);
 			}
 
 			try {

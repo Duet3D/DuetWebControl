@@ -150,6 +150,11 @@ export function resolveVersionPlaceholders(manifest) {
 	if (manifest.rrfVersion) {
 		manifest.rrfVersion = resolveVersion(manifest.rrfVersion, dwcPackageJson.version);
 	}
+	for (const field of ["dwcMinVersion", "rrfMinVersion", "sbcDsfMinVersion"]) {
+		if (manifest[field]) {
+			manifest[field] = resolveVersion(manifest[field], dwcPackageJson.version);
+		}
+	}
 	return dwcPackageJson;
 }
 
