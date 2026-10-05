@@ -59,7 +59,7 @@ withDefaults(defineProps<{
 }>(), { variant: "outlined" });
 
 // Conditional G-code keywords that must keep their original case
-const conditionalKeywords = ["abort", "echo", "if", "elif", "else", "while", "break", "continue", "var", "global", "set"];
+const conditionalKeywords = ["abort", "echo", "if", "elif", "else", "while", "break", "continue", "var", "global", "set", "skip"];
 
 // v-combobox treats `""` as a populated selection (matches no item, so it still renders as an
 // empty pill that suppresses the placeholder). null is the canonical "no value" - placeholder
