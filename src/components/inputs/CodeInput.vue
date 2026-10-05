@@ -38,7 +38,7 @@ import Vue from "vue";
 import store from "@/store";
 import { MessageBox } from "@duet3d/objectmodel";
 
-const conditionalKeywords = ["abort", "echo", "if", "elif", "else", "while", "break", "continue", "var", "global", "set"];
+const conditionalKeywords = ["abort", "echo", "if", "elif", "else", "while", "break", "continue", "var", "global", "set", "skip"];
 
 export default Vue.extend({
 	computed: {
