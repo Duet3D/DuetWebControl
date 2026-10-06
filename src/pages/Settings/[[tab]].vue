@@ -920,7 +920,7 @@
 
 <script setup lang="ts">
 import { DisconnectedError } from "@duet3d/connectors";
-import { NetworkInterfaceType } from "@duet3d/objectmodel";
+import { NetworkInterfaceState, NetworkInterfaceType } from "@duet3d/objectmodel";
 
 import { useDisplay } from "vuetify";
 
@@ -1311,13 +1311,9 @@ async function applyCanAddress() {
 // #endregion
 
 // WiFi co-processor firmware version reported by the network interface, not the board itself
-// Only Duet WiFi-class boards expose this; SBC-mode systems and Ethernet-only boards report null
-const wifiVersion = computed<string | null>(() => {
-	const iface = machineStore.model.network.interfaces.find(
-		i => i?.type === NetworkInterfaceType.wifi
-	);
-	return iface?.firmwareVersion ?? null;
-});
+// MB6HC v1.02 and later always create a WiFi interface, which stays disabled and reports a
+// placeholder version when no module is fitted
+const wifiVersion = computed<string | null>(() => machineStore.model.network.interfaces.find(i => i !== null && i.type === NetworkInterfaceType.wifi && i.state !== NetworkInterfaceState.disabled)?.firmwareVersion ?? null);
 
 // DSF (Duet Software Framework) version + build date - only present in SBC mode where DSF runs
 // on the SBC and proxies for the firmware. v-if on `dsfVersion` keeps the row out of standalone
