@@ -11,6 +11,7 @@
   "scripts": {
     "dev": "vite",
     "build": "vue-tsc --noEmit && vite build",
+    "sbom": "npm sbom --sbom-format cyclonedx --omit dev > dist/DuetWebControl-sbom.json",
     "preview": "vite preview",
     "build-plugin": "node scripts/build-plugin.js",
     "build-plugin-pkg": "node scripts/build-plugin-pkg.js"
