@@ -12,7 +12,9 @@ import { useUiStore } from "@/stores/ui";
 // Forward color + variant to v-btn so callers (EmergencyButton wants color="error" with the
 // filled flat variant for the solid red E-STOP look) actually paint. The default `<v-btn>`
 // variant is "elevated" which renders white with a subtle shadow even when colored
-const props = defineProps<{
+//
+// Vue casts an absent Boolean prop to false, which would turn off sendCode's reply and error logging
+const props = withDefaults(defineProps<{
     code: string;
     color?: string;
     variant?: "flat" | "text" | "elevated" | "tonal" | "outlined" | "plain";
@@ -20,7 +22,7 @@ const props = defineProps<{
     disabled?: boolean;
     log?: boolean;
     noWait?: boolean;
-}>();
+}>(), { log: true });
 
 const machineStore = useMachineStore(), uiStore = useUiStore();
 
