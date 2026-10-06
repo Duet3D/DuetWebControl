@@ -33,14 +33,15 @@ export function useMotorMoves() {
 	const isCoreKinematics = computed(() => move.value.kinematics instanceof CoreKinematics);
 
 	// On core kinematics the column of the forward matrix belonging to a motor is the Cartesian direction that drives only this motor,
-	// because inverseMatrix * forwardMatrix is the identity. Other kinematics only run all motors at a constant rate on Z moves
+	// because inverseMatrix * forwardMatrix is the identity. Other kinematics only run all motors at a constant rate on Z moves.
+	// RRF reports forwardMatrix[motor][axis] and inverseMatrix[axis][motor], so a motor's column is a forward matrix row
 	const motorOptions = computed<Array<MotorOption>>(() => {
 		const axes = move.value.axes, options: Array<MotorOption> = [];
 		if (isCoreKinematics.value) {
 			const kinematics = move.value.kinematics as CoreKinematics, identity = axes.map((_, row) => axes.map((_, col) => (row === col) ? 1 : 0));
 			const forwardMatrix = kinematics.forwardMatrix.length > 0 ? kinematics.forwardMatrix : identity, inverseMatrix = kinematics.inverseMatrix.length > 0 ? kinematics.inverseMatrix : identity;
 			for (let motorIndex = 0; motorIndex < axes.length && motorIndex < forwardMatrix.length; motorIndex++) {
-				const column = axes.map((_, axisIndex) => forwardMatrix[axisIndex]?.[motorIndex] ?? 0);
+				const column = axes.map((_, axisIndex) => forwardMatrix[motorIndex]?.[axisIndex] ?? 0);
 				const involved = axes.filter((axis, axisIndex) => column[axisIndex] !== 0);
 				if (involved.length === 0 || involved.some((axis) => !axis.visible)) {
 					continue;
@@ -50,13 +51,12 @@ export function useMotorMoves() {
 				if (direction[0] < 0) {
 					direction.forEach((_, index) => { direction[index] = -direction[index]; });
 				}
-				const inverseRow = inverseMatrix[motorIndex] ?? [];
 				options.push({
 					motor: axes[motorIndex].letter,
 					label: involved.map((axis, index) => `${(index > 0) ? ((direction[index] < 0) ? "-" : "+") : ""}${axis.letter}`).join(""),
 					axes: involved,
 					direction,
-					stepFactor: Math.abs(involved.reduce((sum, axis, index) => sum + (inverseRow[axes.indexOf(axis)] ?? 0) * direction[index], 0))
+					stepFactor: Math.abs(involved.reduce((sum, axis, index) => sum + (inverseMatrix[axes.indexOf(axis)]?.[motorIndex] ?? 0) * direction[index], 0))
 				});
 			}
 		} else {
