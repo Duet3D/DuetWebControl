@@ -21,7 +21,7 @@ import { fileURLToPath, URL } from 'node:url'
 // Ship sourcemaps for prerelease builds (alpha/beta/rc) so we can debug installs in the wild.
 // Stable releases build them in hidden mode instead: the bundles carry no sourceMappingURL, so
 // browsers never request the maps and the SD-card and DSF zips stay lean, but the maps are still
-// emitted and packaged into srcmaps.zip for offline stack trace lookups.
+// emitted and packaged into <productName>-srcmaps.zip for offline stack trace lookups.
 // DWC_SOURCEMAP=1 / =hidden / =0 forces either way, e.g. when probing a stable build locally
 const dwcPackage = JSON.parse(readFileSync(new URL("./package.json", import.meta.url), "utf8"))
 const isPrerelease = /-(?:alpha|beta|rc)\b/i.test(dwcPackage.version as string)

@@ -4,7 +4,7 @@
  * Decodes a minified DWC stack trace back to the original sources.
  *
  * Stable releases are built with hidden sourcemaps: the maps never reach the browser, they are
- * published as srcmaps.zip next to the release. Feed this script a stack trace copied from the
+ * published as <productName>-srcmaps.zip next to the release. Feed this script a stack trace copied from the
  * browser console plus the maps of that release and it prints the original file, line, column
  * and source line for every frame it can resolve.
  *

@@ -38,7 +38,7 @@ async function makeZip(zipPath: string, files: string[], outDir: string, extra: 
  *  - a `.gz` sibling for every asset, since a standalone Duet's HTTP server serves pre-gzipped files
  *  - DuetWebControl-SD.zip: the gzipped assets plus raw fonts, for the board's SD card
  *  - DuetWebControl-SBC.zip: the uncompressed assets, for DSF / SBC installs
- *  - srcmaps.zip: the maps of a hidden-sourcemap build, kept out of the two deployment zips and
+ *  - <productName>-srcmaps.zip: the maps of a hidden-sourcemap build, kept out of the two deployment zips and
  *    published alongside a release for offline stack trace lookups, see scripts/resolve-stack.js
  * Set the NOZIP env var to skip the zip step (gzipping still runs)
  */
@@ -93,7 +93,7 @@ export default function buildOutputs(): Plugin {
 			if (hiddenSourcemaps) {
 				const { productName, version } = JSON.parse(await readFile(join(root, "package.json"), "utf8"));
 				await makeZip(
-					join(outDir, "srcmaps.zip"),
+					join(outDir, `${productName}-srcmaps.zip`),
 					files.filter((f) => f.endsWith(".map")),
 					outDir,
 					{ "version.txt": `${productName} ${version}\n` },
