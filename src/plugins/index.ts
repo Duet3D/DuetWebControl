@@ -30,7 +30,7 @@ import type { RouteRecordRaw, Router } from "vue-router";
 import { type ModelCollection, SbcPermission } from "@duet3d/objectmodel";
 
 import type DwcPlugin from "./DwcPlugin";
-import type { ContextMenuItem } from "@/stores/ui";
+import type { ContextMenuItem, FileEditorEntry } from "@/stores/ui";
 import router from "@/router";
 
 export { registerLayout, unregisterLayout } from "./layout";
@@ -686,6 +686,25 @@ export function registerPluginContextMenuItem(name: string | (() => string), pat
 		action,
 		contextMenuType,
 	} as ContextMenuItem);
+}
+
+/**
+ * Register an alternative editor for the Explorer page's editor tabs, in place of DWC's own
+ * built-in Monaco editor - see {@link FileEditorEntry} for the props/events/exposed-methods
+ * contract the component must implement.
+ * @param entry Editor entry to register
+ */
+export function registerFileEditor(entry: FileEditorEntry): void {
+	useUiStore().registerFileEditor(entry);
+}
+
+/**
+ * Unregister every file editor `pluginId` previously registered via {@link registerFileEditor} -
+ * call on plugin unload, the same as every other `register*`/`unregister*` pair in this module.
+ * @param pluginId Owning plugin id, as passed in the {@link FileEditorEntry}
+ */
+export function unregisterFileEditor(pluginId: string): void {
+	useUiStore().unregisterFileEditor(pluginId);
 }
 
 /**
