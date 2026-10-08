@@ -630,7 +630,9 @@
 		"explorer": {
 			"newTab": "Neuen Tab öffnen",
 			"closeTab": "Tab schliessen",
-			"volume": "Volume"
+			"volume": "Volume",
+			"splitRight": "Rechts teilen",
+			"closeSplit": "Teilung schliessen"
 		}
 	},
 	"jobProgress": {
