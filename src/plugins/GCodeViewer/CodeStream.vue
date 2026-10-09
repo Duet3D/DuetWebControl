@@ -22,7 +22,7 @@ import i18n from "@/i18n";
 import { useSettingsStore } from "@/stores/settings";
 import { useUiStore } from "@/stores/ui";
 import { getErrorMessage } from "@/utils/errors";
-import { ensureMonaco } from "@/utils/monaco";
+import { ensureMonaco, primeViewportTokens } from "@/utils/monaco";
 
 const props = defineProps<{
 	shown: boolean;
@@ -112,6 +112,7 @@ onMounted(async () => {
 			matchBrackets: "never",
 			minimap: { enabled: false },
 		});
+		primeViewportTokens(editor);
 		executionLine = editor.createDecorationsCollection();
 		editor.focus();
 		followPosition();

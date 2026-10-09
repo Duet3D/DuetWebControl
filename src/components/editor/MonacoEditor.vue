@@ -131,7 +131,7 @@ import { useUiStore } from "@/stores/ui";
 import { useSettingsStore } from "@/stores/settings";
 import { indent } from "@/utils/display";
 import { getErrorMessage } from "@/utils/errors";
-import { ensureGcodeFeatures, ensureMonaco } from "@/utils/monaco";
+import { ensureGcodeFeatures, ensureMonaco, primeViewportTokens } from "@/utils/monaco";
 import Path from "@/utils/path";
 
 const props = defineProps<{
@@ -339,6 +339,7 @@ async function bootstrap() {
 			...buildEditorOptions(settingsStore.editor),
 		});
 		editor.getModel()?.updateOptions(buildModelOptions(settingsStore.editor));
+		primeViewportTokens(editor);
 		savedVersionId = editor.getModel()?.getAlternativeVersionId() ?? null;
 
 		editor.onDidChangeModelContent(() => {

@@ -37,7 +37,7 @@ import { useMachineStore } from "@/stores/machine";
 import { useSettingsStore } from "@/stores/settings";
 import { useUiStore } from "@/stores/ui";
 import { getErrorMessage } from "@/utils/errors";
-import { ensureMonaco } from "@/utils/monaco";
+import { ensureMonaco, primeViewportTokens } from "@/utils/monaco";
 
 const jobFileStore = useJobFileStore();
 const machineStore = useMachineStore();
@@ -123,6 +123,7 @@ onMounted(async () => {
 		matchBrackets: "never",
 		minimap: { enabled: false },
 	});
+	primeViewportTokens(editor);
 	executionLine = editor.createDecorationsCollection();
 	syncEditor();
 	jobFileStore.loadContent();
