@@ -379,7 +379,7 @@
 			"started": "Plugin has been started",
 			"startError": "Failed to start plugin",
 			"stopped": "Plugin has been stopped",
-			"stopError": "Failed to start plugin",
+			"stopError": "Failed to stop plugin",
 			"uninstalled": "Plugin has been uninstalled",
 			"uninstallError": "Failed to uninstall plugin"
 		},
@@ -1470,7 +1470,6 @@
 			"tuneStepDirHint": "The motor uses step/dir mode, so the correction is written to the driver's sine table. Coil imbalance (harmonic 2) can only be corrected in phase stepping mode.",
 			"magnitude": "Magnitude (°)",
 			"phase": "Phase (°)",
-			"amplitude": "Amplitude",
 			"tuneStatus": "Measuring harmonic {0} at magnitude {1}°, phase {2}°...",
 			"originalMeasurement": "Uncorrected",
 			"lastMeasurement": "Last ({0}/{1})",

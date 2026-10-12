@@ -379,7 +379,7 @@
 			"started": "Plug-in is gestart",
 			"startError": "Kon de plug-in niet starten",
 			"stopped": "Plug-in is gestopt",
-			"stopError": "Kon de plug-in niet starten",
+			"stopError": "Kon de plug-in niet stoppen",
 			"uninstalled": "Plug-in is verwijderd",
 			"uninstallError": "Kon de plug-in niet verwijderen"
 		},
@@ -1470,7 +1470,6 @@
 			"tuneStepDirHint": "De motor werkt in step/dir-modus, dus de correctie wordt in de sinustabel van de driver geschreven. Spoelonbalans (harmonische 2) kan alleen in de phase-steppingmodus worden gecorrigeerd.",
 			"magnitude": "Grootte (°)",
 			"phase": "Fase (°)",
-			"amplitude": "Amplitude",
 			"tuneStatus": "Harmonische {0} meten bij grootte {1}°, fase {2}°...",
 			"originalMeasurement": "Ongecorrigeerd",
 			"lastMeasurement": "Laatste ({0}/{1})",

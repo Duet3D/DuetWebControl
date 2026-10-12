@@ -12,7 +12,7 @@
 		},
 		"resetHeaterFault": {
 			"title": "Heizerfehler zurücksetzen",
-			"prompt": "Ein Fehler ist bei der Steuerung von Heizer {0} aufgetreten. Es wird dringend empfohlen Ihre Maschine auszuschalten und die Verkabelung zu prüfen bevor Sie fortfahren. Wenn Sie absolut sicher sind, dass es sich dabei um kein physikalisches Problem handelt können sie den Fehler AUF EIGENE GEFAHR zurücksetzen. Dies ist NICHT EMPFOHLEN und kann zu weiteren Problemen führen. Wie möchten Sie fortfahren?",
+			"prompt": "Ein Fehler ist bei der Steuerung von Heizer {0} aufgetreten. Es wird dringend empfohlen, Ihre Maschine auszuschalten und die Verkabelung zu prüfen, bevor Sie fortfahren. Wenn Sie absolut sicher sind, dass es sich dabei um kein physikalisches Problem handelt, können Sie den Fehler AUF EIGENE GEFAHR zurücksetzen. Dies ist NICHT EMPFOHLEN und kann zu weiteren Problemen führen. Wie möchten Sie fortfahren?",
 			"resetFault": "Fehler zurücksetzen"
 		},
 		"changeMoveStep": {
@@ -68,7 +68,7 @@
 			"expansionBoard": "Firmware Erweiterungsboard #{0}",
 			"wifiServer": "WLAN-Server-Firmware",
 			"display": "PanelDue-Firmware",
-			"sbcWarning": "Sie betreiben ihre Maschine im SBC-Modus. Bitte aktualisieren Sie die Firmware mittels DWC nur sofern dies von den Firmwareentwicklern empfohlen wurde."
+			"sbcWarning": "Sie betreiben Ihre Maschine im SBC-Modus. Bitte aktualisieren Sie die Firmware mittels DWC nur, sofern dies von den Firmwareentwicklern empfohlen wurde."
 		},
 		"configUpdated": {
 			"title": "Neue Konfiguration übernehmen?",
@@ -88,7 +88,7 @@
 			"revertTooLarge": "Verwerfen ist für Dateien über 32 MiB deaktiviert",
 			"searchGcode": "Code suchen (F4)",
 			"searchExpression": "Ausdruck suchen (F4)",
-			"loadDisconnected": "Verbinde dich mit einer Maschine, um diese Datei zu öffnen.",
+			"loadDisconnected": "Verbinden Sie sich mit einer Maschine, um diese Datei zu öffnen.",
 			"loadFailed": "Konnte {0} nicht laden: {1}",
 			"saveFailed": "Konnte {0} nicht speichern",
 			"unsaved": {
@@ -202,13 +202,13 @@
 			"rootSupport": "Unterstützung für Super-User-Plugins",
 			"invalidManifest": "Ungültiges Pluginmanifest",
 			"permissions": "Erforderliche Berechtigungen",
-			"dwcWarning": "Dieses Plugin stellt Komponenten für die Weboberfläche bereit. Es können im Browser keine Berechtigungsprüfungen durchgeführt werden, daher könnte es Ihr System manipulieren und Sicherheitsrisikos erzeugen, die in physischem Schaden resultieren könnten.",
-			"rootWarning": "Dieses Plugin erfordert Super-User-Berechtigungen, was bedeuetet, dass es den angeschlossenen SBC rekonfigurieren und potentielle Schadsoftware installieren darf. Dies könnte zu physischem Schaden Ihres Aufbaus fuehren.",
+			"dwcWarning": "Dieses Plugin stellt Komponenten für die Weboberfläche bereit. Es können im Browser keine Berechtigungsprüfungen durchgeführt werden, daher könnte es Ihr System manipulieren und Sicherheitsrisiken erzeugen, die in physischem Schaden resultieren könnten.",
+			"rootWarning": "Dieses Plugin erfordert Super-User-Berechtigungen, was bedeutet, dass es den angeschlossenen SBC rekonfigurieren und potentielle Schadsoftware installieren darf. Dies könnte zu physischem Schaden Ihres Aufbaus führen.",
 			"sbcPermissions": "Das Plugin auf dem SBC möchte",
 			"noSpecialPermissions": "Dieses Plugin erfordert keine speziellen Berechtigungen.",
 			"ready": "Installation bereit",
-			"readyMessage": "Das Plugin ist jetzt bereit für die Installation. Bitte stellen Sie sicher, dass Sie dem Autor des Plugins vertrauen bevor Sie diesen finalen Schritt bestätigen.",
-			"readyDisclaimer": "Bevor Sie fortfahren können müssen Sie akzeptieren, dass Duet3D Ltd nicht für eventuelle Schäden, die aus der Installation dieses Drittanbieterplugins resultieren könnten, verantwortlich gemacht werden kann.",
+			"readyMessage": "Das Plugin ist jetzt bereit für die Installation. Bitte stellen Sie sicher, dass Sie dem Autor des Plugins vertrauen, bevor Sie diesen finalen Schritt bestätigen.",
+			"readyDisclaimer": "Bevor Sie fortfahren können, müssen Sie akzeptieren, dass Duet3D Ltd nicht für eventuelle Schäden, die aus der Installation dieses Drittanbieterplugins resultieren könnten, verantwortlich gemacht werden kann.",
 			"checkboxDisclaimer": "Ich akzeptiere das Risiko, Installation fortsetzen",
 			"checkboxStart": "Plugin sofort nach der Installation starten",
 			"progress": "Installationsfortschritt",
@@ -271,7 +271,7 @@
 			"active": "aktiv",
 			"fault": "fehler",
 			"tuning": "kalibriere",
-			"offline": "abgeschaltet"
+			"offline": "offline"
 		},
 		"status": {
 			"disconnected": "Getrennt",
@@ -310,7 +310,7 @@
 			},
 			"upload": {
 				"title": "Lade {0} {'@'} {1} hoch, {2}% abgeschlossen",
-				"message": "Bitte warten während die Datei hochgeladen wird...",
+				"message": "Bitte warten Sie, während die Datei hochgeladen wird...",
 				"success": "Datei {0} erfolgreich nach {1} hochgeladen",
 				"error": "Konnte {0} nicht hochladen"
 			},
@@ -320,25 +320,25 @@
 			},
 			"index": {
 				"title": "Ermittle Dateien in {0}...",
-				"message": "Bitte warten während die Dateiliste erstellt wird..."
+				"message": "Bitte warten Sie, während die Dateiliste erstellt wird..."
 			},
 			"compress": {
 				"title": "Erstelle ZIP von {0}, {2}% abgeschlossen",
-				"message": "Bitte warten während das Archiv erstellt wird...",
+				"message": "Bitte warten Sie, während das Archiv erstellt wird...",
 				"errorTitle": "Konnte ZIP-Archiv nicht erstellen"
 			}
 		},
 		"compress": {
 			"title": "Komprimiere Dateien...",
-			"message": "Bitte warten während Ihre Dateien komprimiert werden...",
+			"message": "Bitte warten Sie, während Ihre Dateien komprimiert werden...",
 			"errorTitle": "Konnte Dateien nicht komprimieren"
 		},
 		"decompress": {
 			"title": "Entpacke Dateien...",
-			"message": "Bitte warten während Ihre Dateien entpackt werden...",
+			"message": "Bitte warten Sie, während Ihre Dateien entpackt werden...",
 			"errorTitle": "Konnte Dateien nicht entpacken",
 			"wrongBundleTitle": "Inkompatibles DWC-Paket",
-			"standaloneUpdateInSbcModeError": "Sie versuchen ein DWC-Paket für den Standalone-Modus hochzuladen, obwohl die Maschine im SBC-Modus läuft. Dies wird nicht unterstützt. Bitte benutzen Sie apt update/upgrade, um ihr System zu aktualisieren.",
+			"standaloneUpdateInSbcModeError": "Sie versuchen ein DWC-Paket für den Standalone-Modus hochzuladen, obwohl die Maschine im SBC-Modus läuft. Dies wird nicht unterstützt. Bitte benutzen Sie apt update/upgrade, um Ihr System zu aktualisieren.",
 			"sbcUpdateInStandaloneError": "Sie versuchen ein DWC-Paket für den SBC-Modus hochzuladen, obwohl die Maschine im Standalone-Modus läuft. Dies wird nicht unterstützt. Bitte verwenden Sie stattdessen das Paket DuetWebControl-SD.zip."
 		},
 		"delete": {
@@ -365,7 +365,7 @@
 			"errorTitle": "Konnte Filament nicht anlegen",
 			"errorTitleMacros": "Konnte Filamentmakros nicht anlegen",
 			"successTitle": "Filament erstellt",
-			"successMessage": "Successfully created filament {0}"
+			"successMessage": "Filament {0} wurde erfolgreich angelegt"
 		},
 		"plugins": {
 			"started": "Plugin gestartet",
@@ -399,8 +399,7 @@
 			"notConnectedTitle": "Nicht verbunden",
 			"notConnected": "Stellen Sie eine Verbindung zu einer Maschine her, bevor Sie Dateien hochladen.",
 			"startSingleFile": "Es kann nur eine einzelne G-Code-Datei hochgeladen und gestartet werden."
-		},
-		"startupError": "Fehler in Startdatei {0} Zeile {1}: {2}"
+		}
 	},
 	"error": {
 		"editorLoadFailed": "Konnte den Code-Editor nicht laden: {0}",
@@ -442,7 +441,7 @@
 			"temperatures": "Temperaturen: {0}",
 			"settings": {
 				"hideFirstLayer": "Erste Schicht ausblenden",
-				"hideFirstLayerHint": "Schicht 1 aus dem Diagramm ausschliessen - ihre Dauer ist oft ein Ausreisser, der den Rest verflacht",
+				"hideFirstLayerHint": "Schicht 1 aus dem Diagramm ausschließen - ihre Dauer ist oft ein Ausreißer, der den Rest verflacht",
 				"showAllLayers": "Alle Schichten anzeigen",
 				"showAllLayersHint": "Alle Schichten anzeigen statt nur der neuesten",
 				"lastLayerCount": "Anzahl neuester Schichten",
@@ -519,7 +518,7 @@
 		},
 		"home": {
 			"caption": "Referenziere {0}",
-			"captionAll": "Alle Referenzieren",
+			"captionAll": "Alle referenzieren",
 			"title": "Referenziere die {0}-Achse (G28 {0})",
 			"titleAll": "Alle Achsen referenzieren (G28)"
 		},
@@ -564,7 +563,7 @@
 			"start": "Datei starten",
 			"print": "Drucken",
 			"simulate": "Simulieren",
-			"volume": "Volume"
+			"volume": "Laufwerk"
 		},
 		"macro": {
 			"caption": "Makros",
@@ -629,8 +628,8 @@
 		},
 		"explorer": {
 			"newTab": "Neuen Tab öffnen",
-			"closeTab": "Tab schliessen",
-			"volume": "Volume"
+			"closeTab": "Tab schließen",
+			"volume": "Laufwerk"
 		}
 	},
 	"jobProgress": {
@@ -684,7 +683,7 @@
 			"displayedExtruders": "Angezeigte Extruder",
 			"settings": {
 				"stepWidth": "Schrittweite",
-				"stepWidthHint": "Wert, der pro Klick auf die +/--Knöpfe angewendet wird",
+				"stepWidthHint": "Wert, der pro Klick auf die Knöpfe + und - angewendet wird",
 				"showResetLink": "Links zum Zurücksetzen anzeigen",
 				"showResetLinkHint": "Einen Link anzeigen, der den Extrusionsfaktor auf 100 % zurücksetzt",
 				"showCurrentToolOnly": "Nur aktuelles Werkzeug",
@@ -692,7 +691,7 @@
 			}
 		},
 		"jobControl": {
-			"caption": "Auftragskontrolle",
+			"caption": "Auftragssteuerung",
 			"cancelJob": "Auftrag abbrechen",
 			"cancelPrint": "Druck abbrechen",
 			"cancelSimulation": "Simulation abbrechen",
@@ -738,7 +737,7 @@
 		"webcam": {
 			"caption": "Webcamüberwachung",
 			"alt": "(Webcam-Bild)",
-			"disabled": "Webcam ist deaktiviert. Aktiviere sie unter Einstellungen > Webcam, um hier einen Stream anzuzeigen."
+			"disabled": "Webcam ist deaktiviert. Aktivieren Sie sie unter Einstellungen > Webcam, um hier einen Stream anzuzeigen."
 		},
 		"spindle": {
 			"title": "Spindeln",
@@ -759,13 +758,13 @@
 				"upperLimit": "Anfängliche Obergrenze",
 				"upperLimitHint": "Anfängliches Maximum des Schiebereglers; er skaliert automatisch hoch, wenn der Geschwindigkeitsfaktor diesen Wert übersteigt",
 				"stepWidth": "Schrittweite",
-				"stepWidthHint": "Wert, der pro Klick auf die +/--Knöpfe angewendet wird"
+				"stepWidthHint": "Wert, der pro Klick auf die Knöpfe + und - angewendet wird"
 			}
 		},
 		"tools": {
 			"caption": "Werkzeuge",
 			"controlHeaters": "Heizer steuern",
-			"turnEverythingOff": "Alle abschalten",
+			"turnEverythingOff": "Alles abschalten",
 			"off": "Aus",
 			"setActiveTemperatures": "Aktive Temperaturen setzen",
 			"setStandbyTemperatures": "Standby-Temperaturen setzen",
@@ -827,8 +826,8 @@
 			"mode": "Modus: {0}",
 			"toolPosition": "Werkzeugposition",
 			"machinePosition": "Maschinenposition",
-			"extruders": "Extruder",
-			"extruderDrive": "Motor {0}",
+			"extruders": "Extruderantriebe",
+			"extruderDrive": "Antrieb {0}",
 			"speeds": "Geschwindigkeiten",
 			"requestedSpeed": "Angeforderte Geschwindigkeit",
 			"topSpeed": "Maximale Geschwindigkeit",
@@ -880,7 +879,7 @@
 			}
 		},
 		"extrude": {
-			"caption": "Extrusionskontrolle",
+			"caption": "Extrusionssteuerung",
 			"mix": "Mischen",
 			"mixRatio": "Mischverhältnis:",
 			"amount": "Extrusionsmenge in {0}:",
@@ -891,14 +890,14 @@
 			"showMixingControlsHint": "Mischverhältnisse pro Antrieb für Werkzeuge mit mehreren Extrudern anzeigen"
 		},
 		"fan": {
-			"caption": "Lüfterkontrolle",
+			"caption": "Lüftersteuerung",
 			"selection": "Lüfterauswahl:",
 			"toolFan": "Werkzeuglüfter",
 			"fan": "Lüfter {0}",
 			"displayedFans": "Angezeigte Lüfter",
 			"settings": {
 				"stepWidth": "Schrittweite",
-				"stepWidthHint": "Wert, der pro Klick auf die +/--Knöpfe angewendet wird"
+				"stepWidthHint": "Wert, der pro Klick auf die Knöpfe + und - angewendet wird"
 			}
 		},
 		"fans": {
@@ -910,7 +909,7 @@
 			"displayedFans": "Angezeigte Lüfter",
 			"settings": {
 				"stepWidth": "Schrittweite",
-				"stepWidthHint": "Wert, der pro Klick auf die +/--Knöpfe angewendet wird"
+				"stepWidthHint": "Wert, der pro Klick auf die Knöpfe + und - angewendet wird"
 			}
 		},
 		"movement": {
@@ -928,7 +927,7 @@
 			},
 			"compensation": "Kompensation & Kalibrierung",
 			"compensationShort": "Kompensation",
-			"runBed": "True Bed Levelling (G32)",
+			"runBed": "Echte Bettnivellierung (G32)",
 			"runDelta": "Deltakalibrierung (G32)",
 			"compensationInUse": "Benutzte Kompensation: {0}",
 			"compensationType": {
@@ -1052,14 +1051,14 @@
 			"installHint": "Lädt ein Firmware-Bundle (.zip), eine einzelne .bin-/.uf2-Datei oder ein DWC-Webbundle hoch. Firmware-Dateien werden nach Abschluss des Uploads automatisch via M997 eingespielt.",
 			"install": "Installieren",
 			"resetCaption": "Werkseinstellungen",
-			"resetHint": "Löscht alle lokal gespeicherten DWC-Einstellungen und den Cache, stellt die auf dem Board hinterlegten Werkseinstellungen (falls vorhanden) wieder her und lädt DWC anschliessend neu.",
+			"resetHint": "Löscht alle lokal gespeicherten DWC-Einstellungen und den Cache, stellt die auf dem Board hinterlegten Werkseinstellungen (falls vorhanden) wieder her und lädt DWC anschließend neu.",
 			"reset": "Zurücksetzen",
 			"resetTitle": "DWC-Einstellungen zurücksetzen?",
-			"resetPrompt": "Damit werden die gespeicherten DWC-Einstellungen und der Cache in diesem Browser und auf dem verbundenen Board gelöscht. Anschliessend werden Werkseinstellungen (falls verfügbar) übernommen und DWC neu geladen.",
+			"resetPrompt": "Damit werden die gespeicherten DWC-Einstellungen und der Cache in diesem Browser und auf dem verbundenen Board gelöscht. Anschließend werden Werkseinstellungen (falls verfügbar) übernommen und DWC neu geladen.",
 			"resetComponents": "Bedienfeldeinstellungen zurücksetzen",
 			"resetComponentsHint": "Verwirft alle gespeicherten Anzeigeeinstellungen der einzelnen Bedienfelder (sichtbare Achsen, Werkzeuggruppierung, Diagramm-Tabs) und lädt DWC neu.",
 			"resetComponentsTitle": "Bedienfeldeinstellungen zurücksetzen?",
-			"resetComponentsPrompt": "Damit werden die gespeicherten Anzeigeeinstellungen aller Dashboard-Bedienfelder in diesem Browser und auf dem verbundenen Board verworfen. DWC wird anschliessend neu geladen. Die übrigen Einstellungen bleiben erhalten."
+			"resetComponentsPrompt": "Damit werden die gespeicherten Anzeigeeinstellungen aller Dashboard-Bedienfelder in diesem Browser und auf dem verbundenen Board verworfen. DWC wird anschließend neu geladen. Die übrigen Einstellungen bleiben erhalten."
 		},
 		"display": {
 			"builtInLayout": "Standardoberfläche",
@@ -1078,12 +1077,12 @@
 			"disableAutoComplete": "G-Code-Autovervollständigung deaktivieren",
 			"disableAutoCompleteHint": "Während der Eingabe in Code- und Temperaturfeldern keine Vorschlagsliste anzeigen",
 			"toolsCaption": "Werkzeuge",
-			"groupTools": "Bett-, Kammer- und Extruderheizungen gruppieren",
+			"groupTools": "Bett-, Kammer- und Extruderheizer gruppieren",
 			"groupToolsHint": "Identische Werkzeuge im Werkzeugbereich zu einer Zeile zusammenfassen",
 			"groupByExtruders": "Nach Extrudern gruppieren",
 			"groupByExtrudersHint": "Werkzeuge nur dann als identisch behandeln, wenn sie dieselben Extruder verwenden",
-			"groupByHeaters": "Nach Heizungen gruppieren",
-			"groupByHeatersHint": "Werkzeuge nur dann als identisch behandeln, wenn sie dieselben Heizungen verwenden",
+			"groupByHeaters": "Nach Heizern gruppieren",
+			"groupByHeatersHint": "Werkzeuge nur dann als identisch behandeln, wenn sie dieselben Heizer verwenden",
 			"groupByOffsets": "Nach Werkzeugoffsets gruppieren",
 			"groupByOffsetsHint": "Werkzeuge nur dann als identisch behandeln, wenn sie dieselben X-/Y-/Z-Offsets haben",
 			"groupBySpindle": "Spindeln gruppieren",
@@ -1091,18 +1090,18 @@
 			"dashboardMode": "Dashboard-Modus",
 			"dashboardModeHint": "Legt fest, welches Dashboard-Layout verwendet wird. Standard folgt dem von der Firmware gemeldeten Maschinenmodus (FFF oder CNC); zur Erzwingung kann ein fester Modus gewählt werden.",
 			"dashboardModeOptions": {
-				"default": "Standard (Maschinenmodus folgen)",
+				"default": "Standard (dem Maschinenmodus folgen)",
 				"fff": "FFF (3D-Druck)",
 				"cnc": "CNC (Fräsen)"
 			},
 			"singleBedControl": "Gemeinsame Steuerung aller Heizbetten",
 			"singleBedControlHint": "Eine einzige Eingabe für alle Heizbetten anzeigen statt einer je Bett. Praktisch, wenn alle Betten immer dieselbe Temperatur haben sollen.",
 			"singleChamberControl": "Gemeinsame Steuerung aller Kammern",
-			"singleChamberControlHint": "Eine einzige Eingabe für alle Kammerheizungen anzeigen statt einer je Kammer.",
+			"singleChamberControlHint": "Eine einzige Eingabe für alle Kammerheizer anzeigen statt einer je Kammer.",
 			"hideMenuItemsCaption": "Menüeinträge ausblenden",
 			"hideMenuItemsHint": "Einträge aus der Navigationsleiste / Hub-Seite entfernen. Ausgeblendete Einträge bleiben über die URL erreichbar; Dashboard, Auftragsstatus und Einstellungen werden immer angezeigt.",
 			"hideMenuItemsXsSmOnly": "nur xs/sm",
-			"hideMenuItemsXsSmOnlyHint": "Diese Seite wird nur auf kleinen Bildschirmen (Smartphone und Tablet) im Menü aufgeführt; auf grösseren Bildschirmen ist sie auf anderem Weg erreichbar.",
+			"hideMenuItemsXsSmOnlyHint": "Diese Seite wird nur auf kleinen Bildschirmen (Smartphone und Tablet) im Menü aufgeführt; auf größeren Bildschirmen ist sie auf anderem Weg erreichbar.",
 			"hideMenuItemSwitchHint": "Diesen Eintrag aus der Navigationsleiste und Hub-Seite ausblenden",
 			"enablePanelEditing": "Bedienfeldbearbeitung aktivieren",
 			"enablePanelEditingHint": "Zeigt das Bearbeitungssymbol in den Bedienfeldtiteln an, um die Bedienfelder zu konfigurieren",
@@ -1165,7 +1164,7 @@
 			"tabSize": "Einrückungsbreite",
 			"tabSizeHint": "Anzahl der Leerzeichen pro Einrückungsebene",
 			"wordWrap": "Zeilenumbruch",
-			"wordWrapHint": "Wie lange Zeilen im Editor umgebrochen werden",
+			"wordWrapHint": "Umbruchverhalten für lange Zeilen im Editor",
 			"wordWrapOptions": {
 				"off": "Aus",
 				"on": "Am Sichtfensterrand umbrechen",
@@ -1221,7 +1220,7 @@
 			"boardFirmware": "Firmware",
 			"noBoards": "Keine Boardinformationen verfügbar.",
 			"credits": "Weboberfläche entwickelt von {author} für {duet3d}.",
-			"license": "Lizensiert unter den Bedingungen der {gpl}.",
+			"license": "Lizenziert unter den Bedingungen der {gpl}.",
 			"powerCaption": "SBC-Stromversorgung",
 			"powerPluginRequired": "Diese Aktionen erfordern, dass das DuetPi-Management-Plugin läuft.",
 			"powerError": "Stromversorgungsbefehl konnte nicht gesendet werden",
@@ -1350,7 +1349,7 @@
 			"area": "Messfläche: {0}",
 			"maxDeviations": "Maximale Abweichungen: {0} / {1}",
 			"meanError": "Gemittelter Fehler: {0}",
-			"rmsError": "Standardabweichung: {0}",
+			"rmsError": "RMS-Fehler: {0}",
 			"display": "Ansicht",
 			"colorScheme": "Farbschema:",
 			"terrain": "Terrain",
@@ -1366,22 +1365,22 @@
 			"scaleDialogPrompt": "Fixierte Skala in mm eingeben (wird als +/- angewendet)"
 		},
 		"accelerometer": {
-			"sampleTooltip": "Probe #{0}",
+			"sampleTooltip": "Messwert #{0}",
 			"frequencyTooltip": "{0} ± {1} Hz",
 			"xAxisFrequency": "Frequenz (in Hz)",
-			"xAxisSample": "Probe",
-			"yAxisAmplitude": "Amplitude",
+			"xAxisSample": "Messwert",
+			"yAxisAmplitude": "Amplitude (in g)",
 			"yAxisAcceleration": "Beschleunigung (in g)",
 			"reductionFactor": "Reduktionsfaktor",
 			"shaperFrequency": "Shaper-Frequenz",
-			"custom": "Brauch",
+			"custom": "Benutzerdefiniert",
 			"configured": "konfiguriert",
 			"apply": "anwenden",
 			"edit": "bearbeiten",
 			"inputShaping": "Input Shaping",
 			"recordButton": "Bewegungsprofil aufzeichnen",
-			"noMotionProfiles": "Keine Bewegungsprofile gefunden. Zeichne ein neues Bewegungsprofil auf oder",
-			"refreshLink": "aktualisiere die Dateiliste",
+			"noMotionProfiles": "Keine Bewegungsprofile gefunden. Zeichnen Sie ein neues Bewegungsprofil auf oder",
+			"refreshLink": "aktualisieren Sie die Dateiliste",
 			"motionProfiles": "Bewegungsprofile",
 			"pickProfile": "Bitte ein Bewegungsprofil auswählen",
 			"overflowWarning": "Das ausgewählte Bewegungsprofil enthält Überläufe. Die Daten sind möglicherweise nicht zuverlässig.",
@@ -1398,7 +1397,7 @@
 			"showOriginalValues": "Originalwerte anzeigen",
 			"estimateShaperEffect": "Shaper-Wirkung abschätzen",
 			"estimateNeedsUnshaped": "Nur für Profile verfügbar, die ohne Input Shaping aufgezeichnet wurden",
-			"showSamples": "Proben anzeigen",
+			"showSamples": "Messwerte anzeigen",
 			"analyze": "Analysieren",
 			"individualFiles": "Einzelne Dateien anzeigen",
 			"wideBand": "Breitbandanalyse",
@@ -1438,7 +1437,7 @@
 			"finish": "Fertig",
 			"motorAnalysis": "Abstimmung der Motor-Stromkurve",
 			"recordMotorButton": "Motorprofil aufzeichnen",
-			"noMotorProfiles": "Keine Motorprofile gefunden. Zeichne ein neues Motorprofil auf oder",
+			"noMotorProfiles": "Keine Motorprofile gefunden. Zeichnen Sie ein neues Motorprofil auf oder",
 			"motorProfiles": "Motorprofile",
 			"pickMotorProfile": "Bitte ein Motorprofil aus der Liste auswählen",
 			"harmonicsView": "Harmonische",
@@ -1452,7 +1451,7 @@
 			"xAxisHarmonic": "Vielfaches der Vollschrittfrequenz",
 			"xAxisFullStepFrequency": "Vollschrittfrequenz (in Hz)",
 			"yAxisDisplacement": "Auslenkung (in um)",
-			"motorAnalysisInfo": "Nominale Vollschrittfrequenz {0} Hz, gemessen {1} Hz. Analysierte Proben {2} - {3} bei {4} Hz",
+			"motorAnalysisInfo": "Nominale Vollschrittfrequenz {0} Hz, gemessen {1} Hz. Analysierte Messwerte {2} - {3} bei {4} Hz",
 			"motorSweepInfo": "Durchlauf #{0}, Motor {1}: Amplituden der Harmonischen über alle Sensorachsen bei {2} Geschwindigkeiten",
 			"numRecordings": "{0} Aufzeichnungen",
 			"fullStepsPerMm": "Vollschritte/mm",
@@ -1472,7 +1471,6 @@
 			"tuneStepDirHint": "Der Motor arbeitet im Step/Dir-Modus, daher wird die Korrektur in die Sinustabelle des Treibers geschrieben. Ein Spulenungleichgewicht (Harmonische 2) lässt sich nur im Phase-Stepping-Modus korrigieren.",
 			"magnitude": "Betrag (°)",
 			"phase": "Phase (°)",
-			"amplitude": "Amplitude",
 			"tuneStatus": "Messe Harmonische {0} bei Betrag {1}°, Phase {2}°...",
 			"originalMeasurement": "Unkorrigiert",
 			"lastMeasurement": "Letzte ({0}/{1})",
@@ -1513,7 +1511,7 @@
 			"motorCompleted": "Aufzeichnung von Motorprofil #{0} abgeschlossen!"
 		},
 		"gcodeViewer": {
-			"caption": "G-Code Betracher",
+			"caption": "G-Code-Betrachter",
 			"maxTemp": "Max. Temperatur: {0}",
 			"view3D": "3D ansehen",
 			"fullscreen": "Vollbild",
@@ -1542,10 +1540,10 @@
 				"caption": "Lokalen G-Code laden",
 				"title": "Eine Datei vom lokalen Laufwerk in die Ansicht laden"
 			},
-			"showTravels": "Reisen anzeigen",
+			"showTravels": "Leerfahrten anzeigen",
 			"useHQRendering": "HQ-Rendering (rund)",
 			"useSpecular": "Spiegelndes Highlighting",
-			"feature": "Feature",
+			"feature": "Element",
 			"g1AsExtrusion": "G1 darstellen (CNC)",
 			"extruders": {
 				"caption": "Extruder",
@@ -1560,7 +1558,7 @@
 				"title": "Mit dem Darstellungsmodus können die Farben der Extruder oder Vorschubgeschwindigkeiten geändert werden"
 			},
 			"color": "Farbe",
-			"feedrate": "Feedrate",
+			"feedrate": "Vorschubrate",
 			"minFeedrate": "Minimale Vorschubrate (mm/s)",
 			"maxFeedrate": "Maximale Vorschubrate (mm/s)",
 			"minFeedrateColor": "Farbe für kleinste Vorschubrate",
@@ -1579,24 +1577,24 @@
 			"showRuler": "Lineal anzeigen",
 			"showRulerHint": "Millimeterbeschriftungen entlang der vorderen und linken Bettkante anzeigen",
 			"rulerInterval": "Linealabstand (mm)",
-			"rulerIntervalHint": "Abstand zwischen Linealstrichen und Hauptlinien des Bettgitters, wird automatisch gewählt falls nicht gesetzt",
+			"rulerIntervalHint": "Abstand zwischen Linealstrichen und Hauptlinien des Bettgitters, wird automatisch gewählt, falls nicht gesetzt",
 			"rulerIntervalAuto": "Automatisch",
 			"showObjectLabels": "Objektnamen anzeigen",
 			"cameraInertia": "Kameraträgheit",
 			"showObjectSelection": {
 				"caption": "Objektauswahl anzeigen",
-				"title": "Aktiviert falls Objekte im aktuellen Druck erkannt worden sind"
+				"title": "Aktiviert, falls Objekte im aktuellen Druck erkannt worden sind"
 			},
 			"renderFailed": "Vorige Darstellung fehlgeschlagen. Ändere Darstellungsqualität auf SBC",
 			"showFSOverlay": "Overlay bei Vollbild anzeigen",
 			"viewGCode": "G-Code anzeigen",
-			"showWorkplace": "Arbeitsfläche anzeigen",
+			"showWorkplace": "Werkstückkoordinatensystem anzeigen",
 			"zBelt": "Z-Riemen",
 			"zBeltAngle": "Winkel des Z-Riemens",
 			"perimeterOnly": "Nur Ränder",
 			"cancelObj": "Objekt abbrechen",
 			"resumeObj": "Objekt fortsetzen",
-			"persistTravels": "Persistenzreisen",
+			"persistTravels": "Leerfahrten beibehalten",
 			"showTool": "Werkzeug anzeigen",
 			"useHQRenderingHint": "Verwendet den echten Werkzeugdurchmesser und die beim Einlesen gemessene Schichthöhe anstelle fester Vorgaben. Erfordert ein erneutes Laden der Datei",
 			"g1AsExtrusionHint": "Behandelt G1 ohne Extrusionsparameter als Schnitt, für CNC- und Laserjobs. Erfordert ein erneutes Laden der Datei",
