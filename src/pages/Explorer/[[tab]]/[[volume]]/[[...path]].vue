@@ -334,6 +334,7 @@ import { scrollPageToBottom } from "@/router";
 import { useSettingsStore } from "@/stores/settings";
 import { LogLevel, useUiStore } from "@/stores/ui";
 import { isPrinting } from "@/utils/enums";
+import Events from "@/utils/events";
 
 defineOptions({ name: "Explorer" });
 
@@ -830,9 +831,70 @@ function onBeforeUnload(e: BeforeUnloadEvent) {
 	}
 }
 
-onMounted(() => window.addEventListener("beforeunload", onBeforeUnload));
+// Segments of `path` below `parent`, empty when they are the same path, null when `path` lies
+// outside it. Walking the parent chain compares segment by segment, which is what keeps a rename
+// of `macros/foo` away from `macros/foo2.g` - Path.startsWith is a plain prefix test and matches it
+function relativeTo(path: string, parent: string): Array<string> | null {
+	if (Path.equals(path, parent)) {
+		return [];
+	}
+	const directory = Path.extractDirectory(path);
+	if (!directory || Path.equals(directory, path)) {
+		return null;
+	}
+	const above = relativeTo(directory, parent);
+	return (above === null) ? null : [...above, Path.extractFileName(path)];
+}
+
+// Where `path` ends up when `from` is renamed to `to`, or null if it is unaffected
+function movedPath(path: string | undefined, from: string, to: string): string | null {
+	if (!path) {
+		return null;
+	}
+	const segments = relativeTo(path, from);
+	return (segments === null) ? null : Path.combine(to, ...segments);
+}
+
+// Renaming or moving a file elsewhere in the UI leaves the tab holding it on a path that no longer
+// exists. For editor tabs MonacoEditor takes the filename as a prop and never re-fetches on a
+// change, so repointing keeps the buffer and its unsaved state and only redirects the save target
+function onFileOrDirectoryMoved({ from, to }: { from: string, to: string }) {
+	for (const tab of tabs.value) {
+		const moved = movedPath((tab.kind === "editor") ? tab.filename : tab.directory, from, to);
+		if (moved === null) {
+			continue;
+		}
+		if (tab.id === activeTab.value) {
+			replaceNextUrlChange = true;
+		}
+		if (tab.kind === "editor") {
+			tab.filename = moved;
+		} else {
+			tab.directory = moved;
+		}
+	}
+}
+
+// A deleted file takes its editor tab with it. Tabs with unsaved changes stay open so the buffer
+// can still be saved back, which recreates the file
+function onFileOrDirectoryDeleted({ filename }: { filename: string, recursive?: boolean }) {
+	const affected = tabs.value
+		.filter((t) => t.kind === "editor" && !t.dirty && t.filename && relativeTo(t.filename, filename) !== null)
+		.map((t) => t.id);
+	for (const id of affected) {
+		closeTab(id);
+	}
+}
+
+onMounted(() => {
+	window.addEventListener("beforeunload", onBeforeUnload);
+	Events.on("fileOrDirectoryMoved", onFileOrDirectoryMoved);
+	Events.on("fileOrDirectoryDeleted", onFileOrDirectoryDeleted);
+});
 onBeforeUnmount(() => {
 	window.removeEventListener("beforeunload", onBeforeUnload);
+	Events.off("fileOrDirectoryMoved", onFileOrDirectoryMoved);
+	Events.off("fileOrDirectoryDeleted", onFileOrDirectoryDeleted);
 	// Clear the nav menu chip when the Explorer goes away entirely. Keep-alive deactivation
 	// is fine; the count tracks tabs.value which persists alongside the kept-alive component
 	uiStore.modifiedEditorCount = 0;
