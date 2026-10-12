@@ -28,9 +28,11 @@
 
 /* Viewport fill comes from the global `.dwc-page-fill` class on the v-card. When the active
    tab is in a collapsed state (Monaco editor failed to load OR the FileList is empty +
-   disconnected) advertise that downstream so the card can fall back to content height */
-.explorer-card:has(.v-window-item--active .monaco-editor-host--collapsed),
-.explorer-card:has(.v-window-item--active .file-list-card--empty) {
+   disconnected) advertise that downstream so the card can fall back to content height.
+   Suppressed while split (.explorer-card--split): a collapse in one pane must not distort the
+   fixed height the other, healthy pane relies on for a stable divider drag */
+.explorer-card:not(.explorer-card--split):has(.v-window-item--active .monaco-editor-host--collapsed),
+.explorer-card:not(.explorer-card--split):has(.v-window-item--active .file-list-card--empty) {
 	height: auto;
 }
 
@@ -45,92 +47,147 @@
 .explorer-window :deep(.v-window-item) {
 	height: 100%;
 }
+
+.explorer-panes {
+	display: flex;
+	flex-direction: row;
+	height: 100%;
+	min-height: 0;
+}
+
+.explorer-pane {
+	display: flex;
+	flex-direction: column;
+	flex: 1 1 auto;
+	/* Split panes need to be allowed to shrink below their content's natural width, or a wide
+	   file list/editor would refuse to compress and blow out the sibling pane's width instead */
+	min-width: 0;
+	min-height: 0;
+}
+
+.explorer-pane--hidden {
+	display: none;
+}
+
+.explorer-split-divider {
+	flex: 0 0 7px;
+	margin: 0 -3px;
+	cursor: ew-resize;
+	touch-action: none;
+	z-index: 1;
+}
+.explorer-split-divider:hover {
+	background: rgba(var(--v-theme-on-surface), 0.12);
+}
 </style>
 
 <template>
 	<div class="route-root">
-		<v-card class="explorer-card dwc-page-fill d-flex flex-column">
-			<v-toolbar v-if="tabs.length > 1" density="compact" color="surface" class="flex-shrink-0">
-				<v-tabs v-model="activeTab" align-tabs="start" show-arrows density="compact" class="flex-grow-1">
-					<v-tab v-for="tab in tabs" :key="tab.id" :value="tab.id" class="text-none"
-						   :color="isTabDirty(tab) ? 'warning' : undefined" draggable="true"
-						   @mousedown.middle.prevent="onTabMiddleClick(tab)"
-						   @dragstart="onTabDragStart($event, tab)"
-						   @dragend="onTabDragEnd"
-						   @dragover="onTabDragOver($event, tab)"
-						   @dragleave="onTabDragLeave"
-						   @drop="onTabDrop($event, tab)">
-						<v-icon size="small" class="mr-2">{{ tabIcon(tab) }}</v-icon>
-						<span class="explorer-tab-label text-truncate">{{ tabLabel(tab) }}{{ isTabDirty(tab) ? " *" : "" }}</span>
-						<v-chip v-if="tabParentLabel(tab)" size="x-small" variant="tonal"
-								:color="tabPillColor(tab)" :title="tabParentTitle(tab)"
-								class="ml-2 explorer-tab-pill">{{ tabParentLabel(tab) }}</v-chip>
-						<v-btn v-if="tabs.length > 1" variant="text" size="small" density="comfortable"
-							   icon class="ml-2" :title="$t('list.explorer.closeTab')"
-							   :disabled="isLastBrowserTab(tab)"
-							   @click.stop="requestCloseTab(tab.id)">
-							<v-icon size="20">mdi-close</v-icon>
-						</v-btn>
-					</v-tab>
-				</v-tabs>
+		<v-card class="explorer-card dwc-page-fill d-flex flex-column"
+				:class="{ 'explorer-card--split': groups.length > 1 }">
+			<div ref="splitContainer" class="explorer-panes">
+				<template v-for="(group, gi) in groups" :key="group.id">
+					<div class="explorer-pane"
+						 :class="{ 'explorer-pane--hidden': groups.length > 1 && !lgAndUp && group.id !== focusedGroupId }"
+						 :style="(groups.length > 1 && gi === 0) ? { flex: `0 0 ${splitRatio * 100}%` } : undefined">
+						<v-toolbar v-if="tabsInGroup(group.id).length > 1 || groups.length > 1"
+								   density="compact" color="surface" class="flex-shrink-0">
+							<v-tabs :model-value="group.activeTabId" @update:model-value="(id) => setActiveTab(id as number)"
+									align-tabs="start" show-arrows density="compact" class="flex-grow-1">
+								<v-tab v-for="tab in tabsInGroup(group.id)" :key="tab.id" :value="tab.id" class="text-none"
+									   :color="isTabDirty(tab) ? 'warning' : undefined" draggable="true"
+									   @mousedown.middle.prevent="onTabMiddleClick(tab)"
+									   @dragstart="onTabDragStart($event, tab)"
+									   @dragend="onTabDragEnd"
+									   @dragover="onTabDragOver($event, tab)"
+									   @dragleave="onTabDragLeave"
+									   @drop="onTabDrop($event, tab)">
+									<v-icon size="small" class="mr-2">{{ tabIcon(tab) }}</v-icon>
+									<span class="explorer-tab-label text-truncate">{{ tabLabel(tab) }}{{ isTabDirty(tab) ? " *" : "" }}</span>
+									<v-chip v-if="tabParentLabel(tab)" size="x-small" variant="tonal"
+											:color="tabPillColor(tab)" :title="tabParentTitle(tab)"
+											class="ml-2 explorer-tab-pill">{{ tabParentLabel(tab) }}</v-chip>
+									<v-btn v-if="tabs.length > 1" variant="text" size="small" density="comfortable"
+										   icon class="ml-2" :title="$t('list.explorer.closeTab')"
+										   :disabled="isLastBrowserTab(tab)"
+										   @click.stop="requestCloseTab(tab.id)">
+										<v-icon size="20">mdi-close</v-icon>
+									</v-btn>
+								</v-tab>
+							</v-tabs>
 
-				<v-btn variant="text" icon :title="$t('list.explorer.newTab')"
-					   @click="addTab(defaultVolume)">
-					<v-icon>mdi-plus</v-icon>
-				</v-btn>
-			</v-toolbar>
-
-			<v-window v-model="activeTab" :touch="false" class="explorer-window flex-grow-1">
-				<v-window-item v-for="tab in tabs" :key="tab.id" :value="tab.id" eager
-							   :transition="windowItemTransition" :reverse-transition="windowItemTransition">
-					<MonacoEditor v-if="tab.kind === 'editor' && tab.filename"
-								  :ref="(el) => setEditorRef(tab.id, el)" :filename="tab.filename"
-								  :initial-content="tab.initialContent" @dirty="tab.dirty = $event"
-								  @saved="onEditorSaved(tab)" />
-					<FileList v-else v-model:directory="tab.directory"
-							  :options="optionsForTab(tab)"
-							  :root-directory="rootForTab(tab)" :root-label="rootLabelFor(tab)"
-							  no-items-text="list.baseFileList.noFiles" no-view-mode
-							  :firmware-aware="isFirmwareContext(tab.directory)"
-							  @file-click="onFileClick" @file-edit="onFileEdit"
-							  @file-run-macro="onFileRunMacro" @file-simulate="onFileSimulate"
-							  @refresh="onExplorerRefresh">
-						<template #progress>
-							<v-progress-linear v-if="thumbnailProgress !== -1" height="2"
-											   :indeterminate="thumbnailTotal === 0"
-											   :model-value="thumbnailTotal === 0 ? 0 : (thumbnailProgress / thumbnailTotal) * 100" />
-						</template>
-
-						<template #nameIcon="slotProps">
-							<JobThumbnailCell :item="slotProps.item"
-											  :tile="(slotProps as { tile?: boolean }).tile === true" />
-						</template>
-
-						<template v-if="tabs.length === 1" #actions>
 							<v-btn variant="text" icon :title="$t('list.explorer.newTab')"
-								   @click="addTab(defaultVolume)">
+								   @click="addTab(defaultVolume, group.id)">
 								<v-icon>mdi-plus</v-icon>
 							</v-btn>
-						</template>
-						<template v-if="availableVolumes.length > 1" #upload-prepend>
-							<v-menu>
-								<template #activator="{ props: activatorProps }">
-									<v-btn v-bind="activatorProps" variant="text" icon
-										   :title="$t('list.explorer.volume')">
-										<v-icon>mdi-sd</v-icon>
-									</v-btn>
-								</template>
-								<v-list :density="controlDensity">
-									<v-list-item v-for="vol in availableVolumes" :key="vol"
-												 :active="Path.getVolume(tab.directory ?? '') === vol"
-												 :title="volumeCaption(vol)"
-												 @click="tab.directory = Path.volumeRoot(vol)" />
-								</v-list>
-							</v-menu>
-						</template>
-					</FileList>
-				</v-window-item>
-			</v-window>
+							<v-btn v-if="groups.length === 1 && lgAndUp" variant="text" icon :disabled="!canSplit"
+								   :title="$t('list.explorer.splitRight')" @click="splitRight">
+								<v-icon>mdi-dock-right</v-icon>
+							</v-btn>
+							<v-btn v-if="group.id === SECOND_GROUP_ID" variant="text" icon
+								   :title="$t('list.explorer.closeSplit')" @click="closeSplit">
+								<v-icon>mdi-dock-left</v-icon>
+							</v-btn>
+						</v-toolbar>
+
+						<v-window :model-value="group.activeTabId" @update:model-value="(id) => setActiveTab(id as number)"
+								  :touch="false" class="explorer-window flex-grow-1">
+							<v-window-item v-for="tab in tabsInGroup(group.id)" :key="tab.id" :value="tab.id" eager
+										   :transition="windowItemTransition" :reverse-transition="windowItemTransition">
+								<MonacoEditor v-if="tab.kind === 'editor' && tab.filename"
+											  :ref="(el) => setEditorRef(tab.id, el)" :filename="tab.filename"
+											  :initial-content="tab.initialContent" @dirty="tab.dirty = $event"
+											  @saved="onEditorSaved(tab)" />
+								<FileList v-else v-model:directory="tab.directory"
+										  :options="optionsForTab(tab)"
+										  :root-directory="rootForTab(tab)" :root-label="rootLabelFor(tab)"
+										  no-items-text="list.baseFileList.noFiles" no-view-mode
+										  :firmware-aware="isFirmwareContext(tab.directory)"
+										  @file-click="(item, dir) => onFileClick(item, dir, tab.groupId)"
+										  @file-edit="(item, dir) => onFileEdit(item, dir, tab.groupId)"
+										  @file-run-macro="(item, dir) => onFileRunMacro(item, dir, tab.groupId)"
+										  @file-simulate="onFileSimulate"
+										  @refresh="onExplorerRefresh">
+									<template #progress>
+										<v-progress-linear v-if="thumbnailProgressFor(tab.groupId) !== -1" height="2"
+														   :indeterminate="thumbnailTotalFor(tab.groupId) === 0"
+														   :model-value="thumbnailTotalFor(tab.groupId) === 0 ? 0 : (thumbnailProgressFor(tab.groupId) / thumbnailTotalFor(tab.groupId)) * 100" />
+									</template>
+
+									<template #nameIcon="slotProps">
+										<JobThumbnailCell :item="slotProps.item"
+														  :tile="(slotProps as { tile?: boolean }).tile === true" />
+									</template>
+
+									<template v-if="tabsInGroup(group.id).length === 1 && groups.length === 1" #actions>
+										<v-btn variant="text" icon :title="$t('list.explorer.newTab')"
+											   @click="addTab(defaultVolume, group.id)">
+											<v-icon>mdi-plus</v-icon>
+										</v-btn>
+									</template>
+									<template v-if="availableVolumes.length > 1" #upload-prepend>
+										<v-menu>
+											<template #activator="{ props: activatorProps }">
+												<v-btn v-bind="activatorProps" variant="text" icon
+													   :title="$t('list.explorer.volume')">
+													<v-icon>mdi-sd</v-icon>
+												</v-btn>
+											</template>
+											<v-list :density="controlDensity">
+												<v-list-item v-for="vol in availableVolumes" :key="vol"
+															 :active="Path.getVolume(tab.directory ?? '') === vol"
+															 :title="volumeCaption(vol)"
+															 @click="tab.directory = Path.volumeRoot(vol)" />
+											</v-list>
+										</v-menu>
+									</template>
+								</FileList>
+							</v-window-item>
+						</v-window>
+					</div>
+					<div v-if="gi === 0 && groups.length > 1" class="explorer-split-divider" @pointerdown="startSplitResize" />
+				</template>
+			</div>
 		</v-card>
 
 		<ConfirmDialog v-model:shown="runMacroDialog.shown"
@@ -331,15 +388,19 @@ import MonacoEditor from "@/components/editor/MonacoEditor.vue";
 import { firmwareInstallControllerKey, useFirmwareInstallController } from "@/composables/useFirmwareInstallController";
 import i18n from "@/i18n";
 import { scrollPageToBottom } from "@/router";
+import { useCacheStore } from "@/stores/cache";
 import { useSettingsStore } from "@/stores/settings";
 import { LogLevel, useUiStore } from "@/stores/ui";
 import { isPrinting } from "@/utils/enums";
+import { useDisplay } from "vuetify";
 
 defineOptions({ name: "Explorer" });
 
 interface ExplorerTab {
 	id: number;
 	kind: "browser" | "editor";
+	/** Which pane (group) this tab currently belongs to */
+	groupId: number;
 	/** Filename for editor tabs */
 	filename?: string;
 	/** Current directory for browser tabs - two-way bound through FileList's v-model:directory */
@@ -357,10 +418,25 @@ interface ExplorerTab {
 	resetPromptDue?: boolean;
 }
 
+/** One pane of a (potentially split) Explorer view. `activeTabId` is which of that pane's own
+ * tabs (ExplorerTab.groupId === this group's id) is currently showing */
+interface ExplorerGroup {
+	id: number;
+	activeTabId: number;
+}
+
+// Split view is deliberately capped at exactly two panes (see plan doc) - group ids are therefore
+// fixed literals rather than an incrementing counter. Closing the split removes group 2 entirely;
+// splitting again just recreates it with the same id, which is fine since nothing outlives it
+const FIRST_GROUP_ID = 1;
+const SECOND_GROUP_ID = 2;
+
 const machineStore = useMachineStore();
 const settingsStore = useSettingsStore();
 const uiStore = useUiStore();
+const cacheStore = useCacheStore();
 const { controlDensity } = useLargeButtons();
+const { lgAndUp } = useDisplay();
 const route = useRoute("/Explorer/[[tab]]/[[volume]]/[[...path]]");
 const router = useRouter();
 
@@ -406,7 +482,7 @@ let nextTabId = 1;
 function buildInitialTabs(): Array<ExplorerTab> {
 	const params = route.params;
 	if (isBareExplorerRoute(params)) {
-		return [{ id: nextTabId++, kind: "browser", directory: "0:/" }];
+		return [{ id: nextTabId++, kind: "browser", directory: "0:/", groupId: FIRST_GROUP_ID }];
 	}
 	const initialPath = sdPathFromParams(params);
 	const payload = initialPayload.value;
@@ -416,12 +492,13 @@ function buildInitialTabs(): Array<ExplorerTab> {
 		// file's containing volume so it makes sense alongside the open file
 		const fallbackVolume = /^(\d+):/.exec(initialPath)?.[0] ?? "0:";
 		return [
-			{ id: nextTabId++, kind: "browser", directory: `${fallbackVolume}/` },
+			{ id: nextTabId++, kind: "browser", directory: `${fallbackVolume}/`, groupId: FIRST_GROUP_ID },
 			{
 				id: nextTabId++,
 				kind: "editor",
 				filename: initialPath,
 				initialContent: payload?.kind === "editor" && payload.path === initialPath ? payload.content : undefined,
+				groupId: FIRST_GROUP_ID,
 			},
 		];
 	}
@@ -432,14 +509,49 @@ function buildInitialTabs(): Array<ExplorerTab> {
 		initialFiles: payload?.kind === "directory" && payload.path === initialPath
 			? (payload.files as Array<FileBrowserItem> | undefined) ?? undefined
 			: undefined,
+		groupId: FIRST_GROUP_ID,
 	}];
 }
 
 const initialTabs = buildInitialTabs();
 const tabs = ref<Array<ExplorerTab>>(initialTabs);
-// When buildInitialTabs returned both a browser and an editor tab (deep-link to a file), focus
-// the editor - that's what the user navigated to. Otherwise focus the single tab we built
-const activeTab = ref<number>(initialTabs[initialTabs.length - 1].id);
+
+// One entry per visible pane; starts single-pane (just the primary group). See ExplorerGroup
+const groups = ref<Array<ExplorerGroup>>([
+	// When buildInitialTabs returned both a browser and an editor tab (deep-link to a file), focus
+	// the editor - that's what the user navigated to. Otherwise focus the single tab we built
+	{ id: FIRST_GROUP_ID, activeTabId: initialTabs[initialTabs.length - 1].id },
+]);
+
+// Which pane last had user interaction (tab click, close, drag, new-tab). Drives URL sync, where
+// newly-created tabs land, and keyboard focus restoration
+const focusedGroupId = ref<number>(FIRST_GROUP_ID);
+
+function tabsInGroup(groupId: number): Array<ExplorerTab> {
+	return tabs.value.filter((t) => t.groupId === groupId);
+}
+
+// Read-only view of "the" focused tab, in the same shape the old activeTab ref had (a plain tab
+// id) so every existing `tabs.value.find(t => t.id === activeTab.value)`-style read below keeps
+// working unchanged. All writes go through setActiveTab() instead of assigning .value directly
+const activeTab = computed<number | undefined>(
+	() => groups.value.find((g) => g.id === focusedGroupId.value)?.activeTabId
+);
+
+// Single write path for switching which tab is showing: updates that tab's own pane's
+// activeTabId and moves focus to that pane. Clicking a tab in the non-focused pane is itself a
+// focusing interaction, same as clicking "+" or closing a tab there (see moveTabToGroup/closeTab)
+function setActiveTab(tabId: number) {
+	const tab = tabs.value.find((t) => t.id === tabId);
+	if (!tab) {
+		return;
+	}
+	const group = groups.value.find((g) => g.id === tab.groupId);
+	if (group) {
+		group.activeTabId = tabId;
+	}
+	focusedGroupId.value = tab.groupId;
+}
 
 // Tab-local window scroll memory. v-window-item keeps each tab's DOM mounted (eager) so the
 // content is still there when the user switches away - but the window scroll position is a single
@@ -449,13 +561,21 @@ const activeTab = ref<number>(initialTabs[initialTabs.length - 1].id);
 // its display swap so the page height reflects the incoming tab first
 watch(activeTab, (toId, fromId) => {
 	const outgoing = tabs.value.find((t) => t.id === fromId);
+	const incoming = tabs.value.find((t) => t.id === toId);
+	// A cross-pane focus handoff (clicking into the other, already-visible pane while split) must
+	// not disturb the single page-level scroll axis both panes share. Only skip when `outgoing`
+	// still exists AND belongs to a different pane than `incoming` - if `outgoing` is gone (its tab
+	// just closed) the transition is always within the SAME pane (closeTab's fallback never
+	// crosses panes), so the restore below must still run exactly as it did before split view
+	if (outgoing && incoming && outgoing.groupId !== incoming.groupId) {
+		return;
+	}
 	if (outgoing) {
 		outgoing.scrollY = window.scrollY;
 	}
-	const incoming = tabs.value.find((t) => t.id === toId);
 	if (incoming?.kind === "editor") {
 		scrollPageToBottom();
-		nextTick(() => editorRefs.get(toId)?.focus());
+		nextTick(() => editorRefs.get(incoming.id)?.focus());
 	} else {
 		nextTick(() => window.scrollTo({ top: incoming?.scrollY ?? 0, behavior: "instant" }));
 	}
@@ -474,24 +594,51 @@ onActivated(() => {
 	}
 });
 
-// Single shared thumbnail fetcher across all browser tabs. Switching tabs mid-fetch cancels
-// the previous one (acceptable: the cache holds whatever did complete and the next visit hits
-// it). The composable only sweeps the gcodes tree and external volumes, so /sys, /macros and
-// other system areas never pay the per-row fetch cost
-const explorerThumbnails = useGcodeThumbnails();
-const { fileinfoProgress: thumbnailProgress, fileinfoTotal: thumbnailTotal } = explorerThumbnails;
-onDeactivated(explorerThumbnails.cancelInFlight);
-onBeforeUnmount(explorerThumbnails.cancelInFlight);
+// One thumbnail fetcher per pane (not one shared across the whole page): each is single-flight
+// internally, so two panes browsing different /gcodes directories at once would otherwise cancel
+// each other's fetch and fight over one shared progress bar. Both are created up front (rather
+// than lazily on first split) since group ids are fixed literals - there are never more than these
+// two instances, so there's nothing to grow or clean up beyond the two cancelInFlight calls below.
+// Switching tabs mid-fetch within a pane still cancels that pane's own previous fetch (acceptable:
+// the cache holds whatever did complete and the next visit hits it). The composable only sweeps
+// the gcodes tree and external volumes, so /sys, /macros and other system areas never pay the
+// per-row fetch cost
+const thumbnailsByGroup = new Map<number, ReturnType<typeof useGcodeThumbnails>>([
+	[FIRST_GROUP_ID, useGcodeThumbnails()],
+	[SECOND_GROUP_ID, useGcodeThumbnails()],
+]);
 
+function groupThumbnails(groupId: number): ReturnType<typeof useGcodeThumbnails> {
+	return thumbnailsByGroup.get(groupId) ?? thumbnailsByGroup.get(FIRST_GROUP_ID)!;
+}
+
+function thumbnailProgressFor(groupId: number): number {
+	return groupThumbnails(groupId).fileinfoProgress.value;
+}
+
+function thumbnailTotalFor(groupId: number): number {
+	return groupThumbnails(groupId).fileinfoTotal.value;
+}
+
+function cancelAllThumbnailFetches() {
+	for (const entry of thumbnailsByGroup.values()) {
+		entry.cancelInFlight();
+	}
+}
+onDeactivated(cancelAllThumbnailFetches);
+onBeforeUnmount(cancelAllThumbnailFetches);
+
+// clearCacheForDirectory just forwards to the (page-wide, singleton) cache store, so which pane's
+// instance issues the call has no effect - any of them will do
 function onExplorerRefresh(refreshedDirectory: string) {
-	explorerThumbnails.clearCacheForDirectory(refreshedDirectory);
+	groupThumbnails(FIRST_GROUP_ID).clearCacheForDirectory(refreshedDirectory);
 }
 
 function optionsForTab(tab: ExplorerTab) {
 	return {
 		initialDirectory: tab.directory ?? "0:/",
 		initialFiles: tab.initialFiles,
-		decorate: (items: Array<FileBrowserItem>, dir: string) => explorerThumbnails.decorate(items, dir),
+		decorate: (items: Array<FileBrowserItem>, dir: string) => groupThumbnails(tab.groupId).decorate(items, dir),
 	};
 }
 
@@ -543,12 +690,16 @@ const runMacroDialog = reactive({
 	shown: false,
 	filename: "",
 	fullPath: "",
+	// Which pane triggered the dialog, so the deferred "Edit" action (editMacroFromDialog) opens
+	// the editor there rather than wherever focus happens to be by the time the dialog resolves
+	groupId: FIRST_GROUP_ID,
 });
 
 const startJobDialog = reactive({
 	shown: false,
 	filename: "",
 	fullPath: "",
+	groupId: FIRST_GROUP_ID,
 });
 
 function tabIcon(tab: ExplorerTab): string {
@@ -638,32 +789,35 @@ function tabParentTitle(tab: ExplorerTab): string {
 	return (tab.kind === "editor" && tab.filename) ? Path.extractDirectory(tab.filename) : "";
 }
 
-function addTab(volume: number) {
+function addTab(volume: number, groupId: number) {
 	const tab: ExplorerTab = {
 		id: nextTabId++,
 		kind: "browser",
 		directory: `${volume}:/`,
+		groupId,
 	};
 	tabs.value.push(tab);
-	activeTab.value = tab.id;
+	setActiveTab(tab.id);
 }
 
 // Each file is opened at most once - a second click on the same filename brings the existing
 // editor tab to the front instead of spawning a duplicate. This is what lets the URL drop the
-// per-tab `t<n>` identifier: each open editor maps 1:1 to its path
-function openEditorTab(filename: string) {
+// per-tab `t<n>` identifier: each open editor maps 1:1 to its path. `groupId` only matters for the
+// genuinely-new-tab case below; an already-open file is always revealed wherever it already lives
+function openEditorTab(filename: string, groupId: number) {
 	const existing = tabs.value.find((t) => t.kind === "editor" && t.filename === filename);
 	if (existing) {
-		activeTab.value = existing.id;
+		setActiveTab(existing.id);
 		return;
 	}
 	const tab: ExplorerTab = {
 		id: nextTabId++,
 		kind: "editor",
 		filename,
+		groupId,
 	};
 	tabs.value.push(tab);
-	activeTab.value = tab.id;
+	setActiveTab(tab.id);
 }
 
 // Whether saving this file should offer a firmware reset / config re-run once the editor closes.
@@ -709,12 +863,61 @@ function onEditorSaved(tab: ExplorerTab) {
 // where a slide would lie about a direction the user didn't navigate
 const windowItemTransition = ref<string | undefined>(undefined);
 
+// Handles a pane having lost its last tab, whether via close or a cross-pane drag: if the other
+// pane still exists, remove the emptied one and hand focus to whichever remains, collapsing the
+// split; otherwise (the single remaining pane) spawn a fresh browser tab so the user never sees
+// an empty card - the same fallback closeTab always had before split view existed
+function collapseEmptyGroup(groupId: number) {
+	if (groups.value.length > 1) {
+		const groupIdx = groups.value.findIndex((g) => g.id === groupId);
+		if (groupIdx !== -1) {
+			groups.value.splice(groupIdx, 1);
+		}
+		const remaining = groups.value[0];
+		if (remaining) {
+			// Normalise the sole survivor back onto FIRST_GROUP_ID so it's always the fixed
+			// "primary pane" id and SECOND_GROUP_ID is always free for the next split - otherwise
+			// e.g. closing every tab in the first pane while the second survives would leave
+			// SECOND_GROUP_ID as the only group, and a future splitRight() would have to guess
+			// which of the two fixed ids is actually available
+			if (remaining.id !== FIRST_GROUP_ID) {
+				for (const tab of tabsInGroup(remaining.id)) {
+					tab.groupId = FIRST_GROUP_ID;
+				}
+				remaining.id = FIRST_GROUP_ID;
+			}
+			focusedGroupId.value = FIRST_GROUP_ID;
+		}
+	} else {
+		const freshTab: ExplorerTab = {
+			id: nextTabId++, kind: "browser", directory: `${defaultVolume.value}:/`, groupId,
+		};
+		tabs.value.push(freshTab);
+		const group = groups.value.find((g) => g.id === groupId);
+		if (group) {
+			group.activeTabId = freshTab.id;
+		}
+	}
+}
+
 function closeTab(id: number) {
 	const idx = tabs.value.findIndex((t) => t.id === id);
 	if (idx === -1) {
 		return;
 	}
 	const closed = tabs.value[idx];
+	const closedGroupId = closed.groupId;
+	// Snapshot before mutating anything below - true only when this was the FOCUSED pane's active
+	// tab, i.e. the one the URL currently reflects (mirrors the pre-split `activeTab.value === id`
+	// check exactly, now scoped through the computed)
+	const wasUrlBoundActiveTab = activeTab.value === id;
+	const wasActiveInOwnGroup = groups.value.find((g) => g.id === closedGroupId)?.activeTabId === id;
+	// Snapshot this tab's position within its OWN pane's strip (not the flat array) before
+	// removing it, so the fallback selection below mirrors "select the previous tab in this
+	// pane" rather than reaching into a sibling pane's tabs
+	const groupTabsBefore = tabsInGroup(closedGroupId);
+	const groupIdxBefore = groupTabsBefore.findIndex((t) => t.id === id);
+
 	tabs.value.splice(idx, 1);
 
 	// resetPromptDue is only set in the "onTabClose" preference, so closing the editor is when its
@@ -723,28 +926,138 @@ function closeTab(id: number) {
 		showResetPrompt();
 	}
 
-	// If the user just closed the last tab, spawn a fresh browser tab at the default volume so
-	// the user lands somewhere usable instead of an empty card
-	if (tabs.value.length === 0) {
-		tabs.value.push({ id: nextTabId++, kind: "browser", directory: `${defaultVolume.value}:/` });
+	const remainingInGroup = tabsInGroup(closedGroupId);
+	if (remainingInGroup.length === 0) {
+		collapseEmptyGroup(closedGroupId);
+	} else if (wasActiveInOwnGroup) {
+		const fallback = remainingInGroup[Math.max(0, groupIdxBefore - 1)] ?? remainingInGroup[0];
+		const group = groups.value.find((g) => g.id === closedGroupId);
+		if (group) {
+			group.activeTabId = fallback.id;
+		}
 	}
 
-	if (activeTab.value === id) {
+	if (wasUrlBoundActiveTab) {
 		// The closed tab's path still occupies the current history entry; tell the next URL
 		// push (fired by the activeTabSnapshot watcher below) to overwrite it with the fallback
 		// tab's path rather than appending. Otherwise Back would walk the user straight back
 		// into the file they just closed
 		replaceNextUrlChange = true;
-		const fallback = tabs.value[Math.max(0, idx - 1)] ?? tabs.value[0];
 		windowItemTransition.value = "fade-transition";
-		activeTab.value = fallback.id;
 		// Vue's transition reads the name when it starts, so resetting on nextTick (after the
-		// activeTab update has flushed and the transition is in-flight) restores the default
-		// slide for any subsequent tab clicks
+		// active-tab update above has flushed and the transition is in-flight) restores the
+		// default slide for any subsequent tab clicks
 		nextTick(() => {
 			windowItemTransition.value = undefined;
 		});
 	}
+}
+
+// Reassigns a tab to the other pane, e.g. from the "Split Right" trigger or a cross-pane tab
+// drag. Picks a fallback active tab for the vacated pane using the same logic closeTab uses (and
+// collapses that pane entirely via collapseEmptyGroup if the moved tab was its only one).
+// `beforeTabId` also repositions the tab within the flat array so a drag-drop lands it adjacent
+// to the tab it was dropped on, rather than wherever it happened to sit relative to the target
+// pane's other tabs beforehand; omitted (e.g. from splitRight) it's simply appended
+function moveTabToGroup(tabId: number, targetGroupId: number, beforeTabId?: number) {
+	const tab = tabs.value.find((t) => t.id === tabId);
+	const targetGroup = groups.value.find((g) => g.id === targetGroupId);
+	if (!tab || !targetGroup || tab.groupId === targetGroupId) {
+		return;
+	}
+	const sourceGroupId = tab.groupId;
+	const sourceGroup = groups.value.find((g) => g.id === sourceGroupId);
+	const wasActiveInSource = sourceGroup?.activeTabId === tabId;
+	const groupTabsBefore = tabsInGroup(sourceGroupId);
+	const groupIdxBefore = groupTabsBefore.findIndex((t) => t.id === tabId);
+
+	tab.groupId = targetGroupId;
+
+	const fromIdx = tabs.value.findIndex((t) => t.id === tabId);
+	tabs.value.splice(fromIdx, 1);
+	const insertBeforeIdx = beforeTabId !== undefined ? tabs.value.findIndex((t) => t.id === beforeTabId) : -1;
+	if (insertBeforeIdx !== -1) {
+		tabs.value.splice(insertBeforeIdx, 0, tab);
+	} else {
+		tabs.value.push(tab);
+	}
+
+	targetGroup.activeTabId = tabId;
+	focusedGroupId.value = targetGroupId;
+
+	const remainingInSource = tabsInGroup(sourceGroupId);
+	if (remainingInSource.length === 0) {
+		collapseEmptyGroup(sourceGroupId);
+	} else if (wasActiveInSource && sourceGroup) {
+		const fallback = remainingInSource[Math.max(0, groupIdxBefore - 1)] ?? remainingInSource[0];
+		sourceGroup.activeTabId = fallback.id;
+	}
+}
+
+// Enabled once there's a second tab to leave behind in the source pane - splitting a lone tab
+// would immediately empty its origin pane, which is a state only closeTab/moveTabToGroup should
+// ever produce (and only when collapsing back down, not when creating a fresh split)
+const canSplit = computed<boolean>(() => groups.value.length === 1 && tabs.value.length >= 2);
+
+function splitRight() {
+	if (!canSplit.value) {
+		return;
+	}
+	// collapseEmptyGroup always normalises a lone surviving pane back onto FIRST_GROUP_ID, so the
+	// single group here is guaranteed to be FIRST_GROUP_ID and SECOND_GROUP_ID is free to reuse
+	const tabToMove = groups.value[0].activeTabId;
+	groups.value.push({ id: SECOND_GROUP_ID, activeTabId: tabToMove });
+	moveTabToGroup(tabToMove, SECOND_GROUP_ID);
+}
+
+// Merges the second pane's tabs back into the first and removes the split. Needed as an explicit
+// affordance: closing every tab in a pane one at a time does NOT always work, since the very last
+// browser tab across the whole page can never be closed (isLastBrowserTab/browserTabCount) - a
+// pane holding that tab could otherwise never be emptied
+function closeSplit() {
+	const secondGroup = groups.value.find((g) => g.id === SECOND_GROUP_ID);
+	const firstGroup = groups.value.find((g) => g.id !== SECOND_GROUP_ID);
+	if (!secondGroup || !firstGroup) {
+		return;
+	}
+	for (const tab of tabsInGroup(secondGroup.id)) {
+		tab.groupId = firstGroup.id;
+	}
+	groups.value = groups.value.filter((g) => g.id === firstGroup.id);
+	focusedGroupId.value = firstGroup.id;
+}
+
+// Resizable split divider. Mirrors the nav-drawer's drag handle in layouts/builtin.vue: a local
+// ref drives the live ratio during the drag so each pointer move doesn't churn the persisted
+// cache store, and the final ratio is committed once on release
+const splitContainer = ref<HTMLDivElement | null>(null);
+const MIN_PANE_FRACTION = 0.2, MAX_PANE_FRACTION = 0.8;
+const splitRatio = ref(cacheStore.explorerSplitRatio);
+watch(() => cacheStore.explorerSplitRatio, (value) => { splitRatio.value = value; });
+
+function startSplitResize(event: PointerEvent) {
+	const container = splitContainer.value;
+	if (!container) {
+		return;
+	}
+	event.preventDefault();
+	const startX = event.clientX, startRatio = splitRatio.value;
+	const containerWidth = container.getBoundingClientRect().width;
+
+	const onMove = (e: PointerEvent) => {
+		const deltaRatio = containerWidth > 0 ? (e.clientX - startX) / containerWidth : 0;
+		splitRatio.value = Math.min(MAX_PANE_FRACTION, Math.max(MIN_PANE_FRACTION, startRatio + deltaRatio));
+	};
+	const onUp = () => {
+		window.removeEventListener("pointermove", onMove);
+		window.removeEventListener("pointerup", onUp);
+		document.body.style.userSelect = "";
+		cacheStore.explorerSplitRatio = splitRatio.value;
+	};
+
+	document.body.style.userSelect = "none";
+	window.addEventListener("pointermove", onMove);
+	window.addEventListener("pointerup", onUp);
 }
 
 const discardDialog = reactive<{ shown: boolean; pendingId: number | null; filename: string }>({
@@ -847,7 +1160,10 @@ watch(
 	{ immediate: true }
 );
 
-function onFileClick(item: FileBrowserItem, directory: string) {
+// groupId identifies which pane's FileList the click came from, so a file opened via a dialog
+// that resolves later (run-macro/start-job "Edit") still lands in that same pane rather than
+// wherever focus happens to be by the time the dialog closes
+function onFileClick(item: FileBrowserItem, directory: string, groupId: number) {
 	const fullPath = Path.combine(directory, item.name);
 
 	// Files under the macros directory are runnable; ask to confirm before issuing M98 instead
@@ -855,6 +1171,7 @@ function onFileClick(item: FileBrowserItem, directory: string) {
 	if (Path.startsWith(directory, machineStore.model.directories.macros)) {
 		runMacroDialog.filename = item.name;
 		runMacroDialog.fullPath = fullPath;
+		runMacroDialog.groupId = groupId;
 		runMacroDialog.shown = true;
 		return;
 	}
@@ -865,23 +1182,25 @@ function onFileClick(item: FileBrowserItem, directory: string) {
 		&& Path.isGCodePath(item.name, machineStore.model.directories.gCodes)) {
 		startJobDialog.filename = item.name;
 		startJobDialog.fullPath = fullPath;
+		startJobDialog.groupId = groupId;
 		startJobDialog.shown = true;
 		return;
 	}
 
-	openEditorTab(fullPath);
+	openEditorTab(fullPath, groupId);
 }
 
 // Context-menu Edit bypasses the run-macro prompt and goes straight to the editor regardless
 // of the directory the file lives in
-function onFileEdit(item: FileBrowserItem, directory: string) {
-	openEditorTab(Path.combine(directory, item.name));
+function onFileEdit(item: FileBrowserItem, directory: string, groupId: number) {
+	openEditorTab(Path.combine(directory, item.name), groupId);
 }
 
 // Context-menu Run Macro routes to the same M98 confirm dialog the /macros default click uses
-function onFileRunMacro(item: FileBrowserItem, directory: string) {
+function onFileRunMacro(item: FileBrowserItem, directory: string, groupId: number) {
 	runMacroDialog.filename = item.name;
 	runMacroDialog.fullPath = Path.combine(directory, item.name);
+	runMacroDialog.groupId = groupId;
 	runMacroDialog.shown = true;
 }
 
@@ -995,7 +1314,15 @@ async function onTabDrop(event: DragEvent, tab: ExplorerTab) {
 	if (isTabReorderDrag(event)) {
 		event.preventDefault();
 		event.stopPropagation();
-		reorderTab(draggedTabId!, tab.id);
+		if (draggedTabId !== null) {
+			const draggedTab = tabs.value.find((t) => t.id === draggedTabId);
+			if (draggedTab && draggedTab.groupId !== tab.groupId) {
+				// Dropped onto a tab belonging to the OTHER pane - move across rather than reorder
+				moveTabToGroup(draggedTabId, tab.groupId, tab.id);
+			} else {
+				reorderTab(draggedTabId, tab.id);
+			}
+		}
 		draggedTabId = null;
 		return;
 	}
@@ -1031,7 +1358,7 @@ async function onTabDrop(event: DragEvent, tab: ExplorerTab) {
 			: i18n.global.t("list.fileList.movedMany", [moved, targetLabel]);
 		uiStore.log(LogLevel.success, message);
 		// Switch to the target tab so the user sees the result land
-		activeTab.value = tab.id;
+		setActiveTab(tab.id);
 	}
 }
 // #endregion
@@ -1050,9 +1377,10 @@ async function confirmRunMacro() {
 
 function editMacroFromDialog() {
 	const path = runMacroDialog.fullPath;
+	const groupId = runMacroDialog.groupId;
 	runMacroDialog.shown = false;
 	if (path) {
-		openEditorTab(path);
+		openEditorTab(path, groupId);
 	}
 }
 
@@ -1070,9 +1398,10 @@ async function confirmStartJob() {
 
 function editJobFromDialog() {
 	const path = startJobDialog.fullPath;
+	const groupId = startJobDialog.groupId;
 	startJobDialog.shown = false;
 	if (path) {
-		openEditorTab(path);
+		openEditorTab(path, groupId);
 	}
 }
 
@@ -1088,20 +1417,23 @@ function sdPathToRouteParams(sdPath: string): { volume: string; path: string } |
 }
 
 // The active tab's URL identity: an SD path plus the `t<n>` ordinal that keeps it distinct.
-// Browser tabs use their 1-based strip position so two tabs on the same directory don't collide;
-// editor tabs are keyed 1:1 by filename (a file opens at most once), so the path alone is
-// unique and the URL stays ordinal-free. The watcher below resolves editor URLs by matching
-// the path against open editor filenames before considering any ordinal interpretation
+// Browser tabs use their 1-based position WITHIN THEIR OWN PANE so two tabs on the same directory
+// don't collide, and so a browser-back ordinal can never resolve into the other, non-focused pane
+// (see the reconciliation watcher below). Editor tabs are keyed 1:1 by filename (a file opens at
+// most once), so the path alone is unique and the URL stays ordinal-free
 const activeTabSnapshot = computed<{ ordinal: number; path: string; editor: boolean } | undefined>(() => {
-	const index = tabs.value.findIndex((t) => t.id === activeTab.value);
-	if (index === -1) {
+	const tab = tabs.value.find((t) => t.id === activeTab.value);
+	if (!tab) {
 		return undefined;
 	}
-	const tab = tabs.value[index];
 	if (tab.kind === "editor") {
 		return tab.filename ? { ordinal: 1, path: tab.filename, editor: true } : undefined;
 	}
-	return tab.directory ? { ordinal: index + 1, path: tab.directory, editor: false } : undefined;
+	if (!tab.directory) {
+		return undefined;
+	}
+	const index = tabsInGroup(tab.groupId).findIndex((t) => t.id === tab.id);
+	return { ordinal: index + 1, path: tab.directory, editor: false };
 });
 
 let replaceNextUrlChange = false;
@@ -1131,7 +1463,10 @@ watch(() => `${route.params.tab ?? ""} ${sdPathFromParams(route.params)}`, () =>
 	// root so a browser back from `/Explorer/<sub>` actually drops back to the root listing
 	// instead of leaving the stale subdirectory on screen
 	if (isBareExplorerRoute(route.params)) {
-		const first = tabs.value[0];
+		// Reset to the primary pane's first tab specifically (not "whichever pane happens to be
+		// focused") - a bare /Explorer URL is a return-to-start gesture, and the primary pane is
+		// always FIRST_GROUP_ID regardless of which pane the user was last working in
+		const first = tabsInGroup(FIRST_GROUP_ID)[0];
 		if (first) {
 			if (first.kind === "browser") {
 				const root = `${defaultVolume.value}:/`;
@@ -1140,7 +1475,7 @@ watch(() => `${route.params.tab ?? ""} ${sdPathFromParams(route.params)}`, () =>
 				}
 			}
 			if (activeTab.value !== first.id) {
-				activeTab.value = first.id;
+				setActiveTab(first.id);
 			}
 		}
 		return;
@@ -1158,40 +1493,44 @@ watch(() => `${route.params.tab ?? ""} ${sdPathFromParams(route.params)}`, () =>
 	if (editor) {
 		const editorTab = tabs.value.find((t) => t.kind === "editor" && t.filename === newPath);
 		if (editorTab) {
+			// Reveal wherever the file already lives (its own pane) - correct even if that's the
+			// non-focused pane, since this URL is content-addressed by filename, not by ordinal
 			if (activeTab.value !== editorTab.id) {
-				activeTab.value = editorTab.id;
+				setActiveTab(editorTab.id);
 			}
 		} else {
-			openEditorTab(newPath);
+			openEditorTab(newPath, focusedGroupId.value);
 		}
 		return;
 	}
 
-	// Browser-tab URL: the `t<n>` ordinal addresses exactly one browser tab, so the same path
-	// in a second tab doesn't snap focus back to the first tab that happens to share it. No
-	// ordinal means tab 1 (or "the first browser tab" when tab 1 is an editor that didn't match
+	// Browser-tab URL: the `t<n>` ordinal addresses exactly one browser tab WITHIN THE FOCUSED
+	// PANE - resolving against the flat array here would let a stray ordinal reach into the other,
+	// non-focused pane and silently steal focus there on a mere Back/Forward. No ordinal means
+	// tab 1 (or "the first browser tab in this pane" when tab 1 is an editor that didn't match
 	// above - rare but possible after closing browser tabs)
 	const ordinal = ordinalParam ?? 1;
-	const targetTab = tabs.value[ordinal - 1];
+	const focusedGroupTabs = tabsInGroup(focusedGroupId.value);
+	const targetTab = focusedGroupTabs[ordinal - 1];
 	if (targetTab?.kind === "browser") {
 		if (targetTab.directory !== newPath) {
 			targetTab.directory = newPath;
 		}
 		if (activeTab.value !== targetTab.id) {
-			activeTab.value = targetTab.id;
+			setActiveTab(targetTab.id);
 		}
 		return;
 	}
 
-	// Ordinal points past the open tabs or at an editor that didn't match - steer the first
-	// browser tab as a safe default
-	const firstBrowser = tabs.value.find((t) => t.kind === "browser");
-	if (firstBrowser) {
-		if (firstBrowser.directory !== newPath) {
-			firstBrowser.directory = newPath;
+	// Ordinal points past this pane's open tabs or at an editor that didn't match - steer the
+	// pane's first browser tab as a safe default
+	const firstBrowserInFocusedGroup = focusedGroupTabs.find((t) => t.kind === "browser");
+	if (firstBrowserInFocusedGroup) {
+		if (firstBrowserInFocusedGroup.directory !== newPath) {
+			firstBrowserInFocusedGroup.directory = newPath;
 		}
-		if (activeTab.value !== firstBrowser.id) {
-			activeTab.value = firstBrowser.id;
+		if (activeTab.value !== firstBrowserInFocusedGroup.id) {
+			setActiveTab(firstBrowserInFocusedGroup.id);
 		}
 	}
 });
