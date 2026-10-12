@@ -1,10 +1,13 @@
 import { createI18n } from "vue-i18n";
 import { reactive } from "vue";
 
-import { de as deVuetify, en as enVuetify } from "vuetify/locale";
+import { de as deVuetify, en as enVuetify, nl as nlVuetify, ru as ruVuetify, uk as ukVuetify } from "vuetify/locale";
 
 import de from "./de.json";
 import en from "./en.json";
+import nl from "./nl.json";
+import ru from "./ru.json";
+import uk from "./uk.json";
 
 /**
  * Supported i18n messages
@@ -13,7 +16,10 @@ import en from "./en.json";
 // `$vuetify.dismiss`), so nest the framework locales rather than spreading them at the top level
 export const messages = reactive({
 	de: { $vuetify: deVuetify, ...de },
-	en: { $vuetify: enVuetify, ...en }
+	en: { $vuetify: enVuetify, ...en },
+	nl: { $vuetify: nlVuetify, ...nl },
+	uk: { $vuetify: ukVuetify, ...uk },
+	ru: { $vuetify: ruVuetify, ...ru }
 });
 
 export type Locale = keyof typeof messages;

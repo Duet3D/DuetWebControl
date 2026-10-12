@@ -26,7 +26,7 @@ import Events from "@/utils/events";
 const vuetify = createVuetify({
 	locale: {
 		// Vuetify's adapter is typed against I18n<..., locale: string, legacy: false>; our i18n
-		// narrows the locale to 'de' | 'en' which fails the contravariant ComposerTranslation
+		// narrows the locale to the supported Locale union which fails the contravariant ComposerTranslation
 		// parameter check. Widen at this single boundary so app code keeps the strict Locale type
 		adapter: createVueI18nAdapter({ i18n: i18n as I18n<any, {}, {}, string, false>, useI18n })
 	},

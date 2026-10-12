@@ -1,0 +1,1668 @@
+{
+	"dialog": {
+		"filament": {
+			"titleChange": "Filament wisselen",
+			"titleLoad": "Filament laden",
+			"prompt": "Kies een filament:",
+			"noFilaments": "Geen filamenten beschikbaar",
+			"changePrompt": {
+				"message": "Druk op OK zodra het filament gewisseld is",
+				"title": "Filamentwissel"
+			}
+		},
+		"resetHeaterFault": {
+			"title": "Verwarmerfout herstellen",
+			"prompt": "Er is een fout opgetreden in verwarmer {0}. Het wordt sterk aangeraden de machine nu uit te schakelen en de bedrading te controleren voordat u verdergaat. Als u absoluut zeker weet dat het geen fysiek probleem is, kunt u de verwarmerfout OP EIGEN RISICO herstellen. Let op: dit is NIET AAN TE RADEN en kan tot verdere problemen leiden. Hoe wilt u verdergaan?",
+			"resetFault": "Fout herstellen"
+		},
+		"changeMoveStep": {
+			"title": "Stapgrootte wijzigen",
+			"prompt": "Voer een nieuwe waarde in voor de aangeklikte verplaatsingsknop:"
+		},
+		"editExtrusionAmount": {
+			"title": "Extrusiehoeveelheid wijzigen",
+			"prompt": "Voer een nieuwe hoeveelheid in voor de aangeklikte knop:"
+		},
+		"editExtrusionFeedrate": {
+			"title": "Extrusiesnelheid wijzigen",
+			"prompt": "Voer een nieuwe aanvoersnelheid in voor de aangeklikte knop:"
+		},
+		"meshEdit": {
+			"title": "Meshparameters instellen",
+			"radius": "Meetradius",
+			"spacing": "Afstand",
+			"startCoordinate": "Startcoordinaat in richting {0}",
+			"endCoordinate": "Eindcoordinaat in richting {0}",
+			"spacingDirection": "Afstand in richting {0}"
+		},
+		"runMacro": {
+			"title": "Macro {0} uitvoeren?",
+			"prompt": "Wilt u {0} uitvoeren?"
+		},
+		"forceMove": {
+			"title": "Bestaand bestand overschrijven?",
+			"prompt": "Er bestaat al een item met de naam \"{0}\" in \"{1}\". Overschrijven?"
+		},
+		"dropUpload": {
+			"title": "Uploadbestemming",
+			"prompt": "Dit G-codebestand is klein genoeg om een macro of een systeembestand te zijn. Waar moet het heen?",
+			"promptMultiple": "Deze G-codebestanden zijn klein genoeg om macro's of systeembestanden te zijn. Waar moeten ze heen?",
+			"job": "G-codetaak",
+			"macro": "Macro",
+			"system": "Systeembestand"
+		},
+		"editorDrop": {
+			"title": "Gesleept bestand invoegen",
+			"prompt": "De inhoud van de editor vervangen door \"{0}\", of het bestand op de cursorpositie invoegen?",
+			"overwrite": "Overschrijven",
+			"insert": "Invoegen op cursor"
+		},
+		"startJob": {
+			"title": "{0} starten",
+			"prompt": "Wilt u {0} starten?"
+		},
+		"update": {
+			"title": "Firmware-update installeren?",
+			"prompt": "De geuploade bestanden bevatten firmware-updates. Wilt u de installatie nu starten?",
+			"mainBoard": "Firmware hoofdbord",
+			"expansionBoard": "Firmware uitbreidingsbord #{0}",
+			"wifiServer": "Firmware WiFi-server",
+			"display": "Firmware PanelDue",
+			"sbcWarning": "U gebruikt uw machine in SBC-modus. Werk de firmware alleen via DWC bij als de firmwareontwikkelaars dat adviseren."
+		},
+		"configUpdated": {
+			"title": "Nieuwe configuratie toepassen?",
+			"prompt": "Wilt u het hoofdbord herstarten of het configuratiebestand opnieuw uitvoeren? Het is aan te raden het hoofdbord te herstarten als u IO-poorten hebt verwijderd of de verdeling van de drivers hebt gewijzigd.",
+			"reset": "Hoofdbord herstarten",
+			"runConfig": "Configuratiebestand uitvoeren"
+		},
+		"incompatibleVersions": {
+			"title": "Incompatibele softwareversies",
+			"prompt": "De geinstalleerde softwareversies komen niet overeen. Gebruik uw opstelling alleen met gelijke versies om mogelijke incompatibiliteiten en onverwachte fouten te voorkomen.",
+			"upgradeNotice": "Lees in de {docs} hoe u uw Duet-softwarecomponenten bijwerkt.",
+			"docsLink": "documentatie"
+		},
+		"fileEdit": {
+			"save": "Opslaan (Ctrl+S)",
+			"revert": "Terugdraaien",
+			"revertTooLarge": "Terugdraaien is uitgeschakeld voor bestanden groter dan 32 MiB",
+			"searchGcode": "Code zoeken (F4)",
+			"searchExpression": "Expressie zoeken (F4)",
+			"loadDisconnected": "Maak verbinding met een machine om dit bestand te laden.",
+			"loadFailed": "Kon {0} niet laden: {1}",
+			"saveFailed": "Kon {0} niet opslaan",
+			"unsaved": {
+				"title": "Wijzigingen opslaan?",
+				"prompt": "\"{0}\" heeft niet-opgeslagen wijzigingen. Wilt u ze opslaan?",
+				"save": "Opslaan",
+				"dontSave": "Niet opslaan"
+			},
+			"gcodeReference": "G-codereferentie",
+			"indentComments": "Commentaar uitlijnen",
+			"run": "Opslaan en uitvoeren"
+		},
+		"newFile": {
+			"title": "Nieuw bestand",
+			"prompt": "Voer een naam in voor het nieuwe bestand:"
+		},
+		"newDirectory": {
+			"title": "Nieuwe map",
+			"prompt": "Voer een naam in voor de nieuwe map:"
+		},
+		"newFilament": {
+			"title": "Nieuw filament",
+			"prompt": "Voer een naam in voor het nieuwe filament:"
+		},
+		"duplicateFilament": {
+			"title": "Filament dupliceren",
+			"prompt": "Voer een naam in voor de filamentkopie:"
+		},
+		"renameFilament": {
+			"title": "Filament nog geladen",
+			"prompt": "{0} is momenteel geladen. Na het wijzigen van de naam meldt het ontladen een ontbrekende ontlaadmacro. Doorgaan?"
+		},
+		"deleteFilament": {
+			"stillLoaded": "Minstens een ervan is momenteel geladen, dus het ontladen meldt een ontbrekende ontlaadmacro."
+		},
+		"rename": {
+			"title": "{0} hernoemen",
+			"prompt": "Voer de nieuwe naam in:"
+		},
+		"delete": {
+			"title": "Verwijderen bevestigen",
+			"promptSingle": "Weet u zeker dat u {0} wilt verwijderen?",
+			"promptMultiple": "Weet u zeker dat u {0} items wilt verwijderen?"
+		},
+		"downloadZip": {
+			"title": "Downloaden als ZIP",
+			"prompt": "Deze selectie bevat {0} bestanden ({1}). Ze worden in het geheugen van uw browser geladen voordat het archief wordt gemaakt. Doorgaan?"
+		},
+		"inputRequired": "Voer een waarde in",
+		"numberRequired": "Voer een geldig getal in",
+		"minValue": "De waarde moet minstens {0} zijn",
+		"maxValue": "De waarde mag maximaal {0} zijn",
+		"minLength": "Minstens {0} tekens vereist",
+		"maxLength": "Maximaal {0} tekens toegestaan",
+		"connect": {
+			"title": "Verbinden met machine",
+			"prompt": "Voer de hostnaam en het wachtwoord in van de machine waarmee u wilt verbinden:",
+			"passwordPrompt": "Voer het wachtwoord in van de machine waarmee u wilt verbinden:",
+			"hostPlaceholder": "Hostnaam",
+			"hostRequired": "Hostnaam is vereist",
+			"passwordPlaceholderOptional": "Wachtwoord (optioneel)",
+			"passwordPlaceholder": "Wachtwoord",
+			"passwordRequired": "Wachtwoord is vereist",
+			"rememberPassword": "Wachtwoord onthouden",
+			"connect": "Verbinden"
+		},
+		"connectionProgress": {
+			"connecting": "Verbinden...",
+			"disconnecting": "Verbinding verbreken...",
+			"updating": "Even wachten, de updates worden geinstalleerd...",
+			"reconnecting": "Verbinding verloren, opnieuw verbinden...",
+			"standBy": "Een ogenblik geduld...",
+			"boardUpdateMessage": "Het volgende bord wordt bijgewerkt:|De volgende borden worden bijgewerkt:",
+			"board": "Bord #{0}",
+			"mainboard": "Hoofdbord",
+			"expansionBoard": "Uitbreidingsbord",
+			"resetButton": {
+				"caption": "Machine herstarten",
+				"title": "M999 naar de machine sturen om te herstarten"
+			}
+		},
+		"fileTransfer": {
+			"uploadingTitle": "Bestand {0} van {1} uploaden, {2}% voltooid",
+			"uploadDoneTitle": "Uploads voltooid!",
+			"uploadFailedTitle": "Uploads mislukt!",
+			"uploadCancelledTitle": "Uploads geannuleerd!",
+			"downloadingTitle": "Bestand {0} van {1} downloaden, {2}% voltooid",
+			"downloadDoneTitle": "Downloads voltooid",
+			"downloadFailedTitle": "Downloads mislukt!",
+			"downloadCancelledTitle": "Downloads geannuleerd!",
+			"filename": "Bestandsnaam",
+			"size": "Grootte",
+			"progress": "Voortgang",
+			"currentSpeed": "Huidige snelheid: {0}",
+			"cancelUploads": "Uploads annuleren",
+			"cancelDownloads": "Downloads annuleren"
+		},
+		"pluginInstallation": {
+			"installation": "Plug-in installeren",
+			"prompt": "De volgende plug-in wordt geinstalleerd:",
+			"by": "door {0}",
+			"license": "Licentie: {0}",
+			"homepage": "Website:",
+			"contents": "Dit pakket bevat softwarecomponenten voor",
+			"dsf": "Duet Software Framework",
+			"dwc": "Duet Web Control",
+			"rrf": "RepRapFirmware",
+			"prerequisites": "Vereisten",
+			"version": "Versie {0}",
+			"noPluginSupport": "Externe plug-ins zijn niet toegestaan",
+			"rootSupport": "Ondersteuning voor plug-ins met rootrechten",
+			"invalidManifest": "Ongeldig plug-inmanifest",
+			"permissions": "Vereiste rechten",
+			"dwcWarning": "Deze plug-in bevat componenten voor de webinterface. In browsersessies kunnen geen rechten worden afgedwongen, dus de plug-in kan uw systeem aanpassen en veiligheidsrisico's veroorzaken die tot fysieke schade aan uw opstelling kunnen leiden.",
+			"rootWarning": "Deze plug-in vereist rootrechten, wat betekent dat hij de aangesloten SBC kan herconfigureren en mogelijk schadelijke software kan installeren. Dit kan tot fysieke schade aan uw opstelling leiden.",
+			"sbcPermissions": "Het deel van de plug-in dat op de SBC loopt wil",
+			"noSpecialPermissions": "Deze plug-in vereist geen speciale rechten.",
+			"ready": "Klaar voor installatie",
+			"readyMessage": "De plug-in kan nu worden geinstalleerd. Zorg dat u de auteur van de plug-in vertrouwt voordat u deze laatste stap bevestigt.",
+			"readyDisclaimer": "Voordat u verdergaat moet u aanvaarden dat Duet3D Ltd niet aansprakelijk is voor eventuele schade door de installatie van deze plug-in van derden.",
+			"checkboxDisclaimer": "Ik aanvaard de risico's, installeer deze plug-in",
+			"checkboxStart": "De plug-in direct na de installatie starten",
+			"progress": "Voortgang van de installatie",
+			"progressText": "Even wachten, de plug-in wordt geinstalleerd...",
+			"installationSuccess": "Installatie voltooid!",
+			"installationFailed": "Installatie mislukt!",
+			"cancel": "Annuleren",
+			"back": "Terug",
+			"next": "Volgende",
+			"finish": "Voltooien",
+			"reloadPrompt": {
+				"title": "DWC opnieuw laden?",
+				"prompt": "U hebt zojuist een actieve DWC-plug-in bijgewerkt. Om de nieuwe versie te gebruiken moet de webinterface opnieuw worden geladen. Wilt u dat nu doen?"
+			}
+		},
+		"componentSettings": {
+			"title": "Paneelinstellingen",
+			"titleFor": "Instellingen voor {0}",
+			"edit": "Paneelinstellingen bewerken",
+			"reset": "Herstellen"
+		},
+		"fileInfo": {
+			"customInfo": "Eigen informatie",
+			"numLayers": "Lagen",
+			"noInfo": "Geen bestandsinformatie beschikbaar"
+		}
+	},
+	"event": {
+		"connectError": "Kon geen verbinding maken met {0}",
+		"connected": "Verbonden met {0}",
+		"connectionLost": "Kon de verbinding met {0} niet in stand houden",
+		"updateStarted": "Update gestart, de verbinding kan worden onderbroken",
+		"updateFinished": "Update voltooid",
+		"emergencyStop": "Noodstop, bezig met opnieuw verbinden...",
+		"reconnecting": "Verbinding onderbroken, bezig met opnieuw verbinden...",
+		"reconnected": "Verbinding tot stand gebracht",
+		"disconnectError": "Kon de verbinding met {0} niet verbreken",
+		"disconnected": "Verbinding met {0} verbroken",
+		"dwcPluginLoadError": "Kon DWC-plug-in {0} niet laden: {1}",
+		"startupError": "Fout in opstartbestand {0} regel {1}: {2}",
+		"settingsConflict": "Een andere sessie wijzigde instellingen die u ook bewerkte; uw wijzigingen zijn behouden",
+		"chunkLoadError": "Kon een deel van de webinterface niet laden, laad de pagina opnieuw"
+	},
+	"generic": {
+		"ok": "OK",
+		"cancel": "Annuleren",
+		"yes": "Ja",
+		"no": "Nee",
+		"close": "Sluiten",
+		"reset": "Herstellen",
+		"noValue": "n.v.t.",
+		"loading": "laden",
+		"error": "Fout",
+		"info": "Info",
+		"warning": "Waarschuwing",
+		"success": "Gelukt",
+		"heaterStates": {
+			"off": "uit",
+			"standby": "stand-by",
+			"active": "actief",
+			"fault": "fout",
+			"tuning": "afstemmen",
+			"offline": "offline"
+		},
+		"status": {
+			"disconnected": "Niet verbonden",
+			"starting": "Starten",
+			"updating": "Bijwerken",
+			"off": "Uit",
+			"halted": "Gestopt",
+			"pausing": "Pauzeren",
+			"paused": "Gepauzeerd",
+			"resuming": "Hervatten",
+			"cancelling": "Annuleren",
+			"printing": "Printen",
+			"processing": "Verwerken",
+			"simulating": "Simuleren",
+			"busy": "Bezig",
+			"changingTool": "Gereedschap wisselen",
+			"idle": "Inactief",
+			"unknown": "Onbekend"
+		},
+		"rpm": "rpm",
+		"sdCard": "SD-kaart {0}",
+		"mounted": "gekoppeld",
+		"notMounted": "niet gekoppeld",
+		"extracting": "Uitpakken",
+		"uploading": "Uploaden",
+		"active": "Actief",
+		"standby": "Stand-by"
+	},
+	"notification": {
+		"fileTransfer": {
+			"download": {
+				"title": "{0} downloaden {'@'} {1}, {2}% voltooid",
+				"message": "Even wachten, het bestand wordt gedownload...",
+				"success": "{0} gedownload in {1}",
+				"error": "Kon {0} niet downloaden"
+			},
+			"upload": {
+				"title": "{0} uploaden {'@'} {1}, {2}% voltooid",
+				"message": "Even wachten, het bestand wordt geupload...",
+				"success": "{0} geupload in {1}",
+				"error": "Kon {0} niet uploaden"
+			},
+			"systemPackageInstall": {
+				"title": "Bestand {0} installeren",
+				"message": "Even wachten, het bestand wordt geinstalleerd..."
+			},
+			"index": {
+				"title": "Bestanden in {0} bepalen...",
+				"message": "Even wachten, de bestandslijst wordt voorbereid..."
+			},
+			"compress": {
+				"title": "ZIP van {0} maken, {2}% voltooid",
+				"message": "Even wachten, het archief wordt gemaakt...",
+				"errorTitle": "Kon het ZIP-archief niet maken"
+			}
+		},
+		"compress": {
+			"title": "Bestanden comprimeren...",
+			"message": "Even wachten, uw bestanden worden gecomprimeerd...",
+			"errorTitle": "Kon de bestanden niet comprimeren"
+		},
+		"decompress": {
+			"title": "Bestanden uitpakken...",
+			"message": "Even wachten, uw bestanden worden uitgepakt...",
+			"errorTitle": "Kon de bestanden niet uitpakken",
+			"wrongBundleTitle": "Incompatibel DWC-pakket",
+			"standaloneUpdateInSbcModeError": "U probeert een standalone DWC-pakket te uploaden in SBC-modus. Dit wordt NIET ondersteund. Werk uw systeem bij met apt update/upgrade.",
+			"sbcUpdateInStandaloneError": "U probeert een DWC-pakket voor SBC te uploaden in standalone-modus. Dit wordt NIET ondersteund. Gebruik in plaats daarvan het pakket DuetWebControl-SD.zip."
+		},
+		"delete": {
+			"errorTitle": "Kon {0} niet verwijderen",
+			"errorMessageDirectory": "Zorg ervoor dat deze map leeg is",
+			"success": "{0} verwijderd",
+			"successMultiple": "{0} items verwijderd"
+		},
+		"systemPackageInstall": {
+			"success": "{0} is geinstalleerd",
+			"error": "Kon {0} niet installeren"
+		},
+		"message": "Bericht",
+		"view": "Tonen",
+		"mount": {
+			"successTitle": "SD-kaart gekoppeld",
+			"errorTitle": "Kon de SD-kaart niet koppelen"
+		},
+		"pluginLoad": {
+			"title": "Plug-ins laden...",
+			"message": "Even wachten, de plug-ins worden geladen..."
+		},
+		"newFile": {
+			"errorTitle": "Kon het bestand niet maken"
+		},
+		"newDirectory": {
+			"errorTitle": "Kon de map niet maken",
+			"successTitle": "Map gemaakt",
+			"successMessage": "Map {0} gemaakt"
+		},
+		"newFilament": {
+			"errorTitle": "Kon het filament niet maken",
+			"errorTitleMacros": "Kon de filamentmacro's niet maken",
+			"successTitle": "Filament gemaakt",
+			"successMessage": "Filament {0} gemaakt"
+		},
+		"plugins": {
+			"started": "Plug-in is gestart",
+			"startError": "Kon de plug-in niet starten",
+			"stopped": "Plug-in is gestopt",
+			"stopError": "Kon de plug-in niet starten",
+			"uninstalled": "Plug-in is verwijderd",
+			"uninstallError": "Kon de plug-in niet verwijderen"
+		},
+		"rename": {
+			"success": "{0} hernoemd naar {1}",
+			"error": "Kon {0} niet hernoemen naar {1}"
+		},
+		"outputTruncated": "Uitvoer ingekort, zie de Console",
+		"freeSpaceWarning": {
+			"title": "Schijf bijna vol",
+			"message": "Er is nauwelijks ruimte over op het eerste volume. Verwijder wat bestanden om problemen bij uploads te voorkomen."
+		},
+		"upload": {
+			"ambiguousTitle": "Uploaden niet mogelijk",
+			"ambiguous": "De gesleepte bestanden zijn niet herkend als G-code of updatepakket. Open de Verkenner om ze handmatig te uploaden.",
+			"notConnectedTitle": "Niet verbonden",
+			"notConnected": "Maak verbinding met een machine voordat u bestanden uploadt.",
+			"startSingleFile": "Er kan maar een G-codebestand tegelijk worden geupload en gestart."
+		}
+	},
+	"error": {
+		"editorLoadFailed": "Kon de code-editor niet laden: {0}",
+		"enterValidNumber": "Voer een geldig getal in",
+		"filamentsLoadFailed": "Kon de filamenten niet laden",
+		"filelistRequestFailed": "Kon de bestandslijst niet ophalen",
+		"invalidHeightmap": "Ongeldige hoogtekaart",
+		"turnOffEverythingFailed": "Kon niet alles uitschakelen"
+	},
+	"layout": {
+		"backToHub": "Terug naar start",
+		"listDevices": "Terug naar apparatenlijst",
+		"statusPanel": "Status",
+		"showStatusPanel": "Statuspaneel tonen",
+		"hideStatusPanel": "Statuspaneel verbergen",
+		"goToJobStatus": "Naar de taakstatus",
+		"customLayoutMissing": "Uw eigen lay-out kon niet worden geladen; teruggezet op de ingebouwde interface.",
+		"uploadOverlay": {
+			"prompt": "Sleep bestanden hierheen om te uploaden"
+		}
+	},
+	"page": {
+		"notFound": {
+			"title": "Pagina niet gevonden",
+			"message": "Geen route komt overeen met {0}.",
+			"pluginHint": "Als u hier een plug-inpagina verwachtte, verbind dan met de machine en controleer of de plug-in gestart is.",
+			"goHome": "Terug naar start"
+		}
+	},
+	"chart": {
+		"layer": {
+			"caption": "Lagen",
+			"layerTime": "Laagtijd",
+			"layer": "Laag {0}",
+			"layerDuration": "Duur: {0}",
+			"layerHeight": "Laaghoogte: {0}",
+			"filamentUsage": "Filamentverbruik: {0}",
+			"fractionPrinted": "Voortgang bestand: {0}",
+			"temperatures": "Temperaturen: {0}",
+			"settings": {
+				"hideFirstLayer": "Eerste laag verbergen",
+				"hideFirstLayerHint": "Laag 1 uit de grafiek weglaten - de duur ervan is vaak een uitschieter die de rest afvlakt",
+				"showAllLayers": "Alle lagen tonen",
+				"showAllLayersHint": "Elke laag tonen in plaats van alleen de meest recente",
+				"lastLayerCount": "Aantal recente lagen",
+				"lastLayerCountHint": "Hoeveel van de meest recente lagen worden getoond als niet alle lagen worden weergegeven"
+			}
+		},
+		"temperature": {
+			"caption": "Temperaturen",
+			"noData": "Geen gegevens om te tonen",
+			"heater": "Verwarmer {0}",
+			"sensor": "Sensor {0}",
+			"download": "CSV downloaden",
+			"settings": {
+				"heaters": "Verwarmers",
+				"extraSensors": "Extra sensoren"
+			},
+			"custom": {
+				"label": "Eigen gegevens",
+				"add": "Eigen gegevens toevoegen",
+				"addTitle": "Eigen gegevens toevoegen",
+				"editTitle": "Eigen gegevens bewerken",
+				"name": "Naam",
+				"value": "Waarde",
+				"valueHint": "Expressie die tegen het objectmodel wordt geevalueerd, bijv. heat.heaters[0].avgPwm * 100",
+				"unit": "Eenheid",
+				"unitPlaceholder": "bijv. mm3/s",
+				"visible": "Zichtbaar",
+				"axis": "As",
+				"axisLeft": "Links",
+				"axisRight": "Rechts",
+				"rightAxisMin": "Minimum rechteras",
+				"rightAxisMax": "Maximum rechteras",
+				"invalidExpression": "Ongeldige expressie"
+			}
+		}
+	},
+	"button": {
+		"connect": {
+			"connect": "Verbinden",
+			"connecting": "Verbinden...",
+			"disconnect": "Verbinding verbreken",
+			"disconnecting": "Verbinding verbreken..."
+		},
+		"emergencyStop": {
+			"caption": "Noodstop",
+			"title": "Een onmiddellijke softwarereset afdwingen (M112+M999)"
+		},
+		"refresh": {
+			"caption": "Vernieuwen"
+		},
+		"dismissAll": {
+			"title": "Alles sluiten"
+		},
+		"upload": {
+			"caption": "Uploaden",
+			"start": {
+				"caption": "Uploaden en starten"
+			}
+		},
+		"newFile": {
+			"caption": "Nieuw bestand"
+		},
+		"newDirectory": {
+			"caption": "Nieuwe map"
+		},
+		"newFilament": {
+			"caption": "Nieuw filament"
+		},
+		"delete": {
+			"caption": "Verwijderen"
+		},
+		"rename": {
+			"caption": "Hernoemen"
+		},
+		"home": {
+			"caption": "Home {0}",
+			"captionAll": "Home alles",
+			"title": "De as {0} homen (G28 {0})",
+			"titleAll": "Alle assen homen (G28)"
+		},
+		"add": {
+			"caption": "Toevoegen"
+		}
+	},
+	"input": {
+		"code": {
+			"placeholder": "Code versturen...",
+			"send": "Versturen"
+		},
+		"addTemperature": "Temperatuur toevoegen",
+		"addTemperatureHint": "Voer een temperatuur in en druk op de plusknop om die aan de lijst toe te voegen",
+		"addRPM": "Toerental toevoegen",
+		"addRPMHint": "Voer een spiltoerental in en druk op de plusknop om dat aan de lijst toe te voegen"
+	},
+	"list": {
+		"eventLog": {
+			"title": "Logboek",
+			"menu": "Meer opties",
+			"noEvents": "Geen gebeurtenissen om te tonen",
+			"copy": "Kopieren",
+			"copyAll": "Alles kopieren",
+			"copyLog": "Logboek kopieren",
+			"messageCopied": "Bericht gekopieerd!",
+			"clear": "Wissen",
+			"downloadText": "Downloaden als tekst",
+			"downloadCSV": "Downloaden als CSV",
+			"sortNewestFirst": "Nieuwste eerst",
+			"sortOldestFirst": "Oudste eerst"
+		},
+		"jobs": {
+			"height": "Objecthoogte",
+			"layerHeight": "Laaghoogte",
+			"filament": "Filamentverbruik",
+			"printTime": "Printtijd",
+			"simulatedTime": "Gesimuleerde tijd",
+			"generatedBy": "Gemaakt met",
+			"noJobs": "Geen taken",
+			"root": "Taken",
+			"start": "Bestand starten",
+			"print": "Printen",
+			"simulate": "Simuleren",
+			"volume": "Volume"
+		},
+		"macro": {
+			"caption": "Macro's",
+			"noMacros": "Geen macro's",
+			"directoryNotFound": "Map niet gevonden",
+			"loadFailed": "Kon de map niet laden",
+			"run": "Macro uitvoeren",
+			"openInExplorer": "Openen in Verkenner",
+			"root": "Hoofdmap",
+			"settings": {
+				"showDirectories": "Mappen tonen",
+				"showDirectoriesHint": "Toestaan dat submappen met macro's worden geopend",
+				"startDirectory": "Startmap",
+				"startDirectoryHint": "Map die in plaats van de standaardmacromap wordt getoond; laat leeg voor de standaardmap",
+				"includeFilter": "Insluitfilter",
+				"includeFilterHint": "Naampatronen gescheiden door komma's (jokertekens * en ?); alleen overeenkomende bestanden worden getoond",
+				"excludeFilter": "Uitsluitfilter",
+				"excludeFilterHint": "Naampatronen gescheiden door komma's (jokertekens * en ?); overeenkomende bestanden worden verborgen"
+			}
+		},
+		"filament": {
+			"noFilaments": "Geen filamenten",
+			"duplicate": "Dupliceren"
+		},
+		"system": {
+			"noFiles": "Geen bestanden",
+			"configToolNote": "bewerken via de configuratietool",
+			"configToolError": "Kon de configuratietool niet openen"
+		},
+		"baseFileList": {
+			"goUp": "Omhoog",
+			"noFiles": "Geen bestanden",
+			"fileName": "Naam",
+			"size": "Grootte",
+			"lastModified": "Gewijzigd"
+		},
+		"fileList": {
+			"open": "Openen",
+			"edit": "Bewerken",
+			"fileInfo": "Bestandsinformatie",
+			"runMacro": "Macro uitvoeren",
+			"copyPath": "Pad kopieren",
+			"pathCopied": "Pad gekopieerd!",
+			"download": "Downloaden",
+			"downloadZIP": "Downloaden als ZIP",
+			"loading": "Bestanden laden...",
+			"directoryNotFound": "Map niet gevonden",
+			"loadFailed": "Kon de map niet laden",
+			"viewMode": "Weergavemodus",
+			"viewModeAuto": "Automatisch (tegels op kleine schermen)",
+			"viewModeList": "Lijst",
+			"viewModeTiles": "Tegels",
+			"sortBy": "Sorteren op",
+			"sortDirection": "Sorteerrichting",
+			"sortAscending": "Oplopend",
+			"sortDescending": "Aflopend",
+			"layout": "Weergave",
+			"moveError": "Kon {0} niet verplaatsen naar {1}",
+			"movedOne": "{0} verplaatst naar {1}",
+			"movedMany": "{0} items verplaatst naar {1}",
+			"moreActions": "Meer acties"
+		},
+		"explorer": {
+			"newTab": "Nieuw tabblad openen",
+			"closeTab": "Tabblad sluiten",
+			"volume": "Volume"
+		}
+	},
+	"jobProgress": {
+		"simulating": "{0} simuleren, {1} voltooid",
+		"simulated": "{0} gesimuleerd, 100 % voltooid",
+		"processing": "{0} verwerken, {1} voltooid",
+		"processed": "{0} verwerkt, 100 % voltooid",
+		"printing": "{0} printen, {1} voltooid",
+		"printed": "{0} geprint, 100 % voltooid",
+		"noJob": "Geen taak actief.",
+		"layer": "Laag {0} van {1}",
+		"filament": "Filamentverbruik: {0}",
+		"filamentRemaining": "{0} resterend"
+	},
+	"jobViewPanel": {
+		"gcodeStream": "G-codestroom",
+		"noFileLoaded": "Geen bestand geladen",
+		"preview": "Miniatuur",
+		"toggleTabs": "Tabbladen tonen of verbergen",
+		"previewSettings": {
+			"showProgressOverlay": "Printvoortgang over de afbeelding tonen",
+			"showProgressOverlayHint": "De voorvertoning geleidelijk bedekken naarmate de print vordert"
+		}
+	},
+	"panel": {
+		"atx": {
+			"caption": "ATX-voeding",
+			"on": "Aan",
+			"off": "Uit"
+		},
+		"babystepping": {
+			"caption": "Babystepping",
+			"current": "Huidige offset {axis}: {value}",
+			"settings": {
+				"babystepAmount": "Babystepgrootte",
+				"babystepAmountHint": "Waarde die per klik op de babystepknoppen wordt toegepast (in mm)",
+				"babystepAxes": "Babystep-assen",
+				"babystepAxesHint": "Kies welke assen in dit paneel beschikbaar zijn voor babystepping"
+			}
+		},
+		"cncDashboard": {
+			"caption": "CNC-dashboard",
+			"notPorted": "Het CNC-dashboard is in deze versie nog niet beschikbaar."
+		},
+		"extrusionFactors": {
+			"caption": "Extrusiefactoren",
+			"changeVisibility": "Zichtbaarheid wijzigen",
+			"extruder": "Extruder {0}",
+			"noExtruders": "Geen extruders",
+			"noExtruderSelected": "Geen extruder beschikbaar",
+			"displayedExtruders": "Weergegeven extruders",
+			"settings": {
+				"stepWidth": "Stapgrootte",
+				"stepWidthHint": "Waarde die per klik op de knoppen + en - wordt toegepast",
+				"showResetLink": "Herstelkoppelingen tonen",
+				"showResetLinkHint": "Een koppeling tonen die de extrusiefactor terugzet op 100%",
+				"showCurrentToolOnly": "Alleen huidig gereedschap",
+				"showCurrentToolOnlyHint": "Alleen de extruder(s) van het geselecteerde gereedschap tonen"
+			}
+		},
+		"jobControl": {
+			"caption": "Taakbesturing",
+			"cancelJob": "Taak annuleren",
+			"cancelPrint": "Print annuleren",
+			"cancelSimulation": "Simulatie annuleren",
+			"pauseJob": "Taak pauzeren",
+			"pausePrint": "Print pauzeren",
+			"pauseSimulation": "Simulatie pauzeren",
+			"resumeJob": "Taak hervatten",
+			"resumePrint": "Print hervatten",
+			"resumeSimulation": "Simulatie hervatten",
+			"repeatJob": "Opnieuw starten",
+			"repeatPrint": "Opnieuw printen",
+			"repeatSimulation": "Opnieuw simuleren",
+			"printNow": "Nu printen",
+			"startJob": "Taak starten"
+		},
+		"jobInfo": {
+			"caption": "Taakinformatie",
+			"height": "Hoogte:",
+			"layerHeight": "Laaghoogte:",
+			"filament": "Filamentverbruik:",
+			"generatedBy": "Gemaakt met:",
+			"settings": {
+				"displayedLines": "Weergegeven informatie",
+				"displayedLinesHint": "Kies welke informatieregels worden getoond"
+			}
+		},
+		"jobTimes": {
+			"caption": "Geschat / Gemeten",
+			"filament": "Filamentverbruik",
+			"file": "Voortgang bestand",
+			"slicer": "Slicer",
+			"simulation": "Simulatie",
+			"toPause": "Volgende pauze",
+			"warmUpDuration": "Opwarmtijd",
+			"currentLayerTime": "Tijd huidige laag",
+			"lastLayerTime": "Tijd laatste laag",
+			"jobDuration": "Taakduur",
+			"settings": {
+				"displayedEstimationsHint": "Kies welke schattingen worden getoond",
+				"displayedDataHint": "Kies welke verzamelde waarden worden getoond"
+			}
+		},
+		"webcam": {
+			"caption": "Webcambewaking",
+			"alt": "(webcambeeld)",
+			"disabled": "De webcam is uitgeschakeld. Zet die aan onder Instellingen > Webcam om hier een beeld te tonen."
+		},
+		"spindle": {
+			"title": "Spillen",
+			"spindle": "Spil",
+			"active": "Actief",
+			"direction": "Richting",
+			"currentRPM": "Huidig toerental",
+			"setRPM": "Toerental instellen",
+			"on": "Aan",
+			"off": "Uit",
+			"forward": "vooruit",
+			"reverse": "achteruit",
+			"noSpindles": "Geen spillen beschikbaar"
+		},
+		"speedFactor": {
+			"caption": "Snelheidsfactor",
+			"settings": {
+				"upperLimit": "Aanvankelijke bovengrens",
+				"upperLimitHint": "Aanvankelijk maximum van de schuifregelaar; die loopt automatisch op zodra de snelheidsfactor erboven komt",
+				"stepWidth": "Stapgrootte",
+				"stepWidthHint": "Waarde die per klik op de knoppen + en - wordt toegepast"
+			}
+		},
+		"tools": {
+			"caption": "Gereedschappen",
+			"controlHeaters": "Verwarmers bedienen",
+			"turnEverythingOff": "Alles uitschakelen",
+			"off": "Uit",
+			"setActiveTemperatures": "Actieve temperaturen instellen",
+			"setStandbyTemperatures": "Stand-bytemperaturen instellen",
+			"setToolTemperatures": "Gereedschapstemperaturen instellen",
+			"setBedTemperatures": "Bedtemperaturen instellen",
+			"setChamberTemperatures": "Kamertemperaturen instellen",
+			"tool": "Gereedschap {0}",
+			"loadFilament": "Filament laden",
+			"changeFilament": "Filament wisselen",
+			"unloadFilament": "Filament ontladen",
+			"reassignFilament": "Filament opnieuw toewijzen",
+			"editFilamentFiles": "Filamentbestanden bewerken",
+			"heater": "Verwarmer {0}",
+			"heaterPower": "Vermogen: {0}",
+			"current": "Huidig",
+			"active": "Actief",
+			"standby": "Stand-by",
+			"bed": "Bed {0}",
+			"chamber": "Kamer {0}",
+			"allBeds": "Alle bedden",
+			"beds": "Bedden",
+			"allChambers": "Alle kamers",
+			"chambers": "Kamers",
+			"extra": {
+				"caption": "Extra",
+				"sensor": "Sensor",
+				"sensorIndex": "Sensor {0}",
+				"value": "Waarde",
+				"showInChart": "In de grafiek tonen",
+				"noItems": "Geen extra sensoren",
+				"showInChartHint": "Deze sensor in de temperatuurgrafiek tonen",
+				"displayedSensors": "Weergegeven sensoren",
+				"displayedSensorsHint": "Welke extra sensoren worden getoond"
+			},
+			"showExtraOnTools": "Extra sensoren bij de gereedschappen tonen",
+			"showExtraOnToolsHint": "De extra sensoren in de gereedschapslijst opnemen en het aparte tabblad Extra verbergen",
+			"showTurnEverythingOff": "Knop voor alles uitschakelen tonen",
+			"showTurnEverythingOffHint": "In de paneeltitel een aan-uitknop tonen die alle nog niet uitgeschakelde verwarmers uitschakelt",
+			"noTools": "Geen gereedschappen",
+			"displayedTools": "Weergegeven gereedschappen",
+			"toolChangeMacros": "Macro's bij gereedschapswissel",
+			"toolChangeMacrosHint": "Welke van tfree.g / tpre.g / tpost.g worden uitgevoerd bij een gereedschapswissel T[n]. Gecodeerd als de parameter P van het commando T.",
+			"displayedBeds": "Weergegeven bedden",
+			"displayedChambers": "Weergegeven kamers",
+			"showToolNumber": "Gereedschapsnummer tonen",
+			"showToolNumberHint": "Het T-nummer onder elke gereedschapsnaam tonen",
+			"showActiveTemperatures": "Actieve temperaturen tonen",
+			"showActiveTemperaturesHint": "De invoerkolom voor de actieve temperatuur tonen",
+			"showStandbyTemperatures": "Stand-bytemperaturen tonen",
+			"showStandbyTemperaturesHint": "De invoerkolom voor de stand-bytemperatuur tonen",
+			"showFilamentControls": "Filamentbediening tonen",
+			"showFilamentControlsHint": "Per gereedschap de knoppen voor filament laden, wisselen en ontladen tonen",
+			"filaments": "Filamenten",
+			"promptDuringFilamentChange": "Bij het wisselen een melding tonen nadat het filament is ontladen",
+			"promptDuringFilamentChangeHint": "Wachten op bevestiging door de gebruiker nadat het oude filament is ontladen en voordat het nieuwe wordt geladen"
+		},
+		"status": {
+			"caption": "Status",
+			"mode": "Modus: {0}",
+			"toolPosition": "Gereedschapspositie",
+			"machinePosition": "Machinepositie",
+			"extruders": "Extruderaandrijvingen",
+			"extruderDrive": "Aandrijving {0}",
+			"speeds": "Snelheden",
+			"requestedSpeed": "Gevraagde snelheid",
+			"topSpeed": "Topsnelheid",
+			"sensors": "Sensoren",
+			"mcuTemp": "MCU",
+			"minMax": "Minimum: {0}, maximum {1}",
+			"vIn": "Vin",
+			"v12": "V12",
+			"fanRPM": "Ventilatortoerental",
+			"probe": "Z-probe|Z-probes",
+			"noStatus": "Geen status",
+			"extrusionRate": "Extrusiesnelheid",
+			"volumetricFlow": "Volumetrische flow",
+			"virtualEPos": "Virtuele extruderpositie",
+			"motionSystem": "Bewegingssysteem: {0}",
+			"motionSystemShort": "BS: {0}",
+			"settings": {
+				"axes": "Assen",
+				"extruders": "Extruders",
+				"virtualEPos": "Virtuele extruderpositie tonen",
+				"virtualEPosHint": "De gecombineerde virtuele extruderpositie tonen in plaats van de afzonderlijke extruderposities",
+				"probe": "Z-probe {0}",
+				"probes": "Z-probes",
+				"positionDisplay": "Positieweergave",
+				"positionDisplayHint": "Kies of de positieregel gereedschaps- of machinecoordinaten toont",
+				"showUnits": "Eenheden tonen",
+				"showAxisUnitsHint": "De actieve lengte-eenheid (mm of inch) achter elke aspositie zetten",
+				"showExtruderUnitsHint": "De eenheid (mm of mm³) achter de extruderposities en de virtuele extruderpositie zetten",
+				"positionTool": "Gereedschapspositie",
+				"positionMachine": "Machinepositie",
+				"positionToggle": "Wisselen bij klik",
+				"speedsHint": "Kies welke snelheidswaarden worden getoond",
+				"sensorsHint": "Kies welke sensorwaarden worden getoond",
+				"positionBoth": "Gereedschaps- en machinepositie",
+				"extruderDisplay": "Extruderweergave",
+				"extruderDisplayHint": "Kies hoe extruderwaarden worden getoond - filamentpositie, geextrudeerd volume of beide",
+				"userPosition": "Filamentpositie",
+				"extruderVolume": "Geextrudeerd volume",
+				"extruderToggle": "Wisselen bij klik",
+				"extruderBoth": "Filamentpositie en volume",
+				"machineModes": "Omschakelbare machinemodi",
+				"machineModesHint": "Kies naar welke machinemodi vanuit het modusmenu kan worden overgeschakeld"
+			},
+			"extrudedVolume": "Geextrudeerd volume",
+			"filamentMonitor": {
+				"title": "Extrusieverhouding (E{0})",
+				"allowed": "Toegestaan",
+				"current": "Huidig"
+			}
+		},
+		"extrude": {
+			"caption": "Extrusiebesturing",
+			"mix": "Mengen",
+			"mixRatio": "Mengverhouding:",
+			"amount": "Hoeveelheid in {0}:",
+			"feedrate": "Aanvoersnelheid in {0}:",
+			"retract": "Terugtrekken",
+			"extrude": "Extruderen",
+			"showMixingControls": "Mengbediening tonen",
+			"showMixingControlsHint": "Mengverhoudingen per aandrijving tonen voor gereedschappen die meer dan een extruder aandrijven"
+		},
+		"fan": {
+			"caption": "Ventilatorbesturing",
+			"selection": "Ventilatorkeuze:",
+			"toolFan": "Gereedschapsventilator",
+			"fan": "Ventilator {0}",
+			"displayedFans": "Weergegeven ventilatoren",
+			"settings": {
+				"stepWidth": "Stapgrootte",
+				"stepWidthHint": "Waarde die per klik op de knoppen + en - wordt toegepast"
+			}
+		},
+		"fans": {
+			"caption": "Ventilatoren",
+			"changeVisibility": "Zichtbaarheid wijzigen",
+			"toolFan": "Gereedschapsventilator",
+			"fan": "Ventilator {0}",
+			"noFans": "Geen ventilatoren",
+			"displayedFans": "Weergegeven ventilatoren",
+			"settings": {
+				"stepWidth": "Stapgrootte",
+				"stepWidthHint": "Waarde die per klik op de knoppen + en - wordt toegepast"
+			}
+		},
+		"movement": {
+			"caption": "Machinebeweging",
+			"displayedAxes": "Weergegeven assen",
+			"settings": {
+				"showHomeAllButton": "Knop voor alles homen tonen",
+				"showHomeAllButtonHint": "De knop tonen die alle assen in een keer homet",
+				"showAxisHomeButtons": "Homeknoppen per as tonen",
+				"showAxisHomeButtonsHint": "Voor elke as een eigen homeknop tonen",
+				"compensationItems": "Items in het compensatiemenu",
+				"compensationItemsHint": "Kies welke items in het compensatiemenu verschijnen",
+				"moveFeedrate": "Jogsnelheid",
+				"moveFeedrateHint": "Aanvoersnelheid die met de handmatige verplaatsingsknoppen wordt meegestuurd (G1 F[waarde])"
+			},
+			"compensation": "Compensatie en kalibratie",
+			"compensationShort": "Compensatie",
+			"runBed": "Echt bed nivelleren (G32)",
+			"runDelta": "Deltakalibratie (G32)",
+			"compensationInUse": "Compensatie in gebruik: {0}",
+			"compensationType": {
+				"none": "Geen",
+				"mesh": "Mesh"
+			},
+			"disableBedCompensation": "Bedcompensatie uitschakelen (M561)",
+			"disableMeshCompensation": "Meshcompensatie uitschakelen (G29 S2)",
+			"editMesh": "Gebied voor meshcompensatie bepalen (M557)",
+			"runMesh": "Meshcompensatie uitvoeren (G29)",
+			"loadMesh": "Opgeslagen hoogtekaart van de SD-kaart laden (G29 S1)",
+			"axesNotHomed": "De volgende as is niet gehomed:|De volgende assen zijn niet gehomed:",
+			"noAxes": "Geen assen",
+			"set": "{0} instellen",
+			"workzero": "Naar nulpunt",
+			"setWorkXYZ": "Werk-XYZ instellen",
+			"wcs": "Werkcoordinatenstelsel"
+		}
+	},
+	"settings": {
+		"tabs": {
+			"general": "Algemeen",
+			"infrastructure": "Infrastructuur",
+			"display": "Weergave",
+			"presets": "Voorinstellingen",
+			"webcam": "Webcam",
+			"communication": "Communicatie",
+			"editor": "Editor",
+			"plugins": "Plug-ins",
+			"about": "Info"
+		},
+		"presets": {
+			"caption": "Voorinstellingen temperatuur en spil",
+			"toolTemperatures": "Gereedschapstemperaturen",
+			"bedTemperatures": "Bedtemperaturen",
+			"chamberTemperatures": "Kamertemperaturen",
+			"spindleRPM": "Spiltoerental"
+		},
+		"appearance": {
+			"caption": "Uiterlijk",
+			"darkTheme": "Donker thema",
+			"language": "Taal",
+			"darkThemeHint": "De hele interface op een donker kleurenschema zetten. Volgt bij de eerste keer laden de voorkeur van het besturingssysteem.",
+			"languageHint": "Taal van de interface. Wordt direct toegepast en samen met de overige instellingen opgeslagen."
+		},
+		"units": {
+			"caption": "Eenheden",
+			"binaryPrefix": "Binaire voorvoegsels",
+			"binaryPrefixHint": "KiB/MiB/GiB gebruiken in plaats van KB/MB/GB",
+			"displayUnits": "Weergave-eenheden",
+			"displayUnitsHint": "Lengte-eenheid voor asposities, Z-hoogte en bewegingssnelheden. Imperiale eenheden worden alleen bij de weergave omgerekend; de firmware krijgt nog steeds mm.",
+			"displayUnitsOptions": {
+				"metric": "Metrisch (mm)",
+				"imperial": "Imperiaal (inch)"
+			},
+			"decimalPlaces": "Decimalen",
+			"decimalPlacesHint": "Aantal decimalen voor asposities en andere algemene numerieke weergaven. Voor de Z-hoogte geldt een minimum per modus (2 bij FFF, 3 bij CNC)."
+		},
+		"notifications": {
+			"caption": "Meldingen",
+			"errorsPersistent": "Foutmeldingen blijven staan tot ze worden gesloten",
+			"errorsPersistentHint": "Foutmeldingen op het scherm houden tot de gebruiker ze sluit in plaats van ze automatisch te laten verdwijnen",
+			"timeout": "Standaardduur van meldingen (milliseconden)",
+			"timeoutHint": "Hoe lang info- en succesmeldingen op het scherm blijven voordat ze verdwijnen"
+		},
+		"behaviour": {
+			"caption": "Gedrag",
+			"switchToJobOnPrintStart": "Bij printstart naar de taakpagina gaan",
+			"switchToJobOnPrintStartHint": "De pagina met de taakstatus automatisch openen zodra een print begint",
+			"checkVersions": "Controleren of versies van plug-ins en firmware samengaan",
+			"checkVersionsHint": "Een melding tonen als de versies van DWC, RRF of plug-ins niet overeenkomen",
+			"autoScrollMode": "Weergavepagina's automatisch scrollen",
+			"autoScrollModeHint": "Bij het openen van de hoogtekaart, de G-codeweergave of de bestandseditor de pagina omlaag scrollen zodat het paneel het scherm vult en de statusregel boven het beeld verdwijnt. Geldt op middelgrote en grotere schermen.",
+			"autoScrollModeOptions": {
+				"off": "Uit",
+				"toBottom": "Altijd naar beneden scrollen",
+				"viewerPages": "Alleen op weergavepagina's"
+			},
+			"scrollPanelIntoView": "Panelen in beeld scrollen",
+			"scrollPanelIntoViewHint": "Als u begint te scrollen op een paneel dat het scherm vult, eerst de pagina omlaag scrollen zodat het hele paneel zichtbaar is voordat de inhoud ervan scrollt",
+			"numericInputs": "Numerieke invoervelden",
+			"numericInputsHint": "Invoervelden voor getallen tonen in plaats van de schuifregelaars in de panelen voor ventilatoren, snelheidsfactor en extrusiefactoren",
+			"lockableSliders": "Vergrendelbare schuifregelaars",
+			"lockableSlidersHint": "Naast elke schuifregelaar een vergrendelknop tonen die de regelaar alleen-lezen maakt om onbedoeld verschuiven te voorkomen",
+			"lockableSlidersOptions": {
+				"always": "Altijd",
+				"mobile": "Alleen op mobiel",
+				"disabled": "Uitgeschakeld"
+			}
+		},
+		"communicationCard": {
+			"caption": "Communicatie"
+		},
+		"infrastructure": {
+			"installUpdate": "Update installeren",
+			"product": "Product",
+			"shortName": "Korte naam",
+			"can": "CAN-adres",
+			"firmwareVersion": "Firmwareversie",
+			"builtOn": "Gebouwd op",
+			"buildDateTime": "Gebouwd op {0}",
+			"changeCanAddress": "CAN-adres wijzigen",
+			"changeCanAddressPrompt": "CAN-adres voor {0} opnieuw toewijzen (nu {1})",
+			"newCanAddress": "Nieuw CAN-adres",
+			"newCanAddressHint": "Uniek CAN-busadres voor dit bord (1-126)",
+			"canAddressRestartHint": "Het nieuwe adres wordt opgeslagen zodra het commando loopt; herstart het bord om het in werking te laten treden.",
+			"canAddressChanged": "Wijziging van het CAN-adres aangevraagd (B{0} -> A{1})",
+			"canAddressError": "Kon het CAN-adres niet wijzigen",
+			"diagnostics": "Diagnostiek",
+			"diagnosticsHint": "M122 versturen en de Console met het antwoord openen",
+			"diagnosticsError": "Kon de diagnostiek niet uitvoeren",
+			"freeRam": "Vrij RAM"
+		},
+		"machine": {
+			"caption": "Machine",
+			"updateInterval": "Verversingsinterval objectmodel",
+			"updateIntervalHint": "Tijd tussen volledige verversingen van het objectmodel",
+			"crcUploads": "Uploads controleren met een CRC-checksum",
+			"crcUploadsHint": "Een CRC32-checksum aan uploads toevoegen zodat het bord beschadiging tijdens de overdracht kan opmerken",
+			"installCaption": "Update firmware / webinterface",
+			"installHint": "Upload een firmwarepakket (.zip), een los .bin- of .uf2-bestand of een DWC-webpakket. Firmwarebestanden worden via M997 doorgestuurd zodra de upload klaar is.",
+			"install": "Installeren",
+			"resetCaption": "Fabrieksinstellingen",
+			"resetHint": "Alle lokaal opgeslagen DWC-instellingen en de cache verwijderen, de fabrieksinstellingen van het bord terugzetten (indien aanwezig) en opnieuw laden.",
+			"reset": "Herstellen",
+			"resetTitle": "DWC-instellingen herstellen?",
+			"resetPrompt": "Hiermee worden uw opgeslagen DWC-instellingen en de cache in deze browser en op het verbonden bord verwijderd. Daarna worden de fabrieksinstellingen toegepast (als die beschikbaar zijn). DWC wordt vervolgens opnieuw geladen.",
+			"resetComponents": "Paneelinstellingen herstellen",
+			"resetComponentsHint": "Alle opgeslagen weergave-instellingen per paneel (zichtbare assen, gereedschapsgroepering, grafiektabbladen) verwerpen en opnieuw laden.",
+			"resetComponentsTitle": "Paneelinstellingen herstellen?",
+			"resetComponentsPrompt": "Hiermee worden de opgeslagen weergave-instellingen van alle dashboardpanelen in deze browser en op het verbonden bord verworpen. DWC wordt vervolgens opnieuw geladen. Uw overige instellingen blijven behouden."
+		},
+		"display": {
+			"builtInLayout": "Ingebouwde lay-out",
+			"layout": "Actieve lay-out",
+			"layoutCaption": "Lay-out",
+			"layoutHint": "Kies welke interface-lay-out wordt gebruikt",
+			"switchToCustomLayout": "Overschakelen naar {layout}",
+			"switchToCustomLayoutTitle": "Overschakelen naar eigen lay-out?",
+			"switchToCustomLayoutPrompt": "Hiermee wordt de hele interface van DWC vervangen door de lay-out {layout}. Open de URL <span class=\"text-no-wrap\">/BuiltInLayout</span> in uw browser om terug te keren naar de ingebouwde lay-out.",
+			"switchToDefaultLayout": "Overschakelen naar de ingebouwde lay-out",
+			"theme": "Thema",
+			"themeHint": "Kies een kleurthema van een plug-in, of volg de schakelaar voor de donkere modus",
+			"themeAuto": "Volg de donkeremodusschakelaar",
+			"iconMenu": "Compacte zijbalk",
+			"iconMenuHint": "In de navigatiebalk alleen pictogrammen tonen wanneer die is ingeklapt",
+			"disableAutoComplete": "Automatisch aanvullen van G-code uitschakelen",
+			"disableAutoCompleteHint": "De suggestielijst niet tonen tijdens het typen in code- of temperatuurvelden",
+			"toolsCaption": "Gereedschappen",
+			"groupTools": "Verwarmers van bed / kamer / extruders groeperen",
+			"groupToolsHint": "Identieke gereedschappen samenvoegen tot een regel in het gereedschapspaneel",
+			"groupByExtruders": "Groeperen op extruders",
+			"groupByExtrudersHint": "Gereedschappen alleen als identiek beschouwen wanneer ze dezelfde extruders gebruiken",
+			"groupByHeaters": "Groeperen op verwarmers",
+			"groupByHeatersHint": "Gereedschappen alleen als identiek beschouwen wanneer ze dezelfde verwarmers gebruiken",
+			"groupByOffsets": "Groeperen op gereedschapsoffsets",
+			"groupByOffsetsHint": "Gereedschappen alleen als identiek beschouwen wanneer ze dezelfde X/Y/Z-offsets hebben",
+			"groupBySpindle": "Spillen groeperen",
+			"groupBySpindleHint": "Gereedschappen alleen als identiek beschouwen wanneer ze naar dezelfde spil verwijzen",
+			"dashboardMode": "Dashboardmodus",
+			"dashboardModeHint": "Kies welke dashboard-lay-out wordt gebruikt. De standaard volgt de machinemodus die de firmware meldt (FFF of CNC); kies een vaste modus om dat te overrulen.",
+			"dashboardModeOptions": {
+				"default": "Standaard (volg de machinemodus)",
+				"fff": "FFF (3D-printen)",
+				"cnc": "CNC (frezen)"
+			},
+			"singleBedControl": "Gezamenlijke bedbediening",
+			"singleBedControlHint": "Een enkel invoerveld voor alle bedverwarmers tonen in plaats van een per bed. Handig wanneer alle bedden altijd op dezelfde temperatuur moeten lopen.",
+			"singleChamberControl": "Gezamenlijke kamerbediening",
+			"singleChamberControlHint": "Een enkel invoerveld voor alle kamerverwarmers tonen in plaats van een per kamer.",
+			"hideMenuItemsCaption": "Menu-items verbergen",
+			"hideMenuItemsHint": "Items uit de navigatiebalk en de startpagina weglaten. Verborgen items blijven via hun URL bereikbaar; Dashboard, Taakstatus en Instellingen worden altijd getoond.",
+			"hideMenuItemsXsSmOnly": "alleen xs/sm",
+			"hideMenuItemsXsSmOnlyHint": "Deze pagina staat alleen in het menu op kleine schermen (telefoon en tablet); op grotere schermen is die op een andere manier bereikbaar.",
+			"hideMenuItemSwitchHint": "Dit item verbergen in de navigatiebalk en op de startpagina",
+			"enablePanelEditing": "Panelen bewerken toestaan",
+			"enablePanelEditingHint": "Het bewerkpictogram in paneeltitels tonen om elk paneel in te stellen",
+			"largeButtons": "Grote knoppen",
+			"largeButtonsHint": "De appbalk, de werkbalken van pagina's en de knoppen van dashboardpanelen vergroten op kleine aanraakschermen zodat ze makkelijker te raken zijn",
+			"largeButtonsSmOnly": "alleen sm",
+			"largeButtonsSmOnlyHint": "Werkt alleen op kleine (sm) aanraakschermen; grotere schermen gebruiken altijd de standaardgrootte.",
+			"showEmergencyStop": "Noodstopknop tonen",
+			"showEmergencyStopHint": "De noodstopknop tonen in de appbalk, in de schermvullende G-codeweergave en op blijvende berichtvensters"
+		},
+		"webcam": {
+			"caption": "Webcam",
+			"enabled": "Webcambeeld tonen",
+			"enabledHint": "Het webcambeeld op de webcampagina en het dashboard tonen",
+			"url": "URL van de afbeelding",
+			"urlHint": "Bron-URL van het webcambeeld - meestal een JPEG-opname of een MJPEG-stream",
+			"liveUrl": "URL van de livestream",
+			"liveUrlHint": "Wordt geopend bij een klik op het webcambeeld",
+			"updateInterval": "Verversingsinterval",
+			"updateIntervalHint": "Hoe vaak het webcambeeld wordt ververst",
+			"embedded": "Insluiten als iframe",
+			"embeddedHint": "Gebruik dit wanneer de bron een volledige HTML-pagina is in plaats van een losse afbeelding",
+			"flip": "Spiegelen",
+			"flipHint": "Het webcambeeld horizontaal, verticaal of in beide richtingen spiegelen",
+			"rotation": "Rotatie",
+			"rotationHint": "Het webcambeeld over de opgegeven hoek in graden draaien",
+			"flipOptions": {
+				"none": "Geen",
+				"x": "Horizontaal",
+				"y": "Verticaal",
+				"both": "Beide"
+			},
+			"useFix": "Cachebuster onderdrukken",
+			"useFixHint": "De queryparameter met tijdstempel die het cachen van afbeeldingen omzeilt niet toevoegen. Zet dit aan wanneer de webcamserver niet overweg kan met onverwachte queryparameters."
+		},
+		"communication": {
+			"caption": "Communicatie",
+			"transferCaption": "Bestandsoverdracht",
+			"maxRetries": "Maximaal aantal HTTP-pogingen",
+			"maxRetriesHint": "Hoe vaak een mislukte HTTP-aanvraag opnieuw wordt geprobeerd voordat die wordt opgegeven",
+			"retryDelay": "Wachttijd tussen pogingen",
+			"retryDelayHint": "Wachttijd tussen opeenvolgende HTTP-pogingen",
+			"pingInterval": "Ping-interval",
+			"pingIntervalHint": "Hoe vaak er een ping naar het bord wordt gestuurd terwijl de verbinding inactief is",
+			"updateDelay": "Vertraging na update",
+			"updateDelayHint": "Extra wachttijd na elke verversing van het objectmodel om de interface te ontlasten",
+			"retryThreshold": "Drempelgrootte voor nieuwe poging",
+			"retryThresholdHint": "HTTP-aanvragen tot deze grootte worden bij tijdelijke fouten opnieuw geprobeerd",
+			"ignoreFileTimestamps": "Wijzigingsdatum bij uploads overslaan",
+			"ignoreFileTimestampsHint": "De wijzigingsdatum van het lokale bestand niet meesturen bij een upload - handig wanneer de klok van de browser en die van het bord uiteenlopen",
+			"unavailable": "Communicatie-instellingen zijn niet beschikbaar zonder verbinding"
+		},
+		"editor": {
+			"appearanceCaption": "Uiterlijk",
+			"assistanceCaption": "Hulp bij het schrijven van code",
+			"useMonaco": "Monaco-editor gebruiken",
+			"useMonacoHint": "Schakel dit uit om terug te vallen op een eenvoudig tekstveld (beter voor aanraakapparaten)",
+			"fontSize": "Lettergrootte",
+			"fontSizeHint": "Lettergrootte in de editor, in pixels",
+			"tabSize": "Inspringbreedte",
+			"tabSizeHint": "Aantal spaties per inspringniveau",
+			"wordWrap": "Regelterugloop",
+			"wordWrapHint": "Hoe lange regels in de editor worden afgebroken",
+			"wordWrapOptions": {
+				"off": "Uit",
+				"on": "Afbreken bij de vensterrand",
+				"bounded": "Afbreken bij de vensterrand of kolom"
+			},
+			"minimap": "Minikaart tonen",
+			"minimapHint": "Een klein overzicht van het bestand aan de rechterrand van de editor tonen",
+			"lineNumbers": "Regelnummers tonen",
+			"lineNumbersHint": "Regelnummers in de kantlijn van de editor tonen",
+			"renderWhitespace": "Witruimte tonen",
+			"renderWhitespaceHint": "Spaties en tabs als zichtbare tekens weergeven zodat gemengde inspringing opvalt",
+			"bracketPairColorization": "Bijbehorende haakjes kleuren",
+			"bracketPairColorizationHint": "Bij elkaar horende haakjes in verschillende kleuren markeren zodat nesting makkelijker te volgen is",
+			"quickSuggestions": "Suggesties voor automatisch aanvullen",
+			"quickSuggestionsHint": "Toont de suggestielijst tijdens het typen. Niet actief binnen commentaar en tekenreeksen.",
+			"suggestOnTriggerCharacters": "Suggesties na triggertekens",
+			"suggestOnTriggerCharactersHint": "De suggestielijst automatisch openen na het typen van tekens als '.' of ':'",
+			"parameterHints": "Parameterhints",
+			"parameterHintsHint": "Informatie over de parameters van de huidige functieaanroep tonen",
+			"hover": "Info bij aanwijzen",
+			"hoverHint": "Documentatie en type-informatie tonen wanneer u een symbool aanwijst",
+			"inlineSuggest": "Inline suggesties als schaduwtekst",
+			"inlineSuggestHint": "Suggesties direct in de tekst tonen in een vage kleur - accepteren met Tab.",
+			"formatOnPaste": "Opmaken bij plakken",
+			"formatOnPasteHint": "Geplakte code automatisch opnieuw opmaken",
+			"formatOnType": "Opmaken tijdens typen",
+			"formatOnTypeHint": "Code automatisch opnieuw opmaken tijdens het typen",
+			"largeFileOptimizations": "Grote bestanden optimaliseren",
+			"largeFileOptimizationsHint": "Syntaxiskleuring, inklappen en haakjesherkenning uitschakelen boven ~20 MB om geheugen te sparen; laat dit uit om grote G-codebestanden gekleurd te houden",
+			"replaceTabsOnSave": "Tabs bij opslaan vervangen door spaties",
+			"replaceTabsOnSaveHint": "Elke tab in het bestand bij het opslaan omzetten naar spaties. Wordt overgeslagen bij zeer grote bestanden.",
+			"replaceTabsSize": "Spaties per tab",
+			"replaceTabsSizeHint": "Aantal spaties waardoor elke tab bij het opslaan wordt vervangen",
+			"configResetPrompt": "Vraag om herstart na config.g",
+			"configResetPromptHint": "Wanneer er wordt aangeboden het hoofdbord te herstarten of het configuratiebestand opnieuw uit te voeren na het bewerken van config.g",
+			"configResetPromptOptions": {
+				"onTabClose": "Bij het sluiten van de editor",
+				"onSave": "Bij opslaan",
+				"disabled": "Uitgeschakeld"
+			}
+		},
+		"about": {
+			"dwc": "Duet Web Control",
+			"reload": "Opnieuw laden",
+			"version": "Versie",
+			"hostname": "Verbonden host",
+			"connector": "Connector",
+			"connectorPoll": "HTTP-polling (standalone RRF)",
+			"connectorRest": "REST ({distro}, {bits}-bits)",
+			"connectorRestFallback": "SBC",
+			"boards": "Borden",
+			"boardName": "Bord",
+			"boardFirmware": "Firmware",
+			"noBoards": "Geen bordinformatie beschikbaar.",
+			"credits": "Webinterface ontwikkeld door {author} voor {duet3d}.",
+			"license": "Gelicentieerd onder de voorwaarden van de {gpl}.",
+			"powerCaption": "Voeding SBC",
+			"powerPluginRequired": "Voor deze acties moet de DuetPi Management-plug-in draaien.",
+			"powerError": "Kon het voedingscommando niet versturen",
+			"reboot": "Herstarten",
+			"rebootHint": "De SBC waarop Duet Software Framework draait herstarten.",
+			"rebootTitle": "SBC herstarten?",
+			"rebootPrompt": "Weet u zeker dat u de SBC wilt herstarten? De verbinding gaat verloren tot die opnieuw is opgestart.",
+			"shutdown": "Afsluiten",
+			"shutdownHint": "De SBC netjes afsluiten voordat de voeding wordt losgekoppeld.",
+			"shutdownTitle": "SBC afsluiten?",
+			"shutdownPrompt": "Weet u zeker dat u de SBC wilt afsluiten? De verbinding gaat verloren en u moet de voeding opnieuw inschakelen om hem weer te starten.",
+			"closeCaption": "DWC sluiten",
+			"closeHint": "Het lokale venster van Duet Web Control sluiten. Alleen beschikbaar wanneer DWC op het lokale scherm draait.",
+			"close": "Sluiten",
+			"closeError": "Kon DWC niet sluiten"
+		},
+		"plugins": {
+			"caption": "Plug-ins",
+			"noPlugins": "Er zijn momenteel geen plug-ins geinstalleerd.",
+			"builtin": "ingebouwd",
+			"started": "Gestart",
+			"starting": "Starten",
+			"stopped": "Gestopt",
+			"stopping": "Stoppen",
+			"pending": "In afwachting",
+			"partial": "Gedeeltelijk",
+			"installed": "Geinstalleerd",
+			"requires": "Vereist {0}",
+			"uninstallWhileRunning": "Stop de plug-in voordat u die verwijdert",
+			"uninstallBuiltin": "Ingebouwde plug-ins kunnen niet worden verwijderd",
+			"install": "Plug-in installeren",
+			"start": "Starten",
+			"stop": "Stoppen",
+			"notStartable": "Deze plug-in wordt door de firmware beheerd en kan hier niet worden gestart",
+			"uninstall": "Verwijderen",
+			"uninstallTitle": "Plug-in verwijderen?",
+			"uninstallPrompt": "Weet u zeker dat u {0} wilt verwijderen?",
+			"uninstallDeleteData": "Ook de opgeslagen gegevens van deze plug-in verwijderen",
+			"startError": "Kon plug-in {0} niet starten",
+			"stopError": "Kon plug-in {0} niet stoppen",
+			"installError": "Kon {0} niet installeren",
+			"uninstallError": "Kon {0} niet verwijderen",
+			"refreshNote": "Vernieuw de pagina om het ontladen van sommige DWC-plug-ins af te ronden",
+			"refreshNow": "Nu vernieuwen",
+			"headers": {
+				"name": "Naam",
+				"author": "Auteur",
+				"version": "Versie",
+				"license": "Licentie",
+				"status": "Status",
+				"actions": "Acties"
+			}
+		},
+		"storage": {
+			"caption": "Opslag",
+			"settingsStorageLocal": "Instellingen lokaal in deze browser opslaan",
+			"settingsStorageLocalHint": "Instellingen in de localStorage van de browser houden in plaats van ze naar het bord te uploaden. Handig wanneer hetzelfde bord vanaf meerdere computers met verschillende voorkeuren wordt gebruikt.",
+			"settingsSaveDelay": "Wachttijd voor opslaan van instellingen",
+			"settingsSaveDelayHint": "Wachttijd na een wijziging voordat de instellingen worden opgeslagen. Hogere waarden beperken het aantal schrijfacties wanneer u verschillende instellingen achter elkaar wijzigt.",
+			"cacheStorageLocal": "Cache in deze browser opslaan",
+			"cacheStorageLocalHint": "De verbindingscache (laatste hostnaam, status van plug-ins) in de localStorage van de browser houden in plaats van op het bord.",
+			"cacheSaveDelay": "Wachttijd voor opslaan van de cache",
+			"cacheSaveDelayHint": "Wachttijd na een wijziging voordat de cache wordt opgeslagen.",
+			"reload": "Opnieuw laden",
+			"reloadSettingsHint": "De instellingen opnieuw van het bord ophalen",
+			"reloadSettingsSuccess": "Instellingen opnieuw van het bord geladen",
+			"reloadSettingsError": "Kon de instellingen niet opnieuw van het bord laden",
+			"reloadCacheHint": "De cache opnieuw van het bord ophalen",
+			"reloadCacheSuccess": "Cache opnieuw van het bord geladen",
+			"reloadCacheError": "Kon de cache niet opnieuw van het bord laden"
+		}
+	},
+	"menu": {
+		"control": {
+			"caption": "Besturing",
+			"temperatures": "Temperatuurgrafiek",
+			"console": "Console",
+			"dashboard": "Dashboard"
+		},
+		"job": {
+			"caption": "Taak",
+			"status": "Taakstatus",
+			"statusShort": "Status",
+			"webcam": "Webcam"
+		},
+		"files": {
+			"caption": "Bestanden",
+			"jobs": "Taken",
+			"macros": "Macro's",
+			"explorer": "Bestandsverkenner",
+			"explorerShort": "Verkenner"
+		},
+		"preferences": {
+			"caption": "Instellingen",
+			"settings": "Algemeen",
+			"plugins": "Plug-ins"
+		},
+		"plugins": {
+			"caption": "Plug-ins"
+		}
+	},
+	"plugins": {
+		"objectModelBrowser": {
+			"menuCaption": "Objectmodel",
+			"search": "Zoeken in het objectmodel...",
+			"selectedNode": "Geselecteerde node:",
+			"none": "Geen",
+			"summary": "Samenvatting",
+			"remarks": "Opmerkingen",
+			"values": "Waarden",
+			"value": "Waarde",
+			"deprecated": "Verouderd"
+		},
+		"heightmap": {
+			"menuCaption": "Hoogtekaart",
+			"listTitle": "Hoogtekaarten",
+			"none": "Geen",
+			"scale": "Schaal:",
+			"orMore": "of meer",
+			"orLess": "of minder",
+			"axes": "Assen:",
+			"notAvailable": "hoogtekaart niet beschikbaar",
+			"statistics": "Statistiek",
+			"numPoints": "Aantal punten: {0}",
+			"radius": "Meetradius: {0}",
+			"area": "Meetgebied: {0}",
+			"maxDeviations": "Maximale afwijkingen: {0} / {1}",
+			"meanError": "Gemiddelde fout: {0}",
+			"rmsError": "RMS-fout: {0}",
+			"display": "Weergave",
+			"colorScheme": "Kleurenschema:",
+			"terrain": "Terrein",
+			"heat": "Warmte",
+			"invertZ": "Z-coordinaten omkeren",
+			"topView": "Bovenaanzicht",
+			"range": "Bereik",
+			"fixed": "Vast",
+			"deviation": "Afwijking",
+			"resetView": "Aanzicht herstellen",
+			"scaleHint": "Klik om de vaste schaal te wijzigen",
+			"scaleDialogTitle": "Vaste schaal",
+			"scaleDialogPrompt": "Voer de vaste schaal in mm in (wordt toegepast als +/-)"
+		},
+		"accelerometer": {
+			"sampleTooltip": "Sample #{0}",
+			"frequencyTooltip": "{0} ± {1} Hz",
+			"xAxisFrequency": "Frequentie (in Hz)",
+			"xAxisSample": "Sample",
+			"yAxisAmplitude": "Amplitude (in g)",
+			"yAxisAcceleration": "Versnelling (in g)",
+			"reductionFactor": "Reductiefactor",
+			"shaperFrequency": "Shaperfrequentie",
+			"custom": "Eigen",
+			"configured": "geconfigureerd",
+			"apply": "toepassen",
+			"edit": "bewerken",
+			"inputShaping": "Input Shaping",
+			"recordButton": "Bewegingsprofiel opnemen",
+			"noMotionProfiles": "Geen bewegingsprofielen gevonden. Neem een nieuw bewegingsprofiel op of",
+			"refreshLink": "vernieuw de bestandslijst",
+			"motionProfiles": "Bewegingsprofielen",
+			"pickProfile": "Kies een bewegingsprofiel",
+			"overflowWarning": "Het gekozen bewegingsprofiel bevat overflows. Het is mogelijk niet nauwkeurig.",
+			"inputShapers": "Input Shapers",
+			"customShaper": "Eigen shaperconfiguratie",
+			"numImpulses": "Aantal impulsen",
+			"impulse": "Impuls",
+			"amplitude": "Amplitude",
+			"durationMs": "Duur (in ms)",
+			"resultingCode": "Resulterend configuratiecommando:",
+			"centreFrequency": "Middenfrequentie van de shaper",
+			"dampingFactor": "Dempingsfactor",
+			"noProfiles": "Geen profielen gevonden",
+			"showOriginalValues": "Oorspronkelijke waarden tonen",
+			"estimateShaperEffect": "Effect van de shaper schatten",
+			"estimateNeedsUnshaped": "Alleen beschikbaar voor profielen die zonder input shaping zijn opgenomen",
+			"showSamples": "Samples tonen",
+			"analyze": "Analyseren",
+			"individualFiles": "Afzonderlijke bestanden tonen",
+			"wideBand": "Breedbandanalyse",
+			"title": "Bewegingsprofiel opnemen",
+			"intro": "Met deze wizard verzamelt u bewegingsprofielen met een versnellingsmeter om input shaping af te stemmen.",
+			"profileNumber": "Bewegingsprofiel #{0}",
+			"inputShaper": "Input Shaper: {0}",
+			"shaperFrequencyValue": "Shaperfrequentie: {0}",
+			"dampingFactorValue": "Dempingsfactor: {0}",
+			"amplitudesValue": "Amplitudes: {0}",
+			"delaysValue": "Vertragingen: {0}",
+			"noAccelerometer": "Geen versnellingsmeter gevonden!",
+			"help": "Help",
+			"notHomed": "De machine is niet gehomed",
+			"homeAll": "Home alles",
+			"readyToRecord": "Klaar om gegevens op te nemen",
+			"pressNext": "Druk op Volgende om verder te gaan.",
+			"defineMoves": "Hier kunt u verschillende bewegingen voor de gegevensverzameling bepalen.",
+			"tool": "Gereedschap",
+			"accelerometer": "Versnellingsmeter",
+			"axis": "As",
+			"startPosition": "Startpositie",
+			"endPosition": "Eindpositie",
+			"addMove": "Beweging toevoegen",
+			"externalAccelerometersHint": "Deze machine lijkt uitbreidingsborden met ingebouwde versnellingsmeters te hebben. Als u een gereedschapswisselaar gebruikt, is het aan te raden bij elke versnellingsmeter het bijbehorende gereedschap in te stellen.",
+			"centreUnusedAxes": "Ongebruikte assen voor elke beweging centreren",
+			"xCentre": "Middenpositie X-as",
+			"yCentre": "Middenpositie Y-as",
+			"zCentre": "Middenpositie Z-as",
+			"captureWholeMove": "Gegevens opnemen over de volledige lengte van de beweging",
+			"nextStarts": "De machine neemt een nieuw bewegingsprofiel op zodra u op Volgende klikt.",
+			"standBy": "Even wachten, de bewegingsprofielen worden opgenomen...",
+			"cancelled": "Gegevensverzameling geannuleerd!",
+			"completed": "Opname van bewegingsprofiel #{0} is voltooid!",
+			"back": "Terug",
+			"next": "Volgende",
+			"finish": "Voltooien",
+			"motorAnalysis": "Afstemming van de motorstroomvorm",
+			"recordMotorButton": "Motorprofiel opnemen",
+			"noMotorProfiles": "Geen motorprofielen gevonden. Neem een nieuw motorprofiel op of",
+			"motorProfiles": "Motorprofielen",
+			"pickMotorProfile": "Kies een motorprofiel uit de lijst",
+			"harmonicsView": "Harmonischen",
+			"spectrumView": "Spectrum",
+			"sweepView": "Snelheidssweep",
+			"numHarmonics": "Harmonischen",
+			"harmonic": "Harmonische",
+			"frequency": "Frequentie",
+			"harmonicTooltip": "{0}x de volstapfrequentie ({1} Hz)",
+			"sweepTooltip": "Volstapfrequentie {0} Hz ({1} mm/s)",
+			"xAxisHarmonic": "Veelvoud van de volstapfrequentie",
+			"xAxisFullStepFrequency": "Volstapfrequentie (in Hz)",
+			"yAxisDisplacement": "Uitwijking (in um)",
+			"motorAnalysisInfo": "Nominale volstapfrequentie {0} Hz, gemeten {1} Hz. Geanalyseerde samples {2} - {3} bij {4} Hz",
+			"motorSweepInfo": "Meting #{0}, motor {1}: amplitudes van de harmonischen over alle assen van de versnellingsmeter bij {2} snelheden",
+			"numRecordings": "{0} opnamen",
+			"fullStepsPerMm": "volstappen/mm",
+			"pickMotorRun": "Kies een meting van het motorprofiel uit de lijst",
+			"chartView": "Grafiek",
+			"tableView": "Tabel",
+			"tuneMotorButton": "Motor afstemmen",
+			"tuneTitle": "Correctie van de motorstroomvorm afstemmen",
+			"tuneIntro": "Deze wizard stemt de huidige stroomvormcorrectie van een motor af door bewegingen met constante snelheid op te nemen en de trillingen bij harmonischen van de elektrische cyclus te minimaliseren. In de phase-steppingmodus wordt de correctie op de elektrische hoek toegepast (M970.3), anders wordt die in de programmeerbare sinustabel van de driver geschreven (M569.2).",
+			"speedLabel": "Snelheid (mm/s)",
+			"travelSpeed": "Verplaatsingssnelheid (mm/s)",
+			"travelSpeedHint": "Snelheid van de positioneerbewegingen tussen de opnamen",
+			"tuneHarmonic2": "Harmonische 2 (spoelonbalans)",
+			"tuneHarmonic2Tooltip": "Vereist de phase-steppingmodus (M970)",
+			"tuneHarmonic4": "Harmonische 4 (volstaprimpel)",
+			"tuneHint": "Er worden ongeveer {0} bewegingen opgenomen, wat ruwweg {1} minuten duurt. Input shaping is tijdens het afstemmen uitgeschakeld en wordt daarna hersteld.",
+			"tuneStepDirHint": "De motor werkt in step/dir-modus, dus de correctie wordt in de sinustabel van de driver geschreven. Spoelonbalans (harmonische 2) kan alleen in de phase-steppingmodus worden gecorrigeerd.",
+			"magnitude": "Grootte (°)",
+			"phase": "Fase (°)",
+			"amplitude": "Amplitude",
+			"tuneStatus": "Harmonische {0} meten bij grootte {1}°, fase {2}°...",
+			"originalMeasurement": "Ongecorrigeerd",
+			"lastMeasurement": "Laatste ({0}/{1})",
+			"bestMeasurement": "Beste",
+			"tuneImproved": "Harmonische {0}: trilling teruggebracht van {1} naar {2} ({3}%)",
+			"tuneNoImprovement": "Harmonische {0}: geen enkele correctie verbeterde de trilling, die blijft uitgeschakeld",
+			"tuneResultCodes": "De onderstaande correcties zijn nu actief. Neem ze op in config.g om ze blijvend te maken:",
+			"tuneResultCodesPhaseStepping": "De onderstaande correcties zijn nu actief. Neem ze in config.g op na het commando M970 dat phase stepping inschakelt om ze blijvend te maken:",
+			"tuneStart": "Starten",
+			"tuneKeep": "Behouden",
+			"tuneDiscard": "Verwerpen",
+			"motorSummaryInfo": "Meting #{0}, motor {1}: amplitudes van de harmonischen uit {2} opnamen, vergeleken bij gelijke absolute frequenties; de percentages zijn relatief aan de volstaptrilling bij dezelfde frequentie",
+			"findingFullStep": "Motor {0}: volstaptrilling tot {1} um bij {2} Hz ({4}), veroorzaakt door detentkoppel en staprimpel",
+			"findingPhase": "Motor {0}: de component met een periode van twee volle stappen bereikt {1} um bij {2} Hz, {3}% van de volstaptrilling ({4}), wat wijst op een stroomonbalans tussen de twee spoelen",
+			"findingWaveform": "Motor {0}: componenten met een periode van een elektrische cyclus bereiken {1} um bij {2} Hz, {3}% van de volstaptrilling ({4}), wat wijst op een vervormde stroomvorm",
+			"level": {
+				"low": "laag",
+				"moderate": "matig",
+				"high": "hoog"
+			},
+			"motorTitle": "Motorprofiel opnemen",
+			"motorIntro": "Deze wizard neemt gegevens van de versnellingsmeter op tijdens bewegingen met constante snelheid, zodat trillingen bij veelvouden van de volstapfrequentie kunnen worden geanalyseerd om de lineariteit van de motor te bepalen.",
+			"defineMotorMoves": "Hier kunt u de op te nemen bewegingen bepalen. Elke beweging loopt door het midden van de assen in de richting die alleen de gekozen motor aandrijft en moet lang genoeg zijn om een constante snelheid te bereiken.",
+			"defineSpeeds": "Hier kunt u de op te nemen snelheden bepalen. Elke beweging wordt een keer per snelheid opgenomen; houd de resulterende volstapfrequenties ruim onder de helft van de bemonsteringsfrequentie van de versnellingsmeter.",
+			"motorNextStarts": "De machine neemt een nieuw motorprofiel op zodra u op Volgende klikt.",
+			"nonLinearKinematicsHint": "Bij deze kinematica lopen de motoren alleen bij Z-bewegingen met een constante staptempo, XY-bewegingen zijn niet geschikt voor motoranalyse.",
+			"speed": "Snelheid",
+			"maxSpeed": "Max. snelheid (mm/s)",
+			"motor": "Motor",
+			"direction": "Richting",
+			"center": "Midden",
+			"length": "Lengte (mm)",
+			"speeds": "Snelheden (mm/s)",
+			"speedsHint": "Elke beweging wordt een keer per snelheid opgenomen. Druk op Enter om een waarde toe te voegen",
+			"fullStepFrequency": "Volstapfrequentie",
+			"noConstantSpeed": "De beweging is te kort om de gevraagde snelheid te bereiken, verhoog de lengte of verlaag de snelheid.",
+			"longRecording": "Minstens een opname duurt langer dan {0} s. Lange opnamen kunnen de hoofdtaak van via CAN aangesloten versnellingsmeterborden uithongeren en die resetten; overweeg kortere bewegingen of hogere snelheden.",
+			"motorCompleted": "Opname van motorprofiel #{0} is voltooid!"
+		},
+		"gcodeViewer": {
+			"caption": "G-codeweergave",
+			"maxTemp": "Max. temperatuur: {0}",
+			"view3D": "3D-weergave",
+			"fullscreen": "Volledig scherm",
+			"viewActions": {
+				"caption": "Weergave",
+				"title": "Camera herstellen, bestanden laden en weergaveopties"
+			},
+			"resetCamera": {
+				"caption": "Camera herstellen",
+				"title": "De camera terugzetten op de uitgangspositie"
+			},
+			"cancelLoad": "Laden van bestand annuleren",
+			"loadCurrentJob": {
+				"caption": "Voortgang volgen",
+				"title": "De lopende print- of simulatietaak laden en de voortgang live volgen"
+			},
+			"staticView": {
+				"caption": "Statische weergave",
+				"title": "Stoppen met de voortgang volgen en het hele bestand tonen om doorheen te bladeren"
+			},
+			"unloadGCode": {
+				"caption": "G-code ontladen",
+				"title": "De geladen G-code uit de weergave verwijderen"
+			},
+			"loadLocalGCode": {
+				"caption": "Lokale G-code laden",
+				"title": "Een bestand van uw eigen schijf in de weergave laden"
+			},
+			"showTravels": "Verplaatsingen tonen",
+			"extruders": {
+				"caption": "Extruders",
+				"title": "Stelt de kleur in waarmee een extruder wordt weergegeven",
+				"add": "Toevoegen",
+				"removeLast": "Laatste verwijderen"
+			},
+			"tool": "Gereedschap {0}",
+			"resetColor": "Gereedschapskleur herstellen | Gereedschapskleuren herstellen",
+			"renderMode": {
+				"caption": "Weergavemodus | Weergavemodi",
+				"title": "Met de weergavemodus kiest u of de lijnen op extruderkleur of op aanvoersnelheid worden gekleurd"
+			},
+			"color": "Kleur",
+			"feedrate": "Aanvoersnelheid",
+			"minFeedrate": "Minimale aanvoersnelheid (mm/s)",
+			"maxFeedrate": "Maximale aanvoersnelheid (mm/s)",
+			"minFeedrateColor": "Kleur minimale aanvoersnelheid",
+			"maxFeedrateColor": "Kleur maximale aanvoersnelheid",
+			"topClipping": "Afsnijding boven",
+			"bottomClipping": "Afsnijding onder",
+			"progressColor": "Kleur voortgang",
+			"trailColor": "Kleur spoor",
+			"trailDuration": "Duur van het spoor (s)",
+			"settings": "Instellingen",
+			"background": "Achtergrondkleur",
+			"bedRenderMode": "Weergavemodus bed",
+			"bed": "Bed",
+			"volume": "Volume",
+			"showAxes": "Assen tonen",
+			"showRuler": "Liniaal tonen",
+			"showRulerHint": "Millimeteraanduidingen langs de voor- en linkerrand van het bed tonen",
+			"rulerInterval": "Liniaalinterval (mm)",
+			"rulerIntervalHint": "Afstand tussen de streepjes van de liniaal en de hoofdlijnen van het bedraster, wordt automatisch gekozen als dit niet is ingesteld",
+			"rulerIntervalAuto": "Automatisch",
+			"showObjectLabels": "Objectlabels tonen",
+			"cameraInertia": "Camera-inertie",
+			"showObjectSelection": {
+				"caption": "Objectselectie tonen",
+				"title": "Ingeschakeld als er objecten in de huidige print konden worden herkend"
+			},
+			"renderFailed": "De vorige weergave is mislukt. De weergavekwaliteit wordt op SBC gezet",
+			"showFSOverlay": "Overlay bij volledig scherm tonen",
+			"useHQRendering": "Hoge weergavekwaliteit (rond)",
+			"useSpecular": "Spiegelende glans gebruiken",
+			"feature": "Onderdeel",
+			"g1AsExtrusion": "G1 weergeven (CNC)",
+			"viewGCode": "G-code tonen",
+			"zBelt": "Z-band",
+			"zBeltAngle": "Portaalhoek van de Z-band",
+			"showWorkplace": "Werkcoordinatenstelsel tonen",
+			"perimeterOnly": "Alleen perimeters",
+			"cancelObj": "Object annuleren",
+			"resumeObj": "Object hervatten",
+			"persistTravels": "Verplaatsingen behouden",
+			"showTool": "Gereedschap tonen",
+			"useHQRenderingHint": "De echte gereedschapsdiameter en de bij het inlezen gemeten laaghoogte gebruiken in plaats van vaste standaardwaarden. Het bestand moet opnieuw worden geladen",
+			"g1AsExtrusionHint": "G1 zonder extrusieparameter als snijden behandelen, voor CNC- en lasertaken. Het bestand moet opnieuw worden geladen",
+			"showWorkplaceHint": "Een nulpuntmarkering tonen voor elk werkcoordinatenstelsel waarnaar het bestand met G10 L2 of G10 L20 overschakelt",
+			"zBeltHint": "Het bestand interpreteren voor een bandprinter met een schuin portaal. Het bestand moet opnieuw worden geladen",
+			"zBeltAngleHint": "Hoek tussen het portaal en de band. Het bestand moet opnieuw worden geladen",
+			"nozzleDiameter": "Nozzlediameter",
+			"nozzleDiameterAuto": "Automatisch",
+			"nozzleDiameterHint": "Extrusiebreedte voor weergave in hoge kwaliteit. Leeg of 0 gebruikt de waarde uit het bestand en valt anders terug op de diameter in de gereedschapsnaam. Het bestand moet opnieuw worden geladen",
+			"geometry": {
+				"caption": "Geometrie",
+				"title": "Geometrie waarmee de extrusies worden weergegeven. Lijnen zijn het snelst, cilinders het meest gedetailleerd",
+				"line": "Lijnen",
+				"normal": "Blokken",
+				"high": "Cilinders",
+				"recovered": "De laatste weergave is niet afgerond, dus de geometrie is teruggebracht tot lijnen"
+			},
+			"opacity": "Dekking",
+			"colors": "Kleuren",
+			"quality": "Kwaliteit",
+			"inspection": "Inspectie",
+			"play": "Afspelen",
+			"stop": "Stoppen",
+			"fastForward": "Vooruitspoelen",
+			"gridColor": "Rasterkleur",
+			"borderColor": "Randkleur",
+			"resetSettings": {
+				"caption": "Instellingen herstellen",
+				"title": "Alle instellingen van de G-codeweergave terugzetten op de standaardwaarden",
+				"prompt": "Weet u zeker dat u alle instellingen van de G-codeweergave wilt herstellen?"
+			},
+			"unprinted": {
+				"caption": "Niet-geprint deel",
+				"title": "Hoe het deel van het bestand dat nog niet geprint is wordt weergegeven",
+				"hidden": "Verborgen",
+				"original": "Oorspronkelijke kleuren",
+				"progress": "Kleur voortgang"
+			}
+		}
+	},
+	"pluginPermissions": {
+		"commandExecution": "Algemene DSF-commando's uitvoeren (bijv. G/M/T-codes)",
+		"codeInterceptionRead": "G/M/T-codes onderscheppen",
+		"codeInterceptionReadWrite": "G/M/T-codes onderscheppen en aanpassen",
+		"managePlugins": "Plug-ins van derden installeren, laden, ontladen en verwijderen",
+		"manageUserSessions": "Gebruikerssessies beheren",
+		"objectModelRead": "Uit het objectmodel lezen",
+		"objectModelReadWrite": "Uit het objectmodel lezen en ernaar schrijven",
+		"registerHttpEndpoints": "Nieuwe HTTP-eindpunten maken",
+		"readFilaments": "Bestanden uit de filamentmap lezen",
+		"writeFilaments": "Bestanden naar de filamentmap schrijven",
+		"readFirmware": "Bestanden uit de firmwaremap lezen",
+		"writeFirmware": "Bestanden naar de firmwaremap schrijven",
+		"readGCodes": "Bestanden uit de G-codemap lezen",
+		"writeGCodes": "Bestanden naar de G-codemap schrijven",
+		"readMacros": "Bestanden uit de macromap lezen",
+		"writeMacros": "Bestanden naar de macromap schrijven",
+		"readMenu": "Bestanden uit de menumap lezen",
+		"writeMenu": "Bestanden naar de menumap schrijven",
+		"readSystem": "Bestanden uit de systeemmap lezen",
+		"writeSystem": "Bestanden naar de systeemmap schrijven",
+		"readWeb": "Bestanden uit de webmap lezen",
+		"writeWeb": "Bestanden naar de webmap schrijven",
+		"fileSystemAccess": "Toegang tot bestanden buiten de virtuele SD-map",
+		"launchProcesses": "Nieuwe processen starten",
+		"networkAccess": "Communiceren via het netwerk",
+		"webcamAccess": "Toegang tot webcamapparaten",
+		"gpioAccess": "Toegang tot GPIO-apparaten",
+		"superUser": "Draaien als root (mogelijk gevaarlijk)"
+	}
+}

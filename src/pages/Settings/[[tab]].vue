@@ -1068,6 +1068,9 @@ const presetsTab = ref<string>("tool");
 const languageOptions = computed(() => [
 	{ label: "English", value: "en" },
 	{ label: "Deutsch", value: "de" },
+	{ label: "Nederlands", value: "nl" },
+	{ label: "Українська", value: "uk" },
+	{ label: "Русский", value: "ru" }
 ]);
 
 const autoScrollModeOptions = computed(() => [
