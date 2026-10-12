@@ -86,7 +86,7 @@ const extraHeaders = computed<Array<JobFileListHeader>>(() => [
 	{ title: i18n.global.t("list.jobs.generatedBy"), key: "generatedBy", hasValue: (item) => !!(item as JobBrowserItem).generatedBy },
 ]);
 
-const thumbnails = useGcodeThumbnails();
+const thumbnails = useGcodeThumbnails("jobs");
 const { fileinfoProgress, fileinfoTotal } = thumbnails;
 
 // Bump the fetch token + clear the progress refs on deactivate/unmount so a kept-alive parent

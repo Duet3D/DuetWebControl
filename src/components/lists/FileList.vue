@@ -487,8 +487,8 @@ import { showConfirmDialog } from "@/composables/useConfirmDialog";
 import { getStringInput } from "@/composables/useInputDialog";
 import { useFileDrag } from "@/composables/useFileDrag";
 import { useFileBrowser } from "@/composables/useFileBrowser";
+import { type FileListSortEntry, useFileListSort } from "@/composables/useFileListSort";
 import { useLargeButtons } from "@/composables/useLargeButtons";
-import { useCacheStore } from "@/stores/cache";
 import { firmwareInstallControllerKey, useFirmwareInstallController } from "@/composables/useFirmwareInstallController";
 import { useComponentSettings } from "@/composables/useComponentSettings";
 import i18n from "@/i18n";
@@ -792,34 +792,22 @@ const effectiveHeaders = computed(() => {
 	return all.filter(header => !header.hasValue || items.some(item => header.hasValue!(item)));
 });
 
+const sort = useFileListSort(fileMode);
+
 // v-data-table sorts purely by the active column - left to itself it interleaves files and
 // directories alphabetically. Force `isDirectory` (boolean, desc => true-first) as the primary
 // key so dirs always cluster at the top, then keep the user's column choice as the secondary
 // key. The setter pulls that secondary key out of whatever v-data-table emits and writes it
-// to the cache; the getter rebuilds the canonical [isDirectory, user] array on every read so
-// dirs stay grouped regardless of which header the user just clicked
-type SortEntry = { key: string; order: "asc" | "desc" };
-
-const cacheStore = useCacheStore();
-const sortingKey = computed(() => props.mode ?? "files");
-
-// Per-mode default sort: jobs open with the most recently uploaded slice at the top, everything
-// else alphabetically
-const DEFAULT_SORTS: Record<string, SortEntry> = {
-	jobs: { key: "lastModified", order: "desc" },
-};
-
-const internalSortBy = computed<Array<SortEntry>>({
+// to the shared sort state; the getter rebuilds the canonical [isDirectory, user] array on every
+// read so dirs stay grouped regardless of which header the user just clicked
+const internalSortBy = computed<Array<FileListSortEntry>>({
 	get() {
-		const persisted: SortEntry = cacheStore.sorting[sortingKey.value]
-			?? DEFAULT_SORTS[sortingKey.value]
-			?? { key: "name", order: "asc" };
-		return [{ key: "isDirectory", order: "desc" as const }, persisted];
+		return [{ key: "isDirectory", order: "desc" as const }, { key: sort.sortKey.value, order: sort.sortOrder.value }];
 	},
-	set(value: Array<SortEntry>) {
+	set(value: Array<FileListSortEntry>) {
 		const userPart = value.find((entry) => entry.key !== "isDirectory");
 		if (userPart) {
-			cacheStore.sorting[sortingKey.value] = { key: userPart.key, order: userPart.order };
+			sort.setSort(userPart.key, userPart.order);
 			return;
 		}
 		// We always inject isDirectory as a fixed primary key, so the user column is the second
@@ -827,40 +815,22 @@ const internalSortBy = computed<Array<SortEntry>>({
 		// to ascending when the sort length is exactly 1; with two entries it drops the clicked
 		// column instead, emitting a sortBy without a user part. Treat that emission as the intended
 		// toggle so a descending column keeps cycling instead of sticking on descending
-		const current = cacheStore.sorting[sortingKey.value]
-			?? DEFAULT_SORTS[sortingKey.value]
-			?? { key: "name", order: "asc" as const };
-		cacheStore.sorting[sortingKey.value] = { key: current.key, order: current.order === "asc" ? "desc" : "asc" };
-	},
+		sort.toggleSort(sort.sortKey.value);
+	}
 });
 
 // Tile view has no column headers to click, so the sort key/order is picked from a toolbar
 // menu instead. Persisted entry is shared with the list view's v-data-table so flipping between
 // view modes preserves the choice
-const activeSortKey = computed(() =>
-	cacheStore.sorting[sortingKey.value]?.key
-		?? DEFAULT_SORTS[sortingKey.value]?.key
-		?? "name"
-);
-const activeSortOrder = computed(() =>
-	cacheStore.sorting[sortingKey.value]?.order
-		?? DEFAULT_SORTS[sortingKey.value]?.order
-		?? "asc"
-);
+const activeSortKey = sort.sortKey;
+const activeSortOrder = sort.sortOrder;
 
 const sortOptions = computed<Array<{ key: string; label: string }>>(
 	() => effectiveHeaders.value.map((h) => ({ key: h.key, label: h.title }))
 );
 
 function onSortOptionClick(key: string) {
-	const current = cacheStore.sorting[sortingKey.value]
-		?? DEFAULT_SORTS[sortingKey.value]
-		?? { key: "name", order: "asc" as const };
-	if (current.key === key) {
-		cacheStore.sorting[sortingKey.value] = { key, order: current.order === "asc" ? "desc" : "asc" };
-	} else {
-		cacheStore.sorting[sortingKey.value] = { key, order: "asc" };
-	}
+	sort.toggleSort(key);
 }
 
 // Layout dialog (collapsed toolbar entry) - one panel with view mode + sort key + sort
@@ -880,56 +850,20 @@ const sortDirectionItems = computed(() => [
 const layoutSortKey = computed<string>({
 	get: () => activeSortKey.value,
 	set: (key) => {
-		cacheStore.sorting[sortingKey.value] = { key, order: activeSortOrder.value };
-	},
+		sort.setSort(key, activeSortOrder.value);
+	}
 });
 
 const layoutSortOrder = computed<"asc" | "desc">({
 	get: () => activeSortOrder.value,
 	set: (order) => {
-		cacheStore.sorting[sortingKey.value] = { key: activeSortKey.value, order };
-	},
+		sort.setSort(activeSortKey.value, order);
+	}
 });
 
 // v-data-table re-sorts internally from internalSortBy; the tile grid iterates filelist.value
-// as-is, so apply the same sort here. Directories always cluster at the top regardless of order
-const sortedFileList = computed<Array<FileBrowserItem>>(() => {
-	const items = [...browser.filelist.value];
-	const dir = activeSortOrder.value === "asc" ? 1 : -1;
-	const key = activeSortKey.value;
-	return items.sort((a, b) => {
-		if (a.isDirectory !== b.isDirectory) {
-			return a.isDirectory ? -1 : 1;
-		}
-		return compareSortValues(a, b, key) * dir;
-	});
-});
-
-function compareSortValues(a: FileBrowserItem, b: FileBrowserItem, key: string): number {
-	const va = (a as Record<string, unknown>)[key];
-	const vb = (b as Record<string, unknown>)[key];
-	if (va === undefined || va === null) {
-		return vb === undefined || vb === null ? 0 : -1;
-	}
-	if (vb === undefined || vb === null) {
-		return 1;
-	}
-	if (typeof va === "number" && typeof vb === "number") {
-		return va - vb;
-	}
-	if (typeof va === "bigint" && typeof vb === "bigint") {
-		return va < vb ? -1 : va > vb ? 1 : 0;
-	}
-	if (va instanceof Date && vb instanceof Date) {
-		return va.getTime() - vb.getTime();
-	}
-	if (Array.isArray(va) && Array.isArray(vb)) {
-		const ta = va.reduce<number>((acc, v) => acc + (typeof v === "number" ? v : 0), 0);
-		const tb = vb.reduce<number>((acc, v) => acc + (typeof v === "number" ? v : 0), 0);
-		return ta - tb;
-	}
-	return String(va).localeCompare(String(vb), undefined, { sensitivity: "base", numeric: true });
-}
+// as-is, so apply the same sort here
+const sortedFileList = computed<Array<FileBrowserItem>>(() => sort.sortItems(browser.filelist.value));
 
 const selection = ref<Array<string>>([]);
 

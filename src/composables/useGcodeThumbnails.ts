@@ -2,6 +2,7 @@ import type { GCodeFileInfo, ThumbnailInfo } from "@duet3d/objectmodel";
 import { ref } from "vue";
 
 import type { FileBrowserItem } from "@/composables/useFileBrowser";
+import { useFileListSort } from "@/composables/useFileListSort";
 import { useCacheStore } from "@/stores/cache";
 import { useMachineStore } from "@/stores/machine";
 import Path from "@/utils/path";
@@ -32,10 +33,13 @@ export interface GcodeThumbnailItem extends FileBrowserItem {
  * files asynchronously, populating thumbnails and slicer fields as getFileInfo returns. A
  * fetch token short-circuits in-flight loops when a fresh decorate arrives or the host calls
  * `cancelInFlight()` (typically on deactivate/unmount)
+ * @param sortMode FileList mode whose sort order the fetch follows - must match the `mode` prop
+ * of the list being decorated, or the files load in a different order than they are displayed
  */
-export function useGcodeThumbnails() {
+export function useGcodeThumbnails(sortMode: string = "files") {
 	const machineStore = useMachineStore();
 	const cacheStore = useCacheStore();
+	const sort = useFileListSort(sortMode);
 
 	let fetchToken = 0;
 	const fileinfoProgress = ref(-1);
@@ -123,12 +127,18 @@ export function useGcodeThumbnails() {
 		fileinfoProgress.value = 0;
 		fileinfoTotal.value = gcodeFiles.length;
 
-		for (let i = 0; i < gcodeFiles.length; i++) {
+		// Walk the files in the order the list displays them, re-evaluated per step so re-sorting
+		// mid-sweep redirects the remaining fetches - whatever sits at the top of the list gets its
+		// thumbnail first
+		const pending = new Set(gcodeFiles);
+		let fetched = 0;
+		while (pending.size > 0) {
 			if (token !== fetchToken || !machineStore.isConnected) {
 				break;
 			}
 
-			const item = gcodeFiles[i];
+			const item = sort.sortItems(Array.from(pending))[0];
+			pending.delete(item);
 			const filename = Path.combine(directorySnapshot, item.name);
 			let info: GCodeFileInfo | undefined = cacheStore.fileInfos[filename];
 			if (info && isCachedInfoStale(info, item)) {
@@ -153,7 +163,7 @@ export function useGcodeThumbnails() {
 			if (info) {
 				applyInfo(item, info);
 			}
-			fileinfoProgress.value = i + 1;
+			fileinfoProgress.value = ++fetched;
 		}
 
 		if (token === fetchToken) {
