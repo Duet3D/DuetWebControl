@@ -210,6 +210,59 @@ const _menuCategories = new Map<string, MenuCategory>();
  */
 const _routeRemovers = new Map<string, Array<() => void>>();
 
+/**
+ * Component names that registered routes have asked to be kept alive (see the `keepAlive` option of
+ * {@link registerRoute}), with how many live routes want each - one component can serve several routes.
+ * Reactive so `DwcRouterView`, which reads it through {@link getKeepAliveNames}, picks up a route that is
+ * registered after it was created (a plugin loading late, or a page created at runtime)
+ */
+const _keepAliveCounts = Vue.shallowReactive(new Map<string, number>());
+
+/** Registration path -> the keep-alive name it contributed, so {@link unregisterRoute} can take it back */
+const _routeKeepAlive = new Map<string, string>();
+
+/**
+ * Component names registered routes want kept alive, for `<keep-alive :include>`. Reactive: read it inside
+ * a computed or a render function and it updates as routes come and go
+ */
+export function getKeepAliveNames(): Array<string> {
+	return [..._keepAliveCounts.keys()];
+}
+
+/**
+ * The name `<keep-alive>` will match a route component by, or undefined when it can't be cached. `<keep-alive
+ * :include>` matches a component's own `name` (or the `__name` a `<script setup>` SFC gets from its file name).
+ * `keepAlive: true` uses that name; a string names it explicitly and must agree with the component, since an
+ * `include` that matches nothing would silently cache nothing - or the wrong component, if another one has that
+ * name. A lazy component has no name to check yet, so a string is taken as given and `true` is refused. Lazy means
+ * a loader function or a `defineAsyncComponent` wrapper: the wrapper's own name is "AsyncComponentWrapper", and
+ * `<keep-alive>` looks at the component it resolves to (`__asyncResolved`) instead
+ */
+function resolveKeepAliveName(component: Component, keepAlive: boolean | string | undefined, path: string): string | undefined {
+	if (keepAlive === undefined || keepAlive === false) {
+		return undefined;
+	}
+	const lazy = typeof component === "function" || "__asyncLoader" in component;
+	if (lazy) {
+		if (typeof keepAlive === "string") {
+			return keepAlive;
+		}
+		console.warn(`[DWC] Route "${path}" asks to be kept alive, but its component is loaded lazily so its name is not known yet - pass the name it will have as a string (keepAlive: "MyPluginPage") instead of true`);
+		return undefined;
+	}
+	const named = component as { name?: string; __name?: string };
+	const declared = named.name || named.__name || undefined;
+	if (!declared) {
+		console.warn(`[DWC] Route "${path}" asks to be kept alive, but its component has no name - give it one (defineOptions({ name })) and it will be cached from then on`);
+		return undefined;
+	}
+	if (typeof keepAlive === "string" && keepAlive !== declared) {
+		console.warn(`[DWC] Route "${path}" asks to be kept alive as "${keepAlive}", but its component is named "${declared}" - the two must match, so it will not be cached`);
+		return undefined;
+	}
+	return declared;
+}
+
 // Bare (unwrapped) route records registered by plugins, exposed via the read-only
 // {@link registeredRoutes} export. A third-party custom layout that runs its own vue-router can
 // read this to mount plugin pages inside its own layout shell instead of DWC's default one - the
@@ -419,11 +472,15 @@ export type { ModelPatch, CodeInterceptor, CodeInterceptionResult } from "./inte
  *   registerRoute(Component, { CategoryName: { PageName: { icon, caption, path, condition? } } })
  *
  * @param component Vue component to render
- * @param route Route descriptor: { [category]: { [name]: { icon, caption, path, condition?, translated? } } }
+ * @param route Route descriptor: { [category]: { [name]: { icon, caption, path, condition?, translated?, keepAlive? } } }
+ *   `keepAlive` keeps the page mounted (state, scroll, an open editor) while the user visits other pages:
+ *   `true` uses the component's own name, a string names it explicitly. The name must be unique among pages -
+ *   `<keep-alive>` matches by name - and the page should use onActivated/onDeactivated for anything tied to
+ *   being on screen. Off by default: a kept-alive page keeps running its watchers and timers in the background
  */
 export function registerRoute(
 	component: Component,
-	route: Record<string, Record<string, { icon: string; caption: string | (() => string); path: string; routePath?: string; condition?: boolean | (() => boolean); translated?: boolean; order?: number; pageFill?: boolean; scrollToBottom?: boolean }>>
+	route: Record<string, Record<string, { icon: string; caption: string | (() => string); path: string; routePath?: string; condition?: boolean | (() => boolean); translated?: boolean; order?: number; pageFill?: boolean; scrollToBottom?: boolean; keepAlive?: boolean | string }>>
 ) {
 	if (!_router) {
 		throw new Error("Plugin system not initialised");
@@ -476,6 +533,14 @@ export function registerRoute(
 		component,
 		meta: { pageFill: descriptor.pageFill === true, scrollToBottom: descriptor.scrollToBottom === true },
 	} as RouteRecordRaw;
+	const keepAliveName = resolveKeepAliveName(component, descriptor.keepAlive, descriptor.path);
+	if (keepAliveName) {
+		// Same field the file-based pages use in their <route> block, so DwcRouterView (and a custom layout's
+		// own router view) treat both alike
+		(baseRoute.meta as Record<string, unknown>).keepAlive = keepAliveName;
+		_routeKeepAlive.set(descriptor.path, keepAliveName);
+		_keepAliveCounts.set(keepAliveName, (_keepAliveCounts.get(keepAliveName) ?? 0) + 1);
+	}
 	const wrapped = setupLayouts([baseRoute]);
 	const removers: Array<() => void> = [];
 	for (const route of wrapped) {
@@ -517,6 +582,16 @@ export function unregisterRoute(path: string) {
 			remove();
 		}
 		_routeRemovers.delete(path);
+	}
+	const keepAliveName = _routeKeepAlive.get(path);
+	if (keepAliveName !== undefined) {
+		_routeKeepAlive.delete(path);
+		const remaining = (_keepAliveCounts.get(keepAliveName) ?? 1) - 1;
+		if (remaining > 0) {
+			_keepAliveCounts.set(keepAliveName, remaining);
+		} else {
+			_keepAliveCounts.delete(keepAliveName);
+		}
 	}
 	const registered = _registeredRoutesByPath.get(path);
 	if (registered) {
