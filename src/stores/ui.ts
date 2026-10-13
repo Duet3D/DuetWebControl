@@ -1,6 +1,7 @@
 import { CancellationToken, OnProgressCallback } from "@duet3d/connectors";
 import { MachineMode } from "@duet3d/objectmodel";
 import { defineStore } from "pinia";
+import type { Component } from "vue";
 
 import vuetify from "@/vue-plugins/vuetify";
 import type { EmbeddableComponent } from "@/plugins";
@@ -46,6 +47,53 @@ export interface ContextMenuItem {
 	 * Global event to trigger on click
 	 */
 	action: string;
+}
+
+/**
+ * The instance methods a registered {@link FileEditorEntry.component} must expose via
+ * `defineExpose`, so the Explorer page can drive it exactly like its own built-in Monaco editor
+ * (saving before a tab closes, focusing it when its tab becomes active).
+ */
+export interface FileEditorInstance {
+	/**
+	 * Save the current content back to the SD card. Resolves `true` on success (including "there
+	 * was nothing to save"), `false` on a failed save - the Explorer page keeps its close-tab
+	 * confirmation open on `false` so the user can retry or choose to discard instead.
+	 */
+	save: () => Promise<boolean>;
+
+	/**
+	 * Restore keyboard focus to the editor's own input. Called when the tab becomes active (a
+	 * fresh tab switch, or the Explorer page re-activating after `<keep-alive>` deactivation).
+	 */
+	focus: () => void;
+}
+
+/**
+ * An alternative editor a plugin may register for the Explorer page's editor tabs, in place of
+ * DWC's own built-in Monaco editor - e.g. a G-code-specific editor with real syntax highlighting
+ * and diagnostics for files a general-purpose text editor has no special knowledge of.
+ *
+ * The registered {@link component} must accept the same props and emit the same events as DWC's
+ * own `MonacoEditor.vue`, and expose {@link FileEditorInstance} via `defineExpose`, so the Explorer
+ * page can render either one interchangeably with no other change at the call site:
+ * - Props: `filename: string` (required); `initialContent?: string` (a value the route's own data
+ *   loader may already have pre-fetched - the component must still load the file itself when this
+ *   is `undefined`, e.g. on a fresh tab opened without a matching deep link).
+ * - Emits: `dirty: [boolean]` whenever unsaved-changes state changes; `saved: [filename: string]`
+ *   after a successful save.
+ */
+export interface FileEditorEntry {
+	/** Owning plugin id - purely for identifying a registered entry (e.g. in future diagnostics);
+	 *  not otherwise interpreted. */
+	pluginId: string;
+
+	/** Whether this editor should be used for `path`, an absolute SD-card path (e.g.
+	 *  `"0:/sys/config.g"`). The first registered entry that matches wins; DWC's own Monaco editor
+	 *  is always the fallback when no registered entry matches. */
+	matches: (path: string) => boolean;
+
+	component: Component;
 }
 
 /**
@@ -182,6 +230,12 @@ export const useUiStore = defineStore("ui", {
 			 */
 			jobFileList: new Array<ContextMenuItem>()
 		},
+
+		/**
+		 * Alternative editors registered for the Explorer page's editor tabs, in the order they
+		 * were registered - see {@link FileEditorEntry}
+		 */
+		fileEditors: new Array<FileEditorEntry>(),
 
 		/**
 		 * Logged messages to display in the console
@@ -371,6 +425,23 @@ export const useUiStore = defineStore("ui", {
 				});
 			}
 			this.contextMenuItems[item.contextMenuType].push(item);
+		},
+
+		/**
+		 * Register an alternative editor for the Explorer page's editor tabs - see
+		 * {@link FileEditorEntry}
+		 * @param entry Editor entry to register
+		 */
+		registerFileEditor(entry: FileEditorEntry) {
+			this.fileEditors.push(entry);
+		},
+
+		/**
+		 * Unregister every file editor a plugin previously registered, e.g. on plugin unload
+		 * @param pluginId Owning plugin id, as passed to {@link registerFileEditor}
+		 */
+		unregisterFileEditor(pluginId: string) {
+			this.fileEditors = this.fileEditors.filter((entry) => entry.pluginId !== pluginId);
 		},
 
 		/**
