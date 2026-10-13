@@ -1,0 +1,65 @@
+name: Build and deploy DWC
+
+on:
+  workflow_dispatch:
+    inputs:
+      version:
+        description: "Version (optional)"
+        required: false
+        type: string
+
+jobs:
+  build:
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@v7.0.1
+
+      - name: Set up NodeJS
+        uses: actions/setup-node@v7.1.0
+        with:
+          node-version: "24"
+          cache: "npm"
+
+      - name: Install dependencies
+        run: npm ci
+
+      # The version from package.json is shown in the UI and decides whether the build ships
+      # sourcemaps, so it has to be set before the build runs
+      - name: Adjust version
+        env:
+          VERSION: ${{ inputs.version }}
+        run: |
+          if [ -n "$(echo "$VERSION" | tr -d '[:space:]')" ]; then
+            npm version --no-git-tag-version --allow-same-version "$VERSION"
+          else
+            echo "No version supplied, leaving package.json unchanged"
+          fi
+          echo "Deploying $(jq -r .version package.json)"
+
+      - name: Build DWC
+        run: npm run build
+
+      # Besides the SD and SBC zips this picks up srcmaps.zip, which only stable
+      # versions build - prerelease builds ship their maps inside the bundles
+      - name: Arrange files
+        run: |
+          mkdir upload
+          cp ./dist/DuetWebControl-*.zip ./upload/
+          ls -l ./upload
+
+      - name: Attach zips
+        uses: actions/upload-artifact@v7.0.2
+        with:
+          name: zips
+          path: ./upload/*.zip
+          compression-level: 0
+
+      - name: Upload files to testing directory
+        uses: Creepios/sftp-action@v1.0.5
+        with:
+          host: pkg.duet3d.com
+          port: 22
+          username: pkg
+          privateKey: ${{ secrets.PKG_DEPLOY_KEY }}
+          localPath: ./upload
+          remotePath: /var/www/reprapfirmware/testing/${{ github.ref_name }}
