@@ -1523,6 +1523,8 @@
 				"title": "Reset camera to home position"
 			},
 			"cancelLoad": "Cancel File Loading",
+			"downloadingFile": "Downloading file",
+			"processingFile": "Processing file",
 			"loadCurrentJob": {
 				"caption": "Follow Live Progress",
 				"title": "Load the current printing or simulating job and follow its live progress"

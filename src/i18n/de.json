@@ -1524,6 +1524,8 @@
 				"title": "Kamera auf Ursprungsposition zurücksetzen"
 			},
 			"cancelLoad": "Laden abbrechen",
+			"downloadingFile": "Datei wird heruntergeladen",
+			"processingFile": "Datei wird verarbeitet",
 			"loadCurrentJob": {
 				"caption": "Live-Fortschritt verfolgen",
 				"title": "Aktuellen Druck- oder Simulationsauftrag laden und den Fortschritt live verfolgen"

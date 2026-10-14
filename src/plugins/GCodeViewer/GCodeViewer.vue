@@ -259,10 +259,9 @@
 			<FSOverlay v-show="fullscreen && showOverlay" :class="[viewerClass, 'fsoverlay']"
 					   :viewgcode="viewGCode" />
 
-			<!-- Indeterminate: the WASM parse is one synchronous call in the worker, so it can't
-				 report incremental progress mid-parse - a determinate bar would just jump 0 -> 100 -->
 			<div class="loading-progress">
-				<v-progress-linear v-show="loading" indeterminate height="24" rounded>
+				<v-progress-linear v-show="loading" :indeterminate="loadingProgress === null"
+								   :model-value="loadingProgress ?? 0" height="24" rounded>
 					{{ loadingMessage }}
 				</v-progress-linear>
 			</div>
@@ -753,6 +752,8 @@ const objectDialogData = reactive({
 const hoverLabel = ref("");
 const fullscreen = ref(false);
 const loadingMessage = ref("");
+// Percentage, or null while the current phase cannot report how far it has got
+const loadingProgress = ref<number | null>(null);
 const scrubPosition = ref(0);
 const scrubFileSize = ref(0);
 const scrubPlaying = ref(false);
@@ -962,6 +963,7 @@ function handleViewerEvent(e: any) {
 			break;
 		case "progress":
 			loadingMessage.value = e.label ?? "";
+			loadingProgress.value = (typeof e.progress === "number") ? e.progress * 100 : null;
 			break;
 		case "fileloaded":
 			scrubFileSize.value = e.end ?? 0;
@@ -1128,6 +1130,17 @@ function renderCrashRecovery() {
 	localStorage.setItem(RENDER_FLAG_KEY, "true");
 }
 
+function beginDownload() {
+	loading.value = true;
+	loadingProgress.value = null;
+	loadingMessage.value = i18n.global.t("plugins.gcodeViewer.downloadingFile");
+}
+
+// Chunked responses come without a content length, in which case the connector reports nothing at all
+function downloadProgress(loaded: number, total: number) {
+	loadingProgress.value = (total > 0) ? (loaded / total) * 100 : null;
+}
+
 async function loadText(text: string) {
 	loadedFileText.value = text;
 	fileData.value = viewGCode.value ? text : "";
@@ -1137,6 +1150,8 @@ async function loadText(text: string) {
 	}
 	renderCrashRecovery();
 	loading.value = true;
+	loadingProgress.value = null;
+	loadingMessage.value = i18n.global.t("plugins.gcodeViewer.processingFile");
 	scrubPlaying.value = false;
 	scrubPosition.value = 0;
 	viewer.loadFile(text);
@@ -1146,9 +1161,9 @@ async function loadSdFile(path: string) {
 	selectedFile.value = path;
 	followingJob.value = false;
 	autoLoadedJobKey.value = "";
-	loading.value = true;
+	beginDownload();
 	try {
-		const blob = await machineStore.download({ filename: Path.combine(path), type: "text" }, false, false, false);
+		const blob = await machineStore.download({ filename: Path.combine(path), type: "text" }, false, false, false, false, downloadProgress);
 		await loadText(String(blob));
 	} catch {
 		loading.value = false;
@@ -1208,9 +1223,9 @@ async function loadRunningJob(live = true) {
 	selectedFile.value = job.value.file.fileName;
 	followingJob.value = live;
 	autoLoadedJobKey.value = jobFileStore.fileKey;
-	loading.value = true;
+	beginDownload();
 	try {
-		const blob = await machineStore.download({ filename: job.value.file.fileName, type: "text" }, false, false, false);
+		const blob = await machineStore.download({ filename: job.value.file.fileName, type: "text" }, false, false, false, false, downloadProgress);
 		await loadText(String(blob));
 		await whenReady();
 		viewer?.loadObjectBoundaries(plainObjects(job.value.build?.objects));
@@ -1690,6 +1705,7 @@ watch(selectedFile, () => {
 watch(loading, (to) => {
 	if (!to) {
 		loadingMessage.value = "";
+		loadingProgress.value = null;
 	}
 });
 

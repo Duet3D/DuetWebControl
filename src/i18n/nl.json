@@ -1523,6 +1523,8 @@
 				"title": "De camera terugzetten op de uitgangspositie"
 			},
 			"cancelLoad": "Laden van bestand annuleren",
+			"downloadingFile": "Bestand wordt gedownload",
+			"processingFile": "Bestand wordt verwerkt",
 			"loadCurrentJob": {
 				"caption": "Voortgang volgen",
 				"title": "De lopende print- of simulatietaak laden en de voortgang live volgen"
