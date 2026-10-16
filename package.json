@@ -1,6 +1,6 @@
 {
    "name": "duetwebcontrol",
-   "version": "3.6.3",
+   "version": "3.6.4-rc.1",
    "author": "Christian Hammacher <christian@duet3d.com> (https://www.duet3d.com)",
    "homepage": "https://forum.duet3d.com/category/27/duet-web-control",
    "license": "GPL-3.0",
@@ -61,6 +61,9 @@
       "vue-template-compiler": "^2.7.16",
       "vuetify-loader": "^1.9.2",
       "zip-webpack-plugin": "^4.0.1"
+   },
+   "overrides": {
+      "@emmetio/css-parser": "^0.4.1"
    },
    "browserslist": [
       "> 1%",
