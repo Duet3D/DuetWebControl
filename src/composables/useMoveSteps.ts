@@ -3,6 +3,7 @@ import type { Ref } from "vue";
 
 import { getNumericInput } from "@/composables/useInputDialog";
 import i18n from "@/i18n";
+import { useMachineStore } from "@/stores/machine";
 
 /**
  * Move steps (in mm) per axis letter as shown on the jog buttons. Axes without their own entry fall
@@ -52,12 +53,13 @@ const axisLimitTolerance = 0.01;
 
 /**
  * Check if an axis has reached the end of its travel in the given direction. Axis limits are only
- * enforced once the axis is homed and they are meaningless if no travel range is configured
+ * enforced once the axis is homed, when M564 S1 is in effect, and they are meaningless if no travel
+ * range is configured
  * @param axis Axis to check
  * @param decrementing Whether the movement decreases the axis position
  */
 export function isAxisAtLimit(axis: Axis, decrementing: boolean): boolean {
-	if (!axis.homed || axis.machinePosition === null || axis.min >= axis.max) {
+	if (!useMachineStore().model.move.limitAxes || !axis.homed || axis.machinePosition === null || axis.min >= axis.max) {
 		return false;
 	}
 	return decrementing ? (axis.machinePosition <= axis.min + axisLimitTolerance) : (axis.machinePosition >= axis.max - axisLimitTolerance);
