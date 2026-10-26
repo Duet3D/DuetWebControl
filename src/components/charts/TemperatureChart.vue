@@ -29,6 +29,14 @@
 
 		<!-- Which heater / extra-sensor series the chart draws -->
 		<template #settings-0>
+			<template v-if="settingsStore.webcam.enabled">
+				<v-switch v-model="settings.showWebcam" color="primary"
+						  :label="$t('chart.temperature.settings.showWebcam')"
+						  v-hint="$t('chart.temperature.settings.showWebcamHint')"
+						  density="comfortable" hide-details />
+				<v-divider class="my-3" />
+			</template>
+
 			<EntityVisibilityList v-if="hasHeaters" kind="heaters"
 								  :label="$t('chart.temperature.settings.heaters')"
 								  v-model="settings.displayedHeaters" />
@@ -109,7 +117,8 @@ const settings = useComponentSettings({
 	displayedHeaters: null as Array<number> | null,
 	displayedExtraSensors: [] as Array<number> | null,
 	customChartData: [] as Array<CustomChartItem>,
-	customChartRightAxis: { min: 0, max: 100 } as CustomChartRightAxis
+	customChartRightAxis: { min: 0, max: 100 } as CustomChartRightAxis,
+	showWebcam: true
 });
 
 // Sampling of the custom series is driven by the shared sampler, not by this instance being mounted
@@ -158,11 +167,14 @@ function updateChart() {
 	chart.update();
 }
 
-// Temperatures is always present; Webcam is offered whenever a webcam is configured, matching
-// the visibility condition of the Webcam menu item
+// The Webcam tab requires a configured webcam, same condition as the Webcam menu item, and may
+// be turned off per panel instance
+const webcamVisible = computed(() => settingsStore.webcam.enabled && settings.value.showWebcam);
+
+// Temperatures is always present; Webcam is appended as a second tab
 const titles = computed(() => {
 	const list = [{ icon: "mdi-chart-timeline-variant", title: i18n.global.t("chart.temperature.caption") }];
-	if (settingsStore.webcam.enabled) {
+	if (webcamVisible.value) {
 		list.push({ icon: "mdi-webcam", title: i18n.global.t("panel.webcam.caption") });
 	}
 	return list;
@@ -171,7 +183,7 @@ const titles = computed(() => {
 // Falls back to the chart automatically once the Webcam tab is no longer offered
 const selectedTab = ref(0);
 const activeTab = computed<number>({
-	get: () => (selectedTab.value === 1 && settingsStore.webcam.enabled) ? 1 : 0,
+	get: () => (selectedTab.value === 1 && webcamVisible.value) ? 1 : 0,
 	set: (value) => { selectedTab.value = value; }
 });
 
@@ -185,7 +197,7 @@ const hasExtraSensors = computed(() =>
 
 // The card stretches to match its tallest sibling when it has a chart to draw or a webcam to
 // show; otherwise it collapses to the title so a disconnected dashboard stays compact
-const shouldFill = computed(() => hasTemperaturesToDisplay.value || settingsStore.webcam.enabled);
+const shouldFill = computed(() => hasTemperaturesToDisplay.value || webcamVisible.value);
 
 const minConfiguredTemperature = computed(() => {
 	let min = 0;

@@ -454,6 +454,8 @@
 			"sensor": "Sensor {0}",
 			"download": "Download CSV",
 			"settings": {
+				"showWebcam": "Show webcam",
+				"showWebcamHint": "Show the configured webcam as a second tab of this panel",
 				"heaters": "Heaters",
 				"extraSensors": "Extra sensors"
 			},

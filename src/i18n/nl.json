@@ -454,6 +454,8 @@
 			"sensor": "Sensor {0}",
 			"download": "CSV downloaden",
 			"settings": {
+				"showWebcam": "Webcam tonen",
+				"showWebcamHint": "De ingestelde webcam als tweede tabblad van dit paneel tonen",
 				"heaters": "Verwarmers",
 				"extraSensors": "Extra sensoren"
 			},

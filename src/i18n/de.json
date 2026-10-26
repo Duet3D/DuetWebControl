@@ -455,6 +455,8 @@
 			"sensor": "Sensor {0}",
 			"download": "CSV herunterladen",
 			"settings": {
+				"showWebcam": "Webcam anzeigen",
+				"showWebcamHint": "Die eingerichtete Webcam als zweiten Reiter dieses Panels anzeigen",
 				"heaters": "Heizer",
 				"extraSensors": "Zusätzliche Sensoren"
 			},
