@@ -12,7 +12,7 @@ import type { JSZipObject } from "jszip";
 
 import i18n from "@/i18n";
 import { useMachineStore } from "@/stores/machine";
-import { useUiStore } from "@/stores/ui";
+import { type FileTransferNotification, FileTransferType, useUiStore } from "@/stores/ui";
 import { ZipExtractionError } from "@/utils/errors";
 import Path from "@/utils/path";
 
@@ -32,6 +32,12 @@ const panelDueFirmwareFile = "PanelDueFirmware.bin";
 // the base name and the extension is tolerated, so both dsf-update-full.zip and a browser's
 // dsf-update (1).zip are recognised without an ordinary firmware ZIP being mistaken for one
 const systemPackageBundle = /^dsf-update(.*)\.zip$/i;
+
+// Directories the DWC bundle fills and the root-level files it ships, i.e. everything the cleanup
+// after a bundle upload is allowed to touch. img, manifest.json, robots.txt and precache-manifest
+// are no longer shipped and only exist where DWC 3.6 was installed before
+const webAssetDirectories = ["css", "fonts", "img", "js"];
+const webAssetRootFile = /^(index\.html|favicon\.ico|manifest\.json|robots\.txt|service-worker\.js|workbox-.+\.js|precache-manifest\..+\.js)(\.map)?(\.gz)?$/i;
 
 export interface FirmwareUpdatePlan {
 	/**
@@ -310,6 +316,85 @@ export function useFirmwareInstall() {
 	}
 
 	/**
+	 * Delete the web assets of the previous DWC bundle after a new one has been uploaded. The plan
+	 * lists what this bundle ships and the object model lists what every installed plugin owns -
+	 * plugin bundles extract their chunks into js/ and css/ next to DWC's own ones - so whatever
+	 * remains below the directories DWC fills is obsolete. Everything else in the web directory
+	 * belongs to DSF, another UI or the user and is never considered. Only call this when the
+	 * payload replaced the whole interface, see {@link FirmwareUpdatePlan.webInterfaceTouched}
+	 */
+	async function cleanupWebAssets(plan: FirmwareUpdatePlan): Promise<void> {
+		const webDirectory = machineStore.model.directories.web;
+		const keep = new Set<string>(plan.files.map((file) => file.filename.toLowerCase()));
+		for (const plugin of machineStore.model.plugins.values()) {
+			if (plugin !== null) {
+				for (const dwcFile of plugin.dwcFiles) {
+					keep.add(Path.combine(webDirectory, dwcFile).toLowerCase());
+				}
+			}
+		}
+
+		const obsoleteFiles: Array<string> = [], obsoleteDirectories: Array<string> = [];
+
+		// Reports whether anything below `directory` is still in use so that a directory which lost
+		// its last file can go as well - DWC 3.6's img/icons is the case that matters. Recursion
+		// order fills obsoleteDirectories deepest-first, which is the order they must be deleted in
+		async function scan(directory: string, atRoot: boolean): Promise<boolean> {
+			let inUse = false;
+			for (const item of await machineStore.getFileList(directory)) {
+				const path = Path.combine(directory, item.name);
+				if (item.isDirectory) {
+					if (atRoot && !webAssetDirectories.includes(item.name.toLowerCase())) {
+						inUse = true;
+					} else if (await scan(path, false)) {
+						inUse = true;
+					} else {
+						obsoleteDirectories.push(path);
+					}
+				} else if (keep.has(path.toLowerCase()) || (atRoot && !webAssetRootFile.test(item.name))) {
+					inUse = true;
+				} else {
+					obsoleteFiles.push(path);
+				}
+			}
+			return inUse;
+		}
+
+		machineStore.changingMultipleFiles = true;
+		let notification: FileTransferNotification | null = null;
+		try {
+			await scan(webDirectory, true);
+
+			// Hundreds of files pile up over the versions, and each one is a separate request, so
+			// the removal needs to be visible and interruptible. Cancelling is safe at any point -
+			// what is left behind is what the next bundle upload cleans up
+			const obsolete = obsoleteFiles.concat(obsoleteDirectories);
+			if (obsolete.length === 0) {
+				return;
+			}
+
+			let cancelled = false;
+			notification = uiStore.makeFileTransferNotification(FileTransferType.cleanup, webDirectory, { cancel() { cancelled = true; } });
+
+			for (let i = 0; i < obsolete.length && !cancelled; i++) {
+				notification.filename = Path.extractFileName(obsolete[i]);
+				notification.progress = (i / obsolete.length) * 100;
+				try {
+					await machineStore.delete(obsolete[i]);
+				} catch (e) {
+					console.warn(`Failed to delete obsolete web asset ${obsolete[i]}`, e);
+				}
+			}
+		} catch (e) {
+			// A leftover file costs disk space, a failed update costs the machine - never propagate
+			console.warn("Failed to clean up obsolete web assets", e);
+		} finally {
+			notification?.close();
+			machineStore.changingMultipleFiles = false;
+		}
+	}
+
+	/**
 	 * Issue the M997 sequence for the planned modules, then wait for the machine to leave the
 	 * "updating" state. Errors other than DisconnectedError surface as console warnings +
 	 * notifications - a lost connection is normal mid-update.
@@ -395,7 +480,8 @@ export function useFirmwareInstall() {
 	return {
 		planFiles,
 		hasPendingUpdates,
-		runUpdate,
+		cleanupWebAssets,
+		runUpdate
 	};
 }
 

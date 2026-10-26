@@ -326,6 +326,10 @@
 				"title": "ZIP van {0} maken, {2}% voltooid",
 				"message": "Even wachten, het archief wordt gemaakt...",
 				"errorTitle": "Kon het ZIP-archief niet maken"
+			},
+			"cleanup": {
+				"title": "{0} verwijderen, {2}% voltooid",
+				"message": "Even wachten, bestanden van de vorige versie worden verwijderd..."
 			}
 		},
 		"compress": {

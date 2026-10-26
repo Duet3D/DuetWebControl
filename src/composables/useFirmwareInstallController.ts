@@ -106,6 +106,12 @@ export function useFirmwareInstallController(): FirmwareInstallController {
 				await machineStore.upload(plan.files, true, true, true, firmwareInstall.hasPendingUpdates(plan) || plan.configReplaced);
 			}
 
+			// A complete bundle has just replaced every web asset, so now the leftovers of the
+			// previous one can be told apart from what is still in use
+			if (plan.webInterfaceTouched) {
+				await firmwareInstall.cleanupWebAssets(plan);
+			}
+
 			if (firmwareInstall.hasPendingUpdates(plan)) {
 				firmwareDialog.plan = plan;
 				firmwareDialog.shown = true;

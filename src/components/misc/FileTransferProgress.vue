@@ -40,6 +40,7 @@ const icon = computed(() => {
 		case FileTransferType.systemPackageInstall: return "mdi-cog-sync";
 		case FileTransferType.index: return "mdi-folder-search";
 		case FileTransferType.compress: return "mdi-folder-zip";
+		case FileTransferType.cleanup: return "mdi-broom";
 		default: return "";
 	}
 });

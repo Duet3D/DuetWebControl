@@ -326,6 +326,10 @@
 				"title": "Creating ZIP of {0}, {2}% complete",
 				"message": "Please stand by while the archive is being created...",
 				"errorTitle": "Failed to create ZIP archive"
+			},
+			"cleanup": {
+				"title": "Removing {0}, {2}% complete",
+				"message": "Please stand by while files of the previous version are being removed..."
 			}
 		},
 		"compress": {

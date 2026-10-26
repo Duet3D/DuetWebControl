@@ -326,6 +326,10 @@
 				"title": "Erstelle ZIP von {0}, {2}% abgeschlossen",
 				"message": "Bitte warten Sie, während das Archiv erstellt wird...",
 				"errorTitle": "Konnte ZIP-Archiv nicht erstellen"
+			},
+			"cleanup": {
+				"title": "Entferne {0}, {2}% abgeschlossen",
+				"message": "Bitte warten Sie, während Dateien der vorherigen Version entfernt werden..."
 			}
 		},
 		"compress": {
