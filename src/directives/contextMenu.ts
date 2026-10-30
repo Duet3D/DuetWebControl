@@ -25,6 +25,16 @@ const NATIVE_SUPPRESS_MS = 800;
 
 const states = new WeakMap<HTMLElement, ContextMenuState>();
 
+// Events already handled by a nested v-context-menu, so the innermost host wins over its ancestors
+const claimedEvents = new WeakSet<Event>();
+
+/**
+ * Keeps ancestor v-context-menu hosts from reacting to an event a non-directive handler already took
+ */
+export function claimContextMenuEvent(event: Event) {
+	claimedEvents.add(event);
+}
+
 function clearLongPress(state: ContextMenuState) {
 	if (state.longPressTimer !== undefined) {
 		clearTimeout(state.longPressTimer);
@@ -43,16 +53,20 @@ function attach(el: HTMLElement, handler: ContextMenuHandler) {
 			event.preventDefault();
 			// A long press emits a trailing contextmenu on some browsers - the menu is already open,
 			// so swallow it. A genuine right-click opens the menu at the cursor
-			if (state.suppressNativeContextMenu) {
+			if (claimedEvents.has(event)) {
 				return;
 			}
-			state.handler(event.clientX, event.clientY);
+			claimedEvents.add(event);
+			if (!state.suppressNativeContextMenu) {
+				state.handler(event.clientX, event.clientY);
+			}
 		},
 		onTouchStart: (event) => {
 			const touch = event.touches[0];
-			if (!touch) {
+			if (!touch || claimedEvents.has(event)) {
 				return;
 			}
+			claimedEvents.add(event);
 			state.suppressClick = false;
 			state.startX = touch.clientX;
 			state.startY = touch.clientY;

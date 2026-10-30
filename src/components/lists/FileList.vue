@@ -278,7 +278,8 @@
 
 		<slot name="progress" />
 
-		<div class="file-drop-target file-list-body" :class="{ 'pull-scroll': mobile }" @drop.prevent="onDrop">
+		<div class="file-drop-target file-list-body" :class="{ 'pull-scroll': mobile }" @drop.prevent="onDrop"
+			 v-context-menu="openBackgroundMenu">
 			<UploadBackdrop v-if="dragActive" />
 			<v-pull-to-refresh :disabled="!mobile" @load="onPullRefresh">
 			<div v-if="effectiveViewMode === 'tiles'" class="tile-grid pa-2">
@@ -438,6 +439,25 @@
 		</v-list>
 	</v-menu>
 
+	<v-menu v-model="backgroundMenu.shown" :target="[backgroundMenu.x, backgroundMenu.y]">
+		<v-list :density="controlDensity">
+			<v-list-item v-if="!noNewFile" prepend-icon="mdi-file-plus"
+						 :title="$t('button.newFile.caption')"
+						 :disabled="uiStore.uiFrozen" @click="startNewFile" />
+			<v-list-item v-if="!noNewDirectory"
+						 :prepend-icon="inFilamentsRoot ? 'mdi-database-plus' : 'mdi-folder-plus'"
+						 :title="inFilamentsRoot ? $t('button.newFilament.caption') : $t('button.newDirectory.caption')"
+						 :disabled="uiStore.uiFrozen" @click="startNewDirectory" />
+			<v-list-item v-if="!noUpload" prepend-icon="mdi-cloud-upload"
+						 :title="$t('button.upload.caption')"
+						 :disabled="uiStore.uiFrozen || uploading" @click="pickFiles" />
+			<v-list-item prepend-icon="mdi-refresh" :title="$t('button.refresh.caption')"
+						 :disabled="uiStore.uiFrozen" @click="onRefreshClicked" />
+			<v-list-item prepend-icon="mdi-content-copy" :title="$t('list.fileList.copyPath')"
+						 @click="copyPath(browser.directory.value)" />
+		</v-list>
+	</v-menu>
+
 	<v-dialog v-model="layoutDialog.shown" width="480">
 		<v-card>
 			<v-card-title>{{ $t("list.fileList.layout") }}</v-card-title>
@@ -493,6 +513,7 @@ import { firmwareInstallControllerKey, useFirmwareInstallController } from "@/co
 import { useComponentSettings } from "@/composables/useComponentSettings";
 import i18n from "@/i18n";
 import { useMachineStore } from "@/stores/machine";
+import { claimContextMenuEvent } from "@/directives/contextMenu";
 import { ContextMenuType, FileTransferType, LogLevel, useUiStore } from "@/stores/ui";
 import { copyToClipboard } from "@/utils/clipboard";
 import { displaySize } from "@/utils/display";
@@ -1432,7 +1453,19 @@ async function performForceMove(from: string, to: string, targetLabel: string) {
 // can) - this adapts their native right-click into the shared opener
 function onRowContextMenu(event: MouseEvent, item: FileBrowserItem) {
 	event.preventDefault();
+	claimContextMenuEvent(event);
 	openContextMenu(item, event.clientX, event.clientY);
+}
+
+// Right-click or long press on the empty area around the items, which reaches the bottom of the
+// page even when the directory holds only a few files
+const backgroundMenu = reactive({ shown: false, x: 0, y: 0 });
+
+function openBackgroundMenu(x: number, y: number) {
+	backgroundMenu.x = x;
+	backgroundMenu.y = y;
+	backgroundMenu.shown = false;
+	nextTick(() => { backgroundMenu.shown = true; });
 }
 
 function openContextMenu(item: FileBrowserItem, x: number, y: number) {
@@ -1506,10 +1539,12 @@ function runMacroFromContext() {
 async function copyPathFromContext() {
 	contextMenu.shown = false;
 	const target = contextMenu.target;
-	if (!target) {
-		return;
+	if (target) {
+		await copyPath(Path.combine(browser.directory.value, target.name));
 	}
-	const path = Path.combine(browser.directory.value, target.name);
+}
+
+async function copyPath(path: string) {
 	try {
 		await copyToClipboard(path);
 		uiStore.makeNotification(LogLevel.info, i18n.global.t("list.fileList.pathCopied"), path);

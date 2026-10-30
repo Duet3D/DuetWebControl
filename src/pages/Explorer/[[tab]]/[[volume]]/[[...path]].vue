@@ -53,6 +53,7 @@
 			<v-toolbar v-if="tabs.length > 1" density="compact" color="surface" class="flex-shrink-0">
 				<v-tabs v-model="activeTab" align-tabs="start" show-arrows density="compact" class="flex-grow-1">
 					<v-tab v-for="tab in tabs" :key="tab.id" :value="tab.id" class="text-none"
+						   :title="tab.kind === 'editor' ? tab.filename : tab.directory"
 						   :color="isTabDirty(tab) ? 'warning' : undefined" draggable="true"
 						   @mousedown.middle.prevent="onTabMiddleClick(tab)"
 						   @dragstart="onTabDragStart($event, tab)"
