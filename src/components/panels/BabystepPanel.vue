@@ -2,7 +2,7 @@
 	<PanelCard icon="mdi-format-vertical-align-center" :title="$t('panel.babystepping.caption')">
 		<v-card-text class="pt-1">
 			<v-btn-toggle v-if="availableAxes.length > 1" v-model="selectedAxis" mandatory
-						  variant="text" color="primary" divided :size="largeBtnSize" class="mb-2">
+						  variant="text" color="primary" divided class="mb-2">
 				<v-btn v-for="axis in availableAxes" :key="axis" :value="axis">{{ axis }}</v-btn>
 			</v-btn-toggle>
 
@@ -12,13 +12,13 @@
 			</i18n-t>
 			<v-row density="compact">
 				<v-col>
-					<CodeButton :code="babystepCode(-settings.babystepAmount)" no-wait block :size="largeBtnSize">
+					<CodeButton :code="babystepCode(-settings.babystepAmount)" no-wait block>
 						<v-icon>mdi-arrow-collapse-vertical</v-icon>
 						{{ displayZ(-settings.babystepAmount) }}
 					</CodeButton>
 				</v-col>
 				<v-col>
-					<CodeButton :code="babystepCode(settings.babystepAmount)" no-wait block :size="largeBtnSize">
+					<CodeButton :code="babystepCode(settings.babystepAmount)" no-wait block>
 						<v-icon>mdi-arrow-split-horizontal</v-icon>
 						+{{ displayZ(settings.babystepAmount) }}
 					</CodeButton>
@@ -46,13 +46,11 @@ import { Axis, AxisLetter } from "@duet3d/objectmodel";
 
 import CodeButton from "@/components/buttons/CodeButton.vue";
 import { useComponentSettings } from "@/composables/useComponentSettings";
-import { useLargeButtons } from "@/composables/useLargeButtons";
 import { useMachineStore } from "@/stores/machine";
 import { displayZ } from "@/utils/display";
 import { axisGCodeLetter } from "@/utils/gcode";
 
 const machineStore = useMachineStore();
-const { btnSize: largeBtnSize } = useLargeButtons();
 
 // `mandatory` on the settings toggle keeps at least one axis configured. Z is the default and
 // the usual choice

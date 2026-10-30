@@ -51,7 +51,7 @@ a {
 							{{ $t("panel.status.mode", [machineStore.model.state.machineMode.toUpperCase()]) }}
 						</a>
 					</template>
-					<v-list :density="controlDensity">
+					<v-list density="compact">
 						<v-list-item v-for="mode in switchableModes" :key="mode" :title="mode"
 									 :active="mode === machineStore.model.state.machineMode"
 									 :disabled="uiStore.uiFrozen || mode === machineStore.model.state.machineMode"
@@ -173,6 +173,12 @@ a {
 								<strong>{{ $t("panel.status.topSpeed") }}</strong>
 								<span class="text-no-wrap">
 									{{ displayMoveSpeed(machineStore.model.move.currentMove.topSpeed) }}
+								</span>
+							</v-col>
+							<v-col v-if="showRequestedTopSpeed" class="d-flex flex-column align-center">
+								<strong>{{ $t("panel.status.requestedTopSpeed") }}</strong>
+								<span class="text-no-wrap">
+									{{ displayMoveSpeed([machineStore.model.move.currentMove.requestedSpeed, machineStore.model.move.currentMove.topSpeed]) }}
 								</span>
 							</v-col>
 							<v-col v-if="showVolumetricFlow" class="d-flex flex-column align-center">
@@ -336,7 +342,6 @@ import { type FilamentMonitor, MachineMode, ProbeType, type Extruder, type Probe
 
 import FilamentMonitorIndicator from "@/components/misc/FilamentMonitorIndicator.vue";
 import { useComponentSettings } from "@/composables/useComponentSettings";
-import { useLargeButtons } from "@/composables/useLargeButtons";
 import i18n from "@/i18n";
 import { useMachineStore } from "@/stores/machine";
 import { useSettingsStore } from "@/stores/settings";
@@ -347,7 +352,6 @@ import { isPrinting } from "@/utils/enums";
 const machineStore = useMachineStore();
 const settingsStore = useSettingsStore();
 const uiStore = useUiStore();
-const { controlDensity } = useLargeButtons();
 
 const settings = useComponentSettings({
 	displayedAxes: null as Array<number> | null,
@@ -486,12 +490,14 @@ const showRequestedSpeed = computed(() =>
 	isSpeedShown("requested") && isFinite(machineStore.model.move.currentMove.requestedSpeed));
 const showTopSpeed = computed(() =>
 	isSpeedShown("top") && isFinite(machineStore.model.move.currentMove.topSpeed));
+const showRequestedTopSpeed = computed(() =>
+	isSpeedShown("requestedTop") && isFinite(machineStore.model.move.currentMove.requestedSpeed) && isFinite(machineStore.model.move.currentMove.topSpeed));
 const showVolumetricFlow = computed(() =>
 	isSpeedShown("volumetricFlow") && uiStore.isFFF && isFinite(volumetricFlow.value));
 const showExtrusionRate = computed(() =>
 	isSpeedShown("extrusionRate") && uiStore.isFFF && isFinite(machineStore.model.move.currentMove.extrusionRate));
 const hasSpeedReadings = computed(() =>
-	showRequestedSpeed.value || showTopSpeed.value || showVolumetricFlow.value || showExtrusionRate.value);
+	showRequestedSpeed.value || showTopSpeed.value || showRequestedTopSpeed.value || showVolumetricFlow.value || showExtrusionRate.value);
 
 const showVIn = computed(() => isSensorShown("vIn") && mainboard.value?.vIn != null);
 const showV12 = computed(() => isSensorShown("v12") && mainboard.value?.v12 != null);
@@ -531,6 +537,7 @@ const extruderDisplayItems = computed(() => [
 const speedItems = computed(() => [
 	{ value: "requested", title: i18n.global.t("panel.status.requestedSpeed") },
 	{ value: "top", title: i18n.global.t("panel.status.topSpeed") },
+	{ value: "requestedTop", title: i18n.global.t("panel.status.requestedTopSpeed") },
 	{ value: "volumetricFlow", title: i18n.global.t("panel.status.volumetricFlow") },
 	{ value: "extrusionRate", title: i18n.global.t("panel.status.extrusionRate") }
 ]);

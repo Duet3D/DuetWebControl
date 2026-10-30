@@ -40,7 +40,7 @@
 <template>
 	<div class="monaco-editor-host" :class="{ 'monaco-editor-host--collapsed': !!loadError }"
 		 @dragover.capture.prevent="onEditorDragOver" @drop.capture.prevent.stop="onEditorDrop">
-		<v-toolbar density="compact" color="surface" class="ps-4 pe-2">
+		<v-toolbar :density="controlDensity" color="surface" class="ps-4 pe-2">
 			<v-icon class="mr-2">{{ languageIcon }}</v-icon>
 			<v-toolbar-title class="text-body-large text-truncate">
 				{{ Path.pretty(filename) }}
@@ -124,6 +124,7 @@ import { DisconnectedError } from "@duet3d/connectors";
 import { MachineMode } from "@duet3d/objectmodel";
 import type * as Monaco from "monaco-editor-core";
 
+import { useLargeButtons } from "@/composables/useLargeButtons";
 import i18n from "@/i18n";
 import { scrollPageToBottom } from "@/router";
 import { useMachineStore } from "@/stores/machine";
@@ -151,6 +152,7 @@ const emit = defineEmits<{
 const machineStore = useMachineStore();
 const uiStore = useUiStore();
 const settingsStore = useSettingsStore();
+const { controlDensity } = useLargeButtons();
 
 const container = ref<HTMLDivElement | null>(null);
 const textarea = ref<HTMLTextAreaElement | null>(null);

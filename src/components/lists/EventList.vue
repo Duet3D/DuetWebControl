@@ -68,7 +68,7 @@
 
 <template>
 	<v-card class="event-log elevation-3">
-		<v-toolbar density="compact" color="surface" class="event-log-header">
+		<v-toolbar :density="controlDensity" color="surface" class="event-log-header">
 			<v-toolbar-title class="text-body-large">
 				{{ $t("list.eventLog.title") }}
 			</v-toolbar-title>
@@ -82,7 +82,7 @@
 						<v-icon>mdi-menu</v-icon>
 					</v-btn>
 				</template>
-				<v-list :density="controlDensity">
+				<v-list density="compact">
 					<v-list-item prepend-icon="mdi-notification-clear-all" :title="$t('list.eventLog.clear')"
 								 @click="uiStore.clearLog()" />
 					<v-list-item prepend-icon="mdi-file-download" :title="$t('list.eventLog.downloadText')"
@@ -115,7 +115,7 @@
 		</ul>
 
 		<v-menu v-model="contextMenu.shown" :target="[contextMenu.x, contextMenu.y]">
-			<v-list :density="controlDensity">
+			<v-list density="compact">
 				<v-list-item prepend-icon="mdi-content-copy" :title="$t('list.eventLog.copy')"
 							 @click="copyEntry(contextMenu.entry)" />
 				<v-list-item prepend-icon="mdi-content-copy" :title="$t('list.eventLog.copyAll')"

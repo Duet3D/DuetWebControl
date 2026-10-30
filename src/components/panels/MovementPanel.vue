@@ -37,7 +37,7 @@
 				<v-menu location="bottom end">
 					<template #activator="{ props: activatorProps }">
 						<v-btn v-show="visibleAxes.length > 0 && compensationMenuVisible" v-bind="activatorProps"
-							   color="primary" :size="largeBtnSize ?? 'small'" class="mx-0" :elevation="1">
+							   color="primary" size="small" class="mx-0" :elevation="1">
 							{{ isXs ? $t("panel.movement.compensationShort") : $t("panel.movement.compensation") }}
 							<v-icon end>mdi-menu-down</v-icon>
 						</v-btn>
@@ -265,8 +265,7 @@
 				<v-row v-if="settings.showHomeAllButton || (settings.showAxisHomeButtons && !isDelta)"
 					   class="d-flex d-md-none py-2" no-gutters>
 					<v-col v-if="settings.showHomeAllButton">
-						<CodeButton color="primary" code="G28" :disabled="!canHome" :title="$t('button.home.titleAll')"
-									:size="largeBtnSize" block tile>
+						<CodeButton color="primary" code="G28" :disabled="!canHome" :title="$t('button.home.titleAll')" block tile>
 							{{ $t("button.home.captionAll") }}
 						</CodeButton>
 					</v-col>
@@ -274,8 +273,7 @@
 						<v-col v-for="(axis, axisIndex) in visibleAxes" :key="axisIndex">
 							<CodeButton :color="axis.homed ? 'primary' : 'warning'" :disabled="!canHome"
 										:title="$t('button.home.title', [axisGCodeLetter(axis.letter)])"
-										:code="`G28 ${axisGCodeLetter(axis.letter)}`"
-										:size="largeBtnSize" block tile>
+										:code="`G28 ${axisGCodeLetter(axis.letter)}`" block tile>
 								{{ $t("button.home.caption", [axis.letter]) }}
 							</CodeButton>
 						</v-col>
@@ -297,7 +295,7 @@
 						<v-row no-gutters>
 							<v-col v-for="index in numMoveSteps" :key="index" :class="getMoveCellClass(index - 1, cnc)">
 								<CodeButton :code="getMoveCode(axis, index - 1, true)" :disabled="!canMove(axis, true)" no-wait
-											:size="largeBtnSize" block tile class="move-btn"
+											block tile class="move-btn"
 											@contextmenu.prevent="showMoveStepDialog(axis.letter, index - 1)">
 									<v-icon>mdi-chevron-left</v-icon>
 									{{ axis.letter + showSign(-moveSteps(axis.letter)[index - 1]) }}
@@ -311,7 +309,7 @@
 						<v-row no-gutters>
 							<v-col v-for="index in numMoveSteps" :key="index" :class="getMoveCellClass(numMoveSteps - index, cnc)">
 								<CodeButton :code="getMoveCode(axis, numMoveSteps - index, false)" :disabled="!canMove(axis, false)"
-											no-wait :size="largeBtnSize" block tile class="move-btn"
+											no-wait block tile class="move-btn"
 											@contextmenu.prevent="showMoveStepDialog(axis.letter, numMoveSteps - index)">
 									{{ axis.letter + showSign(moveSteps(axis.letter)[numMoveSteps - index]) }}
 									<v-icon>mdi-chevron-right</v-icon>
@@ -373,7 +371,6 @@ import { useDisplay } from "vuetify";
 import CodeButton from "@/components/buttons/CodeButton.vue";
 import MeshEditDialog from "@/components/dialogs/MeshEditDialog.vue";
 import { useComponentSettings } from "@/composables/useComponentSettings";
-import { useLargeButtons } from "@/composables/useLargeButtons";
 import { defaultMoveSteps, getMoveCellClass, isAxisAtLimit, type MoveStepMap, useMoveSteps } from "@/composables/useMoveSteps";
 import i18n from "@/i18n";
 import { useMachineStore } from "@/stores/machine";
@@ -388,9 +385,6 @@ const props = defineProps<{
 const machineStore = useMachineStore();
 const uiStore = useUiStore();
 const { xs: isXs } = useDisplay();
-// Large-buttons mode lifts every jog / home / compensation button to v-btn size="large"
-// at sm so the FFF jog grid is reachable with a finger
-const { btnSize: largeBtnSize } = useLargeButtons();
 
 // Compensation drop-down entries the user can show or hide from the panel settings
 type CompensationMenuItem = "runBed" | "disableBedCompensation" | "runMesh" | "editMesh"

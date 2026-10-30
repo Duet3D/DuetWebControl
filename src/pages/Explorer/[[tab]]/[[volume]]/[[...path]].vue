@@ -50,7 +50,7 @@
 <template>
 	<div class="route-root">
 		<v-card class="explorer-card dwc-page-fill d-flex flex-column">
-			<v-toolbar v-if="tabs.length > 1" density="compact" color="surface" class="flex-shrink-0">
+			<v-toolbar v-if="tabs.length > 1" :density="controlDensity" color="surface" class="flex-shrink-0">
 				<v-tabs v-model="activeTab" align-tabs="start" show-arrows density="compact" class="flex-grow-1">
 					<v-tab v-for="tab in tabs" :key="tab.id" :value="tab.id" class="text-none"
 						   :title="tab.kind === 'editor' ? tab.filename : tab.directory"
@@ -121,7 +121,7 @@
 										<v-icon>mdi-sd</v-icon>
 									</v-btn>
 								</template>
-								<v-list :density="controlDensity">
+								<v-list density="compact">
 									<v-list-item v-for="vol in availableVolumes" :key="vol"
 												 :active="Path.getVolume(tab.directory ?? '') === vol"
 												 :title="volumeCaption(vol)"

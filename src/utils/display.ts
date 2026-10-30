@@ -144,21 +144,24 @@ export function displaySize(bytes: number | null | undefined) {
 
 /**
  * Display a move speed
- * @param speed Speed in mm/s
+ * @param speed Speed in mm/s, or several speeds to show slash-separated with one unit
  * @returns Formatted move speed in mm/s (or mm/min in CNC mode, or ipm in imperial mode)
  */
-export function displayMoveSpeed(speed: number | null | undefined) {
-	if (typeof speed === "number") {
-		const settingsStore = useSettingsStore();
-		const machineStore = useMachineStore();
-		if (settingsStore.displayUnits === UnitOfMeasure.imperial) {
-			return display(speed * 60 / MM_PER_INCH, 1, "ipm");
-		}
-		if (machineStore.model.state.machineMode === MachineMode.cnc) {
-			return display(speed * 60, 1, "mm/min");
-		}
+export function displayMoveSpeed(speed: number | Array<number> | null | undefined) {
+	const settingsStore = useSettingsStore();
+	const machineStore = useMachineStore();
+	let factor = 1, unit = "mm/s";
+	if (settingsStore.displayUnits === UnitOfMeasure.imperial) {
+		factor = 60 / MM_PER_INCH;
+		unit = "ipm";
+	} else if (machineStore.model.state.machineMode === MachineMode.cnc) {
+		factor = 60;
+		unit = "mm/min";
 	}
-	return display(speed, 1, "mm/s");
+	if (speed instanceof Array) {
+		return `${speed.map(item => display(item * factor, 1)).join(" / ")} ${unit}`;
+	}
+	return display((typeof speed === "number") ? speed * factor : speed, 1, unit);
 }
 
 /**

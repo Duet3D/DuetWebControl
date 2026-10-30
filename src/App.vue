@@ -19,6 +19,7 @@
 import Piecon from "piecon";
 
 import i18n from "@/i18n";
+import { useLargeButtons } from "@/composables/useLargeButtons";
 import { _markAppMounted } from "@/plugins/layout";
 import { useMachineStore } from "@/stores/machine";
 import { useSettingsStore } from "@/stores/settings";
@@ -45,6 +46,10 @@ if (!import.meta.env.DEV) {
 // `locked: true` is honoured (pre-mount: yes; post-mount: downgraded with warning) - the lock
 // installs a router guard that cuts off URL escape and is gated to pre-mount registration only
 onMounted(() => _markAppMounted());
+
+// On <html> rather than v-app so teleported menus and dialogs are enlarged too
+const { large: largeButtons } = useLargeButtons();
+watchEffect(() => document.documentElement.classList.toggle("dwc-large-buttons", largeButtons.value));
 
 // #region Document title and favicon job progress (Piecon)
 

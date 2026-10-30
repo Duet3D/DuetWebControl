@@ -130,8 +130,7 @@
 <template>
 	<v-card ref="cardRef" :class="['file-list-card', 'd-flex', 'flex-column', { 'file-list-card--empty': shouldShrink }]">
 		<v-toolbar :density="controlDensity" color="surface" class="px-2 flex-shrink-0">
-			<v-btn icon variant="text" :size="toolbarBtnSize"
-				   :disabled="!canGoUp" :title="$t('list.baseFileList.goUp')"
+			<v-btn icon variant="text"				   :disabled="!canGoUp" :title="$t('list.baseFileList.goUp')"
 				   @dragover="onParentDragOver($event, parentDirectory)"
 				   @dragleave="onParentDragLeave"
 				   @drop="onParentDrop($event, parentDirectory)"
@@ -139,7 +138,7 @@
 				<v-icon>mdi-arrow-up</v-icon>
 			</v-btn>
 
-			<v-breadcrumbs :items="breadcrumbItems" :density="isLargeToolbar ? 'default' : 'compact'"
+			<v-breadcrumbs :items="breadcrumbItems" density="compact"
 						   class="pa-0 file-list-breadcrumbs">
 				<template #divider>
 					<v-icon :size="isLargeToolbar ? 'default' : undefined">mdi-chevron-right</v-icon>
@@ -169,24 +168,20 @@
 			<slot name="upload-prepend" />
 
 			<template v-if="!collapseToolbar">
-				<v-btn v-if="!noRename && selection.length === 1" variant="text" icon :size="toolbarBtnSize"
-					   :disabled="uiStore.uiFrozen" :title="$t('button.rename.caption')" @click="startRename">
+				<v-btn v-if="!noRename && selection.length === 1" variant="text" icon					   :disabled="uiStore.uiFrozen" :title="$t('button.rename.caption')" @click="startRename">
 					<v-icon>mdi-rename-box</v-icon>
 				</v-btn>
 
-				<v-btn v-if="!noDelete && selection.length > 0" variant="text" icon :size="toolbarBtnSize"
-					   :disabled="uiStore.uiFrozen" :title="$t('button.delete.caption')" @click="startDelete">
+				<v-btn v-if="!noDelete && selection.length > 0" variant="text" icon					   :disabled="uiStore.uiFrozen" :title="$t('button.delete.caption')" @click="startDelete">
 					<v-icon>mdi-delete</v-icon>
 				</v-btn>
 
-				<v-btn v-if="!noNewFile" variant="text" icon :size="toolbarBtnSize"
-					   :disabled="uiStore.uiFrozen"
+				<v-btn v-if="!noNewFile" variant="text" icon					   :disabled="uiStore.uiFrozen"
 					   :title="$t('button.newFile.caption')" @click="startNewFile">
 					<v-icon>mdi-file-plus</v-icon>
 				</v-btn>
 
-				<v-btn v-if="!noNewDirectory" variant="text" icon :size="toolbarBtnSize"
-					   :disabled="uiStore.uiFrozen"
+				<v-btn v-if="!noNewDirectory" variant="text" icon					   :disabled="uiStore.uiFrozen"
 					   :title="inFilamentsRoot ? $t('button.newFilament.caption') : $t('button.newDirectory.caption')"
 					   @click="startNewDirectory">
 					<v-icon>{{ inFilamentsRoot ? "mdi-database-plus" : "mdi-folder-plus" }}</v-icon>
@@ -194,12 +189,11 @@
 
 				<v-menu v-if="effectiveViewMode === 'tiles'">
 					<template #activator="{ props: activatorProps }">
-						<v-btn v-bind="activatorProps" variant="text" icon :size="toolbarBtnSize"
-							   :title="$t('list.fileList.sortBy')">
+						<v-btn v-bind="activatorProps" variant="text" icon							   :title="$t('list.fileList.sortBy')">
 							<v-icon>mdi-sort</v-icon>
 						</v-btn>
 					</template>
-					<v-list :density="controlDensity">
+					<v-list density="compact">
 						<v-list-item v-for="opt in sortOptions" :key="opt.key"
 									 :active="activeSortKey === opt.key" :title="opt.label"
 									 @click="onSortOptionClick(opt.key)">
@@ -214,26 +208,23 @@
 
 				<v-menu v-if="!noViewMode">
 					<template #activator="{ props: activatorProps }">
-						<v-btn v-bind="activatorProps" variant="text" icon :size="toolbarBtnSize"
-							   :title="$t('list.fileList.viewMode')">
+						<v-btn v-bind="activatorProps" variant="text" icon							   :title="$t('list.fileList.viewMode')">
 							<v-icon>{{ viewModeIcon }}</v-icon>
 						</v-btn>
 					</template>
-					<v-list :density="controlDensity">
+					<v-list density="compact">
 						<v-list-item v-for="opt in viewModeOptions" :key="opt.value"
 									 :active="viewMode === opt.value" :prepend-icon="opt.icon"
 									 :title="$t(opt.label)" @click="viewMode = opt.value" />
 					</v-list>
 				</v-menu>
 
-				<v-btn v-if="!noUpload" variant="text" icon :size="toolbarBtnSize"
-					   :disabled="uiStore.uiFrozen || uploading"
+				<v-btn v-if="!noUpload" variant="text" icon					   :disabled="uiStore.uiFrozen || uploading"
 					   :loading="uploading" :title="$t('button.upload.caption')" @click="pickFiles">
 					<v-icon>mdi-cloud-upload</v-icon>
 				</v-btn>
 
-				<v-btn variant="text" icon :size="toolbarBtnSize"
-					   :loading="browser.loading.value" :disabled="uiStore.uiFrozen"
+				<v-btn variant="text" icon					   :loading="browser.loading.value" :disabled="uiStore.uiFrozen"
 					   :title="$t('button.refresh.caption')" @click="onRefreshClicked">
 					<v-icon>mdi-refresh</v-icon>
 				</v-btn>
@@ -241,14 +232,13 @@
 
 			<v-menu v-else>
 				<template #activator="{ props: activatorProps }">
-					<v-btn v-bind="activatorProps" variant="text" icon :size="toolbarBtnSize"
-						   :disabled="uiStore.uiFrozen"
+					<v-btn v-bind="activatorProps" variant="text" icon						   :disabled="uiStore.uiFrozen"
 						   :loading="uploading || browser.loading.value"
 						   :title="$t('list.fileList.moreActions')">
 						<v-icon>mdi-dots-vertical</v-icon>
 					</v-btn>
 				</template>
-				<v-list :density="controlDensity">
+				<v-list density="compact">
 					<v-list-item v-if="!noRename && selection.length === 1"
 								 prepend-icon="mdi-rename-box" :title="$t('button.rename.caption')"
 								 :disabled="uiStore.uiFrozen" @click="startRename" />
@@ -357,7 +347,7 @@
 	<input ref="fileInput" type="file" multiple hidden :accept="uploadAccept" @change="onFilesPicked" />
 
 	<v-menu v-model="contextMenu.shown" :target="[contextMenu.x, contextMenu.y]">
-		<v-list :density="controlDensity">
+		<v-list density="compact">
 			<v-list-item v-if="contextMenu.target && !contextMenu.target.isDirectory" @click="openFromContext">
 				<template #prepend>
 					<v-icon>{{ openIcon }}</v-icon>
@@ -440,7 +430,7 @@
 	</v-menu>
 
 	<v-menu v-model="backgroundMenu.shown" :target="[backgroundMenu.x, backgroundMenu.y]">
-		<v-list :density="controlDensity">
+		<v-list density="compact">
 			<v-list-item v-if="!noNewFile" prepend-icon="mdi-file-plus"
 						 :title="$t('button.newFile.caption')"
 						 :disabled="uiStore.uiFrozen" @click="startNewFile" />
@@ -764,10 +754,7 @@ const { mdAndUp, smAndDown, mobile } = useDisplay();
 // At sm and below the toolbar runs out of room - rename/delete/upload/new/refresh/view-mode
 // would push the breadcrumb off-screen. Collapse them into a single "..." menu instead
 const collapseToolbar = computed(() => smAndDown.value);
-// Mirrors the default layout's app-bar enlargement: at the sm breakpoint with the user's
-// largeButtons setting on, the toolbar drops its compact density and the buttons jump to
-// large so small-touchscreen users get finger-friendly targets here too
-const { large: isLargeToolbar, btnSize: toolbarBtnSize, controlDensity } = useLargeButtons();
+const { large: isLargeToolbar, controlDensity } = useLargeButtons();
 const breadcrumbTextClass = computed(() => isLargeToolbar.value ? "text-body-large" : "text-body-medium");
 const tableDensity = computed<"default" | "comfortable" | "compact">(
 	() => mdAndUp.value ? "compact" : "default"

@@ -12,6 +12,7 @@
 // Styles
 import "@mdi/font/css/materialdesignicons.css";
 import "vuetify/styles";
+import "@/styles/large-buttons.css";
 
 // Composables
 import { createVuetify, type ThemeInstance } from "vuetify";

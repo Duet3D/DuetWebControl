@@ -1,0 +1,81 @@
+@layer vuetify-overrides {
+	html.dwc-large-buttons .v-btn--size-x-small {
+		--v-btn-size: 0.75rem;
+		--v-btn-height: 28px;
+	}
+	html.dwc-large-buttons .v-btn--size-small {
+		--v-btn-size: 0.875rem;
+		--v-btn-height: 36px;
+	}
+	html.dwc-large-buttons .v-btn--size-default {
+		--v-btn-size: 1rem;
+		--v-btn-height: 44px;
+	}
+	html.dwc-large-buttons .v-btn--size-large {
+		--v-btn-size: 1.125rem;
+		--v-btn-height: 52px;
+	}
+	html.dwc-large-buttons .v-btn--size-x-large {
+		--v-btn-size: 1.25rem;
+		--v-btn-height: 60px;
+	}
+	html.dwc-large-buttons .v-btn-group--horizontal:not(.v-btn-group--has-size) {
+		height: 56px;
+	}
+
+	html.dwc-large-buttons .v-list-item {
+		min-height: 48px;
+	}
+	html.dwc-large-buttons .v-list-item.v-list-item--one-line {
+		min-height: 56px;
+		padding-top: 8px;
+		padding-bottom: 8px;
+	}
+	html.dwc-large-buttons .v-list-item.v-list-item--two-line {
+		min-height: 72px;
+		padding-top: 12px;
+		padding-bottom: 12px;
+	}
+	html.dwc-large-buttons .v-list-item.v-list-item--three-line {
+		min-height: 96px;
+		padding-top: 16px;
+		padding-bottom: 16px;
+	}
+
+	html.dwc-large-buttons .v-input {
+		--v-input-control-height: 56px;
+		--v-input-padding-top: 16px;
+	}
+	html.dwc-large-buttons .v-input .v-field--variant-solo,
+	html.dwc-large-buttons .v-input .v-field--variant-solo-inverted,
+	html.dwc-large-buttons .v-input .v-field--variant-solo-filled,
+	html.dwc-large-buttons .v-input .v-field--variant-filled {
+		--v-input-control-height: 56px;
+		--v-field-padding-bottom: 4px;
+	}
+	html.dwc-large-buttons .v-input .v-field--variant-outlined,
+	html.dwc-large-buttons .v-input .v-field--single-line,
+	html.dwc-large-buttons .v-input .v-field--no-label {
+		--v-field-padding-bottom: 16px;
+	}
+	html.dwc-large-buttons .v-selection-control {
+		--v-selection-control-size: 48px;
+	}
+
+	html.dwc-large-buttons .v-tabs {
+		--v-tabs-height: 56px;
+	}
+	html.dwc-large-buttons .v-tabs.v-tabs--stacked {
+		--v-tabs-height: 80px;
+	}
+
+	html.dwc-large-buttons .v-table {
+		--v-table-header-height: 56px;
+		--v-table-row-height: 52px;
+	}
+
+	html.dwc-large-buttons .v-breadcrumbs {
+		padding-top: 16px;
+		padding-bottom: 16px;
+	}
+}

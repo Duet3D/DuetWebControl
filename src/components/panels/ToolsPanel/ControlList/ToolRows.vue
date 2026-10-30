@@ -56,24 +56,24 @@
 
 							<template v-if="toolSettings.showFilamentControls && canLoadFilament(tool)">
 								<span v-if="toolSettings.showToolNumber"> - </span>
-								<v-menu v-if="getFilament(tool)" location="bottom" :disabled="disabled">
+								<v-menu v-if="getFilament(tool)" location="bottom" :disabled="uiStore.uiFrozen">
 									<template #activator="{ props: activatorProps }">
 										<a v-bind="activatorProps" href="javascript:void(0)" class="font-weight-regular"
-										   :class="{ disabled }">
+										   :class="{ disabled: uiStore.uiFrozen }">
 											{{ getFilament(tool) }}
 										</a>
 									</template>
 
 									<v-list>
-										<v-list-item @click="showFilamentDialog(tool, true)">
+										<v-list-item :disabled="disabled" @click="showFilamentDialog(tool, true)">
 											<v-icon class="mr-1">mdi-swap-vertical</v-icon>
 											{{ $t("panel.tools.changeFilament") }}
 										</v-list-item>
-										<v-list-item @click="showFilamentDialog(tool, false)">
+										<v-list-item :disabled="disabled" @click="showFilamentDialog(tool, false)">
 											<v-icon class="mr-1">mdi-pencil</v-icon>
 											{{ $t("panel.tools.reassignFilament") }}
 										</v-list-item>
-										<v-list-item @click="unloadFilament(tool)">
+										<v-list-item :disabled="disabled" @click="unloadFilament(tool)">
 											<v-icon class="mr-1">mdi-arrow-up</v-icon>
 											{{ $t("panel.tools.unloadFilament") }}
 										</v-list-item>

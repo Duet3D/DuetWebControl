@@ -14,12 +14,12 @@
 
 		<template v-else>
 			<v-col cols="auto">
-				<v-btn v-if="lockable" icon :size="stepBtnSize" variant="text" class="me-1"
+				<v-btn v-if="lockable" icon size="large" variant="text" class="me-1"
 					   :color="isLocked ? 'error' : undefined" :disabled="disabled" @click="isLocked = !isLocked">
 					<v-icon>{{ isLocked ? "mdi-lock" : "mdi-lock-off" }}</v-icon>
 				</v-btn>
 
-				<v-btn icon :size="stepBtnSize" variant="text" class="ml-0"
+				<v-btn icon size="large" variant="text" class="ml-0"
 					   :disabled="disabled || innerValue <= min"
 					   @click="applyStep(-step)" @mousedown="mouseDown(false)" @mouseup="mouseUp(false)"
 					   @mouseleave="mouseUp(false)" @touchstart.passive="mouseDown(false)" @touchend="mouseUp(false)">
@@ -38,7 +38,7 @@
 			</v-col>
 
 			<v-col cols="auto">
-				<v-btn icon :size="stepBtnSize" variant="text" class="mr-0"
+				<v-btn icon size="large" variant="text" class="mr-0"
 					   :disabled="disabled || innerValue >= max"
 					   @click="applyStep(step)" @mousedown="mouseDown(true)" @mouseup="mouseUp(true)"
 					   @mouseleave="mouseUp(true)" @touchstart.passive="mouseDown(true)" @touchend="mouseUp(true)">
@@ -52,7 +52,6 @@
 <script setup lang="ts">
 import { useDisplay } from "vuetify";
 
-import { useLargeButtons } from "@/composables/useLargeButtons";
 import { LockableSliders, useSettingsStore } from "@/stores/settings";
 import { isNumber } from "@/utils/numbers";
 
@@ -133,12 +132,6 @@ watch(innerValue, (value) => {
 
 // Optional lock button - keeps the slider from reacting to incidental drags until unlocked
 const isLocked = ref(true);
-
-// The lock / minus / plus buttons run at v-btn size="large" by default for finger reach; on
-// small touchscreens with largeButtons on they bump one step further to keep parity with the
-// app bar and toolbars enlarging at the same time
-const { btnSize: largeBtnSize } = useLargeButtons();
-const stepBtnSize = computed<"large" | "x-large">(() => largeBtnSize.value === "large" ? "x-large" : "large");
 
 function applyStep(diff: number) {
 	if (debounceTimer) {

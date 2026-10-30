@@ -40,7 +40,7 @@
 							<v-icon>mdi-sd</v-icon>
 						</v-btn>
 					</template>
-					<v-list :density="controlDensity">
+					<v-list density="compact">
 						<v-list-item v-for="opt in volumeOptions" :key="opt.value"
 									 :active="selectedVolume === opt.value" :title="opt.label"
 									 @click="selectVolume(opt.value)" />
@@ -77,14 +77,12 @@ export const useJobsListing = defineBasicLoader(async () => {
 import type { FileBrowserItem } from "@/composables/useFileBrowser";
 import JobFileList from "@/components/lists/JobFileList.vue";
 import { showConfirmDialog } from "@/composables/useConfirmDialog";
-import { useLargeButtons } from "@/composables/useLargeButtons";
 import i18n from "@/i18n";
 import { useCacheStore } from "@/stores/cache";
 import Path from "@/utils/path";
 
 const machineStore = useMachineStore();
 const cacheStore = useCacheStore();
-const { controlDensity } = useLargeButtons();
 const router = useRouter();
 const route = useRoute("/Jobs/[[volume]]/[[...path]]");
 const { data: initialFiles } = useJobsListing();

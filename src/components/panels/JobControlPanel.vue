@@ -6,7 +6,7 @@
 		</v-card-title>
 
 		<v-card-text class="pt-0">
-			<CodeButton color="warning" block class="mt-3" :size="largeBtnSize"
+			<CodeButton color="warning" block class="mt-3"
 						:disabled="!isPrinting || isPausing || isCancelling"
 						:code="isPaused ? 'M24' : 'M25'">
 				<v-icon start>{{ isPaused ? "mdi-play" : "mdi-pause" }}</v-icon>
@@ -14,13 +14,13 @@
 			</CodeButton>
 
 			<CodeButton v-if="isPaused" block class="mt-3" color="error" code="M0"
-						:size="largeBtnSize" :disabled="isCancelling">
+						:disabled="isCancelling">
 				<v-icon start>mdi-stop</v-icon>
 				{{ cancelText }}
 			</CodeButton>
 
 			<CodeButton v-if="!isPrinting && processAnotherCode" block class="mt-3" color="success"
-						:size="largeBtnSize" :code="processAnotherCode">
+						:code="processAnotherCode">
 				<v-icon start>{{ processAnotherIcon }}</v-icon>
 				{{ processAnotherText }}
 			</CodeButton>
@@ -32,14 +32,12 @@
 import { MachineMode, MachineStatus } from "@duet3d/objectmodel";
 
 import CodeButton from "@/components/buttons/CodeButton.vue";
-import { useLargeButtons } from "@/composables/useLargeButtons";
 import i18n from "@/i18n";
 import { useMachineStore } from "@/stores/machine";
 import { isPaused as isPausedEnum, isPrinting as isPrintingEnum } from "@/utils/enums";
 import { escapeFilename } from "@/utils/path";
 
 const machineStore = useMachineStore();
-const { btnSize: largeBtnSize } = useLargeButtons();
 
 const isSimulating = ref(false);
 
