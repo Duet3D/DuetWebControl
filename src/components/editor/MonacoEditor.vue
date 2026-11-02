@@ -35,6 +35,14 @@
 	overflow: auto;
 	tab-size: 4;
 }
+
+.editor-path-link {
+	color: inherit;
+	text-decoration: none;
+}
+.editor-path-link:hover {
+	text-decoration: underline;
+}
 </style>
 
 <template>
@@ -43,7 +51,9 @@
 		<v-toolbar :density="controlDensity" color="surface" class="ps-4 pe-2">
 			<v-icon class="mr-2">{{ languageIcon }}</v-icon>
 			<v-toolbar-title class="text-body-large text-truncate">
-				{{ Path.pretty(filename) }}
+				<template v-for="segment in pathSegments" :key="segment.directory">
+					<a href="javascript:void(0)" class="editor-path-link"
+					   @click.prevent="emit('openDirectory', segment.directory)">{{ segment.label }}</a>{{ segment.separator }}</template>{{ Path.extractFileName(filename) }}
 				<span v-if="dirty" class="text-warning">*</span>
 			</v-toolbar-title>
 
@@ -147,6 +157,7 @@ const props = defineProps<{
 const emit = defineEmits<{
 	saved: [filename: string];
 	dirty: [value: boolean];
+	openDirectory: [directory: string];
 }>();
 
 const machineStore = useMachineStore();
@@ -217,6 +228,22 @@ const isGCode = computed(() => language.value === "gcode-fdm" || language.value 
 const gcodeReferenceUrl = computed(() => {
 	const base = "https://docs.duet3d.com/en/User_manual/Reference/Gcodes";
 	return cursorCode.value ? `${base}/${cursorCode.value}` : base;
+});
+
+// Clickable directory parts of the title, rendered like Path.pretty() so volume 0 keeps its bare leading slash
+const pathSegments = computed(() => {
+	const match = /^(\d+):\/?(.*)$/.exec(props.filename);
+	const volume = match ? match[1] : "0";
+	const parts = (match ? match[2] : props.filename).split("/").filter(Boolean);
+	parts.pop();
+
+	let directory = `${volume}:/`;
+	const segments: Array<{ label: string; directory: string; separator: string }> = [{ label: (volume === "0") ? "/" : directory, directory, separator: "" }];
+	for (const part of parts) {
+		directory = Path.combine(directory, part);
+		segments.push({ label: part, directory, separator: "/" });
+	}
+	return segments;
 });
 
 const languageIcon = computed(() => {

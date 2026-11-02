@@ -87,7 +87,7 @@
 					<MonacoEditor v-if="tab.kind === 'editor' && tab.filename"
 								  :ref="(el) => setEditorRef(tab.id, el)" :filename="tab.filename"
 								  :initial-content="tab.initialContent" @dirty="tab.dirty = $event"
-								  @saved="onEditorSaved(tab)" />
+								  @saved="onEditorSaved(tab)" @open-directory="openBrowserTab" />
 					<FileList v-else v-model:directory="tab.directory"
 							  :options="optionsForTab(tab)"
 							  :root-directory="rootForTab(tab)" :root-label="rootLabelFor(tab)"
@@ -663,6 +663,21 @@ function openEditorTab(filename: string) {
 		id: nextTabId++,
 		kind: "editor",
 		filename,
+	};
+	tabs.value.push(tab);
+	activeTab.value = tab.id;
+}
+
+function openBrowserTab(directory: string) {
+	const existing = tabs.value.find((t) => (t.kind === "browser") && t.directory && Path.equals(t.directory, directory));
+	if (existing) {
+		activeTab.value = existing.id;
+		return;
+	}
+	const tab: ExplorerTab = {
+		id: nextTabId++,
+		kind: "browser",
+		directory
 	};
 	tabs.value.push(tab);
 	activeTab.value = tab.id;
