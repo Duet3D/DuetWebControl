@@ -63,16 +63,14 @@ const jobProgress = computed(() => machineStore.jobProgress);
 let wasPrinting = false;
 watch([machineName, status, jobProgress], () => {
 	const printing = isPrinting(status.value);
-	const showProgress = printing && jobProgress.value > 0;
-
-	if (showProgress) {
+	if (printing) {
 		Piecon.setProgress(Math.min(100, Math.max(0, jobProgress.value * 100)));
 	} else if (wasPrinting && !printing) {
 		Piecon.reset();
 	}
 	wasPrinting = printing;
 
-	const title = showProgress ? `(${(jobProgress.value * 100).toFixed(1)}%) ${machineName.value}` : machineName.value;
+	const title = printing ?`(${(jobProgress.value * 100).toFixed(1)}%) ${machineName.value}` : machineName.value;
 	if (document.title !== title) {
 		document.title = title;
 	}
