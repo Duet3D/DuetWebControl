@@ -643,6 +643,14 @@
 										{{ board.canAddress }}
 									</v-btn>
 									<template v-else>{{ board.canAddress ?? $t("generic.noValue") }}</template>
+									<v-tooltip v-if="getCanBus(board.canAddress) !== null" location="bottom"
+											   :text="getCanBusRange(getCanBus(board.canAddress))">
+										<template #activator="{ props: tooltipProps }">
+											<v-chip v-bind="tooltipProps" size="x-small" variant="tonal" class="ml-1">
+												CAN{{ getCanBus(board.canAddress) }}
+											</v-chip>
+										</template>
+									</v-tooltip>
 								</td>
 								<td v-if="hasAnyVin" class="text-center d-none d-lg-table-cell">
 									<v-tooltip v-if="board.vIn" location="bottom"
@@ -747,6 +755,9 @@
 												  :label="$t('settings.infrastructure.newCanAddress')"
 												  v-hint="$t('settings.infrastructure.newCanAddressHint')"
 												  variant="outlined" density="comfortable" />
+									<v-alert v-if="canAddressChangesBus" type="warning" variant="tonal" class="mt-3">
+										{{ $t("settings.infrastructure.canAddressOtherBus", [canAddressDialog.newAddress, getCanBus(canAddressDialog.newAddress), getCanBus(canAddressDialog.currentAddress)]) }}
+									</v-alert>
 									<v-alert type="info" variant="tonal" class="mt-3" icon="mdi-restart">
 										{{ $t("settings.infrastructure.canAddressRestartHint") }}
 									</v-alert>
@@ -920,7 +931,7 @@
 
 <script setup lang="ts">
 import { DisconnectedError } from "@duet3d/connectors";
-import { NetworkInterfaceState, NetworkInterfaceType } from "@duet3d/objectmodel";
+import { MainBoard, NetworkInterfaceState, NetworkInterfaceType } from "@duet3d/objectmodel";
 
 import { useDisplay } from "vuetify";
 
@@ -1029,6 +1040,19 @@ const hasAnyVin = computed(() => boards.value.some(board => board.vIn != null));
 const hasAnyV12 = computed(() => boards.value.some(board => board.v12 != null));
 const hasAnyMcuTemp = computed(() => boards.value.some(board => board.mcuTemp != null));
 const hasAnyFreeRam = computed(() => boards.value.some(board => board.freeRam != null));
+const canSplitAddress = computed(() => (machineStore.model.boards[0] instanceof MainBoard) ? machineStore.model.boards[0].canSplitAddress : null);
+
+// CAN0 serves the addresses from the split up to 125. The firmware update address 126 works on both buses
+function getCanBus(canAddress: number | null): number | null {
+	if ((canSplitAddress.value === null) || (canAddress === null) || (canAddress === 0) || (canAddress === 126)) {
+		return null;
+	}
+	return (canAddress >= canSplitAddress.value) ? 0 : 1;
+}
+
+function getCanBusRange(canBus: number | null): string {
+	return (canBus === 0) ? i18n.global.t("settings.infrastructure.canBusRange0", [canSplitAddress.value]) : i18n.global.t("settings.infrastructure.canBusRange1", [canSplitAddress.value! - 1]);
+}
 
 // Tabs run with comfortable density at xs/sm so the touch target is large enough on phones;
 // md+ stays compact since the cursor doesn't need the bigger hit area
@@ -1259,6 +1283,11 @@ const canAddressIsValid = computed(() => {
 	const n = canAddressDialog.newAddress;
 	return typeof n === "number" && Number.isInteger(n)
 		&& n >= 1 && n <= 126 && n !== canAddressDialog.currentAddress;
+});
+
+const canAddressChangesBus = computed(() => {
+	const newBus = getCanBus(canAddressDialog.newAddress), currentBus = getCanBus(canAddressDialog.currentAddress);
+	return canAddressIsValid.value && (newBus !== null) && (currentBus !== null) && (newBus !== currentBus);
 });
 
 function openCanAddressDialog(board: { name: string | null; canAddress: number | null }) {
