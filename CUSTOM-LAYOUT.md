@@ -142,6 +142,8 @@ The path keys must match vue-router's canonical form - the strings you see in `r
 
 Per-component settings (managed by the `useComponentSettings` composable) automatically derive separate identifiers for the original and the overriding component, so the two pages do not share state.
 
+If the page being overridden is kept alive (its route has `meta.keepAlive`, as DWC's Explorer does, or it was registered with `keepAlive`), the override is kept alive too. Give the overriding component `onActivated` / `onDeactivated` handlers for anything tied to being on screen, and make any watcher on the route ignore changes while the route is not its own - a kept-alive component keeps watching after the user has moved on.
+
 ## Auto-recovery when a plugin fails to load
 
 If the user previously activated a custom layout and the providing plugin later fails to load (uninstalled, network error, etc.), DWC clears the preference once plugin loading has settled (`dwcPluginsLoaded` event), reverts to the built-in shell, and shows a one-time warning. On the next plugin load, `takeoverOnFirstLoad` can re-activate the layout if the plugin still wants to claim it.
