@@ -28,7 +28,7 @@
 				{{ pauseResumeText }}
 			</CodeButton>
 
-			<v-btn-group v-if="isHeld && jobFileName" direction="vertical" divided class="d-flex mt-3">
+			<v-btn-group v-if="showFeedHold && isHeld && jobFileName" direction="vertical" divided class="d-flex mt-3">
 				<CodeButton color="error" code="M0" :disabled="isCancelling">
 					<v-icon start>mdi-stop</v-icon>
 					{{ cancelText }}
@@ -38,7 +38,7 @@
 					{{ $t("panel.jobControl.abortMotion") }}
 				</CodeButton>
 			</v-btn-group>
-			<CodeButton v-else-if="isPaused && (jobFileName || isHeld)" block class="mt-3" color="error" :urgent="!jobFileName"
+			<CodeButton v-else-if="isPaused && (jobFileName || (showFeedHold && isHeld))" block class="mt-3" color="error" :urgent="!jobFileName"
 						:code="jobFileName ? 'M0' : 'M25.1 S1'" :disabled="isCancelling">
 				<v-icon start>{{ jobFileName ? "mdi-stop" : "mdi-cancel" }}</v-icon>
 				{{ jobFileName ? cancelText : $t("panel.jobControl.abortMotion") }}

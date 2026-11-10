@@ -47,6 +47,9 @@ const printFile = computed(() => {
 	return name ? extractFileName(name) : null;
 });
 
+// A feed hold is the only job-like status that can be active without a job
+const jobRunning = computed(() => isPrinting(status.value) && (status.value !== MachineStatus.held || printFile.value !== null));
+
 const lastPrintFile = computed(() => {
 	const name = machineStore.model.job.lastFileName;
 	return name !== null ? extractFileName(name) : null;
@@ -64,7 +67,7 @@ watch(status, (to) => {
 }, { immediate: true });
 
 const printStatus = computed(() => {
-	if (isPrinting(status.value)) {
+	if (jobRunning.value) {
 		if (printFile.value) {
 			const progress = display(machineStore.jobProgress * 100, 1, "%");
 			if (isSimulating.value) {
@@ -90,7 +93,7 @@ const printStatus = computed(() => {
 });
 
 const printDetails = computed(() => {
-	if (!isPrinting(status.value)) {
+	if (!jobRunning.value) {
 		return "";
 	}
 
