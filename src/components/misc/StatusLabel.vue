@@ -48,6 +48,7 @@ const statusClass = computed(() => {
 		case MachineStatus.resuming:
 			return "bg-orange-lighten-1";
 		case MachineStatus.paused:
+		case MachineStatus.held:
 			return "bg-yellow-lighten-1";
 		case MachineStatus.processing:
 			return "bg-green text-white";

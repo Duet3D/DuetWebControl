@@ -144,6 +144,10 @@
 
 			<UploadButton v-if="lgAndUp" :class="isLargeButtons ? 'ms-5' : 'ms-3'" />
 
+			<FeedHoldButton v-if="showFeedHold" :class="isLargeButtons ? 'ms-5' : 'ms-3'" :large="isLargeButtons" />
+
+			<FeedHoldStopButton v-if="showFeedHoldStop" :class="isLargeButtons ? 'ms-5' : 'ms-3'" :large="isLargeButtons" />
+
 			<EmergencyButton v-if="settingsStore.showEmergencyStop" :class="isLargeButtons ? 'ms-5 me-4' : 'ms-3 me-2'" :large="isLargeButtons" />
 		</v-app-bar>
 
@@ -229,12 +233,12 @@ import { VExpandTransition } from "vuetify/components";
 
 import i18n from "@/i18n";
 
-import { MachineStatus } from "@duet3d/objectmodel";
+import { MachineMode, MachineStatus } from "@duet3d/objectmodel";
 
 import { useCacheStore } from "@/stores/cache";
 import { useMachineStore } from "@/stores/machine";
 import { type MenuBadge, type MenuCategoryDef, type MenuItem, useMenuStore } from "@/stores/menu";
-import { useSettingsStore } from "@/stores/settings";
+import { FeedHoldButton as FeedHoldButtonMode, useSettingsStore } from "@/stores/settings";
 import { useUiStore } from "@/stores/ui";
 import { isPaused, isPrinting } from "@/utils/enums";
 import { canListDevices, listDevices } from "@/utils/nativeApp";
@@ -256,6 +260,11 @@ const isMdAndUp = mdAndUp;
 // exposes the resulting app-bar height as the --v-layout-top CSS variable on <v-main>, which
 // the viewport-filling pages and plugin canvases read - no second source of truth to keep synced
 const isLargeButtons = computed(() => settingsStore.largeButtons && breakpointName.value === "sm");
+function showsForMode(mode: FeedHoldButtonMode): boolean {
+	return mode === FeedHoldButtonMode.always || (mode === FeedHoldButtonMode.cncOnly && machineStore.model.state.machineMode === MachineMode.cnc);
+}
+const showFeedHold = computed(() => showsForMode(settingsStore.showFeedHold));
+const showFeedHoldStop = computed(() => showsForMode(settingsStore.showFeedHoldStop));
 const appBarHeight = computed(() => isLargeButtons.value ? 80 : 64);
 
 // Drawer starts open on lg+ viewports and follows the lg breakpoint as the user resizes;

@@ -1,5 +1,5 @@
 import { CancellationToken, OnProgressCallback } from "@duet3d/connectors";
-import { MachineMode } from "@duet3d/objectmodel";
+import { CodeChannel, InputChannelState, MachineMode, MachineStatus } from "@duet3d/objectmodel";
 import { defineStore } from "pinia";
 
 import vuetify from "@/vue-plugins/vuetify";
@@ -319,13 +319,30 @@ export const useUiStore = defineStore("ui", {
 		},
 
 		/**
-		 * Indicates if the UI is supposed to be frozen
-		 * @param state Store state
-		 * @returns True if the UI is supposed to be frozen
+		 * Indicates if the UI is frozen because there is no usable connection
+		 * @returns True if the machine is not connected or the connection is changing
 		 */
-		uiFrozen: () => {
+		uiDisconnected: () => {
 			const machineStore = useMachineStore()
 			return machineStore.isConnecting || machineStore.isDisconnecting || !machineStore.isConnected;
+		},
+
+		/**
+		 * Indicates if a feed hold has frozen a move that came from DWC's own channel. That channel is stuck on the move,
+		 * so nothing sent from here can run until the hold is released, apart from the codes the firmware treats as urgent
+		 * @returns True if DWC's channel is blocked by a feed hold
+		 */
+		uiFrozenByHold: () => {
+			const machineStore = useMachineStore();
+			return machineStore.model.state.status === MachineStatus.held && (machineStore.model.inputs[CodeChannel.http]?.state ?? InputChannelState.idle) !== InputChannelState.idle;
+		},
+
+		/**
+		 * Indicates if the UI is supposed to be frozen
+		 * @returns True if the UI is supposed to be frozen
+		 */
+		uiFrozen(): boolean {
+			return this.uiDisconnected || this.uiFrozenByHold;
 		},
 
 		/**

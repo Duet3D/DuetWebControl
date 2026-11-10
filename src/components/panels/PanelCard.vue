@@ -10,6 +10,10 @@
 	min-width: 0;
 }
 
+.panel-title-append {
+	min-width: 0;
+}
+
 .panel-titles {
 	min-width: 0;
 	overflow: hidden;
@@ -31,7 +35,7 @@
 <template>
 	<v-card>
 		<v-card-title class="py-2 d-flex align-center">
-			<div ref="titleArea" class="panel-title-area d-flex align-center flex-grow-1">
+			<div ref="titleArea" class="panel-title-area d-flex align-center flex-shrink-1">
 				<div ref="expandedEl" class="panel-titles d-flex align-center" :class="{ 'panel-titles--measuring': collapsed }">
 					<template v-for="(entry, index) in resolvedTitles" :key="index">
 						<v-hover>
@@ -77,7 +81,10 @@
 				</v-menu>
 			</div>
 
-			<slot name="title-append" />
+			<!-- The title keeps its natural width and the slot takes the rest, so v-spacers inside it centre or right-align its content -->
+			<div v-if="slots['title-append']" class="panel-title-append d-flex align-center flex-grow-1">
+				<slot name="title-append" />
+			</div>
 		</v-card-title>
 
 		<slot />

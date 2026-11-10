@@ -60,9 +60,13 @@ const jobProgress = computed(() => machineStore.jobProgress);
 // Title and favicon wedge share one watcher so the title write is always the last writer:
 // Piecon.reset() restores the document.title it captured on its first setProgress call, which
 // would otherwise clobber the title back to a stale "(x%) name" when a print stops
+// A feed hold reports as a printing state even when only a jog or a macro was moving, so a job file must be loaded as well
+const jobFileName = computed(() => machineStore.model.job.file.fileName);
+const jobRunning = computed(() => isPrinting(status.value) && !!jobFileName.value);
+
 let wasPrinting = false;
-watch([machineName, status, jobProgress], () => {
-	const printing = isPrinting(status.value);
+watch([machineName, status, jobProgress, jobFileName], () => {
+	const printing = jobRunning.value;
 	if (printing) {
 		Piecon.setProgress(Math.min(100, Math.max(0, jobProgress.value * 100)));
 	} else if (wasPrinting && !printing) {
@@ -84,9 +88,8 @@ watch([machineName, status, jobProgress], () => {
 // (Settings > General > Behaviour > Switch to Job page on print start). Only navigates when
 // the user is on a page that doesn't already show full job controls - if they're already on
 // /Job/Status or on /Job/Webcam (watching the print live) we leave them alone
-let wasPrintingForNav = isPrinting(status.value);
-watch(status, (current) => {
-	const nowPrinting = isPrinting(current);
+let wasPrintingForNav = jobRunning.value;
+watch(jobRunning, (nowPrinting) => {
 	if (!wasPrintingForNav && nowPrinting && settingsStore.behaviour.switchToJobOnPrintStart
 		&& router.currentRoute.value.path !== "/Job/Status") {
 		router.push("/Job/Status").catch(() => { /* navigation guard rejections are fine */ });

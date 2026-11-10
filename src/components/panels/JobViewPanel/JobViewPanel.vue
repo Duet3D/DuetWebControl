@@ -20,6 +20,7 @@
 		</KeepAlive>
 
 		<template #title-append>
+			<v-spacer />
 			<v-menu v-if="settingsStore.enablePanelEditing" location="bottom end" :close-on-content-click="false">
 				<template #activator="{ props: menuProps }">
 					<v-btn v-bind="menuProps" icon="mdi-eye" variant="text" size="small" density="comfortable"

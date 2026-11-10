@@ -20,6 +20,24 @@
 		<template #title-append>
 			<v-spacer />
 
+			<!-- Feed hold controls, only while something moves or while held -->
+			<template v-if="settings.showFeedHoldControls && isHeld">
+				<CodeButton color="warning" size="small" code="M24" urgent :title="$t('button.feedHold.releaseTitle')" class="me-2">
+					<v-icon start>mdi-play</v-icon>
+					{{ $t("button.feedHold.release") }}
+				</CodeButton>
+				<CodeButton color="error" size="small" code="M25.1 S1" urgent :title="$t('button.feedHoldStop.title')">
+					<v-icon start>mdi-stop</v-icon>
+					{{ $t("panel.jobControl.abortMotion") }}
+				</CodeButton>
+			</template>
+			<CodeButton v-else-if="settings.showFeedHoldControls && motionActive" color="warning" size="small" code="M25.1" urgent :title="$t('button.feedHold.title')">
+				<v-icon start>mdi-hand-back-left</v-icon>
+				{{ $t("panel.jobControl.feedHold") }}
+			</CodeButton>
+
+			<v-spacer />
+
 			<!-- CNC: workplace coordinate selector -->
 			<v-select v-if="cnc" v-model="currentWorkplace" :items="workCoordinates" hide-details
 					  variant="outlined" density="compact" :label="$t('panel.movement.wcs')"
@@ -346,6 +364,10 @@
 					  :label="$t('panel.movement.settings.showAxisHomeButtons')"
 					  v-hint="$t('panel.movement.settings.showAxisHomeButtonsHint')"
 					  density="comfortable" hide-details />
+			<v-switch v-model="settings.showFeedHoldControls" color="primary"
+					  :label="$t('panel.movement.settings.showFeedHoldControls')"
+					  v-hint="$t('panel.movement.settings.showFeedHoldControlsHint')"
+					  density="comfortable" hide-details />
 
 			<v-divider class="my-3" />
 
@@ -386,6 +408,9 @@ const machineStore = useMachineStore();
 const uiStore = useUiStore();
 const { xs: isXs } = useDisplay();
 
+const isHeld = computed(() => machineStore.model.state.status === MachineStatus.held);
+const motionActive = computed(() => machineStore.model.move.currentMove.requestedSpeed > 0);
+
 // Compensation drop-down entries the user can show or hide from the panel settings
 type CompensationMenuItem = "runBed" | "disableBedCompensation" | "runMesh" | "editMesh"
 	| "loadMesh" | "disableMeshCompensation";
@@ -395,6 +420,8 @@ interface MovementPanelSettings {
 	displayedAxes: Array<number> | null;
 	showHomeAllButton: boolean;
 	showAxisHomeButtons: boolean;
+	// Show feed hold, resume and abort in the title while motion is in progress or held
+	showFeedHoldControls: boolean;
 	compensationItems: Array<CompensationMenuItem>;
 	// Feedrate sent with the manual move buttons (G1 F[value]), in mm/min
 	moveFeedrate: number;
@@ -407,6 +434,7 @@ const settings = useComponentSettings<MovementPanelSettings>({
 	displayedAxes: null,
 	showHomeAllButton: true,
 	showAxisHomeButtons: true,
+	showFeedHoldControls: true,
 	moveFeedrate: 6000,
 	moveSteps: defaultMoveSteps(),
 	compensationItems: props.cnc

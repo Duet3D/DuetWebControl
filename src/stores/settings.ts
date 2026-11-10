@@ -111,6 +111,12 @@ export enum LockableSliders {
 	disabled = "disabled"
 }
 
+export enum FeedHoldButton {
+	cncOnly = "cncOnly",
+	always = "always",
+	never = "never"
+}
+
 // Schema version embedded in persisted settings blobs. Bump SETTINGS_SCHEMA_VERSION and add a
 // step to {@link settingsUpgrades} whenever the shape changes incompatibly; the load path
 // chains upgrades from the persisted version up to the current one. Mirrors the pattern used by
@@ -395,6 +401,19 @@ export const useSettingsStore = defineStore("settings", {
 		 * overlay on persistent message boxes
 		 */
 		showEmergencyStop: true,
+
+		/**
+		 * Show a feed hold button (M25.1, M24 to resume) next to the emergency stop button in the app bar
+		 * - cncOnly: only when the machine runs in CNC mode, where feed hold is the usual way to stop a job
+		 * - always: in every machine mode
+		 * - never: hide it
+		 */
+		showFeedHold: FeedHoldButton.cncOnly as FeedHoldButton,
+
+		/**
+		 * Show a stop button (M25.1 S1, which stops the motion and aborts the job and all macros) next to the feed hold button in the app bar
+		 */
+		showFeedHoldStop: FeedHoldButton.cncOnly as FeedHoldButton,
 
 		/**
 		 * Route paths the user has opted to hide from the navigation drawer / hub page. Items

@@ -287,6 +287,16 @@
 												  :label="$t('settings.display.showEmergencyStop')"
 												  v-hint="$t('settings.display.showEmergencyStopHint')"
 												  density="comfortable" hide-details />
+										<v-select v-model="settingsStore.showFeedHold" :items="showFeedHoldOptions"
+												  item-title="label" item-value="value"
+												  :label="$t('settings.display.showFeedHold')"
+												  v-hint="$t('settings.display.showFeedHoldHint')"
+												  variant="outlined" density="comfortable" hide-details class="my-4" />
+										<v-select v-model="settingsStore.showFeedHoldStop" :items="showFeedHoldOptions"
+												  item-title="label" item-value="value"
+												  :label="$t('settings.display.showFeedHoldStop')"
+												  v-hint="$t('settings.display.showFeedHoldStopHint')"
+												  variant="outlined" density="comfortable" hide-details class="mb-4" />
 										<v-switch v-model="settingsStore.disableAutoComplete" color="primary"
 												  :label="$t('settings.display.disableAutoComplete')"
 												  v-hint="$t('settings.display.disableAutoCompleteHint')"
@@ -947,7 +957,7 @@ import { localStorageSupported, removeLocalSetting } from "@/utils/localStorage"
 import { useCacheStore } from "@/stores/cache";
 import { useMachineStore } from "@/stores/machine";
 import { useMenuStore } from "@/stores/menu";
-import { AutoScrollMode, DashboardMode, LockableSliders, UnitOfMeasure, useSettingsStore, WebcamFlip } from "@/stores/settings";
+import { AutoScrollMode, DashboardMode, FeedHoldButton, LockableSliders, UnitOfMeasure, useSettingsStore, WebcamFlip } from "@/stores/settings";
 import { LogLevel, useUiStore } from "@/stores/ui";
 import { display, displaySize } from "@/utils/display";
 import { isPrinting } from "@/utils/enums";
@@ -1107,6 +1117,12 @@ const lockableSlidersOptions = computed(() => [
 	{ label: i18n.global.t("settings.behaviour.lockableSlidersOptions.always"), value: LockableSliders.always },
 	{ label: i18n.global.t("settings.behaviour.lockableSlidersOptions.mobile"), value: LockableSliders.mobile },
 	{ label: i18n.global.t("settings.behaviour.lockableSlidersOptions.disabled"), value: LockableSliders.disabled },
+]);
+
+const showFeedHoldOptions = computed(() => [
+	{ label: i18n.global.t("settings.display.showFeedHoldOptions.cncOnly"), value: FeedHoldButton.cncOnly },
+	{ label: i18n.global.t("settings.display.showFeedHoldOptions.always"), value: FeedHoldButton.always },
+	{ label: i18n.global.t("settings.display.showFeedHoldOptions.never"), value: FeedHoldButton.never }
 ]);
 
 const flipOptions = computed(() => [

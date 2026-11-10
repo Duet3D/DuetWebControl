@@ -6,6 +6,7 @@
 		</v-card-text>
 
 		<template #title-append>
+			<v-spacer />
 			<v-btn v-if="settings.showTurnEverythingOff && anythingOn && canTurnEverythingOff" variant="text" size="small"
 				   density="comfortable" color="primary"
 				   :loading="turningEverythingOff" :title="$t('panel.tools.turnEverythingOff')"

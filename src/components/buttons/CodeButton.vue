@@ -1,5 +1,5 @@
 <template>
-	<v-btn :color="color" :variant="variant" :size="size" :disabled="$props.disabled || uiStore.uiFrozen"
+	<v-btn :color="color" :variant="variant" :size="size" :disabled="$props.disabled || (urgent ? uiStore.uiDisconnected : uiStore.uiFrozen)"
 		   :elevation="1" :loading="waitingForCode" @click="click">
 		<slot></slot>
 	</v-btn>
@@ -15,13 +15,22 @@ import { useUiStore } from "@/stores/ui";
 //
 // Vue casts an absent Boolean prop to false, which would turn off sendCode's reply and error logging
 const props = withDefaults(defineProps<{
+    // G-code(s) to send when the button is clicked
     code: string;
+    // Button colour, forwarded to v-btn
     color?: string;
+    // Button variant, forwarded to v-btn
     variant?: "flat" | "text" | "elevated" | "tonal" | "outlined" | "plain";
+    // Button size, forwarded to v-btn
     size?: "x-small" | "small" | "default" | "large" | "x-large";
+    // Disable the button regardless of the UI state
     disabled?: boolean;
+    // Log the reply and errors of the code
     log?: boolean;
+    // Send the code without waiting for its reply
     noWait?: boolean;
+    // The firmware executes this code ahead of a blocked channel (M112, M24, M25.1), so only a missing connection disables the button
+    urgent?: boolean;
 }>(), { log: true });
 
 const machineStore = useMachineStore(), uiStore = useUiStore();

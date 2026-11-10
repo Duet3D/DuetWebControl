@@ -39,6 +39,8 @@ declare module 'vue' {
     ExtrusionFactorsPanel: typeof import('./components/panels/ExtrusionFactorsPanel.vue')['default']
     FanPanel: typeof import('./components/panels/FanPanel.vue')['default']
     FansPanel: typeof import('./components/panels/FansPanel.vue')['default']
+    FeedHoldButton: typeof import('./components/buttons/FeedHoldButton.vue')['default']
+    FeedHoldStopButton: typeof import('./components/buttons/FeedHoldStopButton.vue')['default']
     FFFContainerPanel: typeof import('./components/panels/FFFContainerPanel.vue')['default']
     FFFDashboardPanel: typeof import('./components/panels/FFFDashboardPanel.vue')['default']
     FilamentDialog: typeof import('./components/dialogs/FilamentDialog.vue')['default']

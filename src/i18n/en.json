@@ -279,6 +279,7 @@
 			"updating": "Updating",
 			"off": "Off",
 			"halted": "Halted",
+			"held": "Held",
 			"pausing": "Pausing",
 			"paused": "Paused",
 			"resuming": "Resuming",
@@ -493,6 +494,16 @@
 		"emergencyStop": {
 			"caption": "Emergency Stop",
 			"title": "Enforce an immediate software reset (M112+M999)"
+		},
+		"feedHold": {
+			"caption": "Feed Hold",
+			"title": "Stop all motion as quickly as possible and keep the position (M25.1)",
+			"release": "Resume",
+			"releaseTitle": "Release the feed hold and carry on (M24)"
+		},
+		"feedHoldStop": {
+			"caption": "Stop",
+			"title": "Stop all motion as quickly as possible and abort the job and all macros (M25.1 S1)"
 		},
 		"refresh": {
 			"caption": "Refresh"
@@ -710,7 +721,18 @@
 			"repeatPrint": "Print Again",
 			"repeatSimulation": "Simulate Again",
 			"printNow": "Print Now",
-			"startJob": "Start Job"
+			"startJob": "Start Job",
+			"feedHold": "Feed Hold",
+			"abortMotion": "Abort",
+			"settings": {
+				"feedHoldButton": "Feed hold button",
+				"feedHoldButtonHint": "Show a feed hold button under the pause button. A feed hold stops all motion as quickly as the machine allows and Resume continues from the same point",
+				"feedHoldButtonOptions": {
+					"cncOnly": "Only in CNC mode",
+					"always": "Always",
+					"never": "Never"
+				}
+			}
 		},
 		"jobInfo": {
 			"caption": "Job Information",
@@ -926,6 +948,8 @@
 				"showHomeAllButtonHint": "Show the button that homes all axes at once",
 				"showAxisHomeButtons": "Show per-axis home buttons",
 				"showAxisHomeButtonsHint": "Show the individual home button for each axis",
+				"showFeedHoldControls": "Show feed hold controls",
+				"showFeedHoldControlsHint": "Show a feed hold button in the panel title while motion is in progress, and resume and abort buttons while the machine is held",
 				"compensationItems": "Compensation menu entries",
 				"compensationItemsHint": "Choose which entries appear in the compensation menu",
 				"moveFeedrate": "Jog feedrate",
@@ -1119,7 +1143,16 @@
 			"largeButtonsSmOnly": "sm only",
 			"largeButtonsSmOnlyHint": "Only takes effect on small (sm) touchscreens; larger screens always use the standard size.",
 			"showEmergencyStop": "Show emergency stop button",
-			"showEmergencyStopHint": "Show the emergency stop button in the app bar, the fullscreen G-code viewer and on persistent message boxes"
+			"showEmergencyStopHint": "Show the emergency stop button in the app bar, the fullscreen G-code viewer and on persistent message boxes",
+			"showFeedHold": "Feed hold button in the app bar",
+			"showFeedHoldHint": "Show a feed hold button next to the emergency stop button. A feed hold stops all motion as quickly as the machine allows and the same button resumes from that point",
+			"showFeedHoldOptions": {
+				"cncOnly": "Only in CNC mode",
+				"always": "Always",
+				"never": "Never"
+			},
+			"showFeedHoldStop": "Stop button in the app bar",
+			"showFeedHoldStopHint": "Show a stop button next to the feed hold button. It stops all motion as quickly as the machine allows and then aborts the job and all running macros"
 		},
 		"webcam": {
 			"caption": "Webcam",
